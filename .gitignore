@@ -1,1 +1,6 @@
 .idea/
+env
+.env
+bulb/data/*
+!.gitkeep
+.DS_Store
