@@ -1,0 +1,40 @@
+version: '3'
+services:
+  calyx:
+    build:
+      context: ./calyx
+    image: saffron-calyx:dev
+    container_name: saffron-calyx
+    env_file:
+      - ./calyx/.env
+    volumes:
+      - ./calyx/src:/opt/calyx
+    expose:
+      - 8000
+    depends_on:
+      - bulb
+    links:
+      - bulb
+  bulb:
+    image: studioaquatan/mysql-utf8mb4:latest
+    container_name: saffron-bulb
+    ports:
+      - '3306:3306'
+    env_file:
+      - ./bulb/.env
+    volumes:
+      - ./bulb/data:/var/lib/mysql
+  stigma:
+    image: nginx:latest
+    container_name: saffron-stigma
+    ports:
+      - '8000:80'
+    env_file:
+      - ./stigma/.env
+    volumes:
+      - ./stigma/conf:/etc/nginx/conf.d
+      - ./calyx/src/static:/usr/share/www/html/static
+    depends_on:
+      - calyx
+    links:
+      - calyx
