@@ -26,8 +26,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_jwt',
-    'djoser'
+    'djoser',
+    'users'
 ]
+
+AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -111,3 +114,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static/'
+
+STUDENT_EMAIL_DOMAIN = os.getenv('CALYX_STUDENT_EMAIL_DOMAIN', 'edu.kit.ac.jp')
