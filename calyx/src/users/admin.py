@@ -31,7 +31,6 @@ class MyUserAdmin(UserAdmin):
                 'is_staff',
                 'is_superuser',
                 'gpa',
-                'first_choice',
                 'password1',
                 'password2'
             )
