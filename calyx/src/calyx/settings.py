@@ -47,7 +47,9 @@ ROOT_URLCONF = 'calyx.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,6 +92,9 @@ DJOSER = {
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {},
+    'EMAIL': {
+        'activation': 'users.email.SaffronActivationEmail'
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -127,3 +132,12 @@ STATIC_URL = '/static/'
 STATIC_ROOT = 'static/'
 
 STUDENT_EMAIL_DOMAIN = os.getenv('CALYX_STUDENT_EMAIL_DOMAIN', 'edu.kit.ac.jp')
+
+# Site and email template variables
+SITE_NAME = os.getenv('SITE_NAME', 'Saffron')
+MANAGEMENT_TEAM_NAME = os.getenv('CALYX_MANAGEMENT_TEAM_NAME')
+MANAGEMENT_TEAM_EMAIL = os.getenv('CALYX_MANAGEMENT_TEAM_EMAIL', DEFAULT_FROM_EMAIL)
+
+# domain and protocol of petals
+PETALS_DOMAIN = os.getenv('PETALS_DOMAIN')
+PETALS_PROTOCOL = os.getenv('PETALS_PROTOCOL', 'https')

@@ -1,0 +1,32 @@
+{% block subject %}
+アカウント有効化 - {{ site_name }}
+{% endblock subject %}
+
+{% block text_body %}
+ご登録ありがとうございます！
+{{ site_name }}に登録されたアカウントの有効化のため、こちらのメールをお送りしています。
+
+下記ページにアクセスしてアカウントを有効化してください:
+{{ protocol }}://{{ domain }}/{{ url }}
+
+こちらのメールにお心当たりが無い場合、お手数ですが運営（{{ management_team_email }}）までお問い合わせください。
+
+よい学生生活を!
+
+{{ management_team_name }}
+{% endblock text_body %}
+
+{% block html_body %}
+<h3>ご登録ありがとうございます！</h3>
+<p>{{ site_name }}に登録されたアカウントの有効化のため、こちらのメールをお送りしています。</p>
+
+<p>下記ページにアクセスしてアカウントを有効化してください:</p>
+<p><a href="{{ protocol }}://{{ domain }}/{{ url }}">{{ protocol }}://{{ domain }}/{{ url }}</a></p>
+
+<p>こちらのメールにお心当たりが無い場合、お手数ですが運営（{{ management_team_email }}）までお問い合わせください。</p>
+
+<p>よい学生生活を!</p>
+
+<p>{{ management_team_name }}</p>
+
+{% endblock html_body %}
