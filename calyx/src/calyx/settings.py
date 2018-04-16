@@ -71,8 +71,17 @@ DATABASES = {
         'PASSWORD': os.getenv('BULB_DB_PASSWORD'),
         'PORT': int(os.getenv('BULB_DB_PORT', '3306')),
     }
-
 }
+
+EMAIL_HOST = os.getenv('CALYX_EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('CALYX_EMAIL_PORT'))
+EMAIL_HOST_USER = os.getenv('CALYX_EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('CALYX_EMAIL_PASSWORD')
+EMAIL_USE_TLS = os.getenv('CALYX_EMAIL_USE_TLS', 'False').lower() == 'true'
+DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM')
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # デバッグ時はコンソールに出力
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
