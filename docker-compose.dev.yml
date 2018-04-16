@@ -1,9 +1,7 @@
 version: '3'
 services:
   calyx:
-    build:
-      context: ./calyx
-    image: saffron-calyx:dev
+    image: studioaquatan/saffron-calyx:dev
     container_name: saffron-calyx
     env_file:
       - ./calyx/.env
