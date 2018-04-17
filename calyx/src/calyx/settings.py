@@ -26,8 +26,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_jwt',
-    'djoser'
+    'djoser',
+    'users'
 ]
+
+AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -44,7 +47,9 @@ ROOT_URLCONF = 'calyx.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,14 +73,29 @@ DATABASES = {
         'PASSWORD': os.getenv('BULB_DB_PASSWORD'),
         'PORT': int(os.getenv('BULB_DB_PORT', '3306')),
     }
-
 }
+
+EMAIL_HOST = os.getenv('CALYX_EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('CALYX_EMAIL_PORT'))
+EMAIL_HOST_USER = os.getenv('CALYX_EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('CALYX_EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.getenv('CALYX_EMAIL_USE_TLS', 'False').lower() == 'true'
+DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM')
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # デバッグ時はコンソールに出力
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
     'SERIALIZERS': {},
+    'EMAIL': {
+        'activation': 'users.email.SaffronActivationEmail'
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -111,3 +131,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static/'
+
+STUDENT_EMAIL_DOMAIN = os.getenv('CALYX_STUDENT_EMAIL_DOMAIN', 'edu.kit.ac.jp')
+
+# Site and email template variables
+SITE_NAME = os.getenv('SITE_NAME', 'Saffron')
+MANAGEMENT_TEAM_NAME = os.getenv('CALYX_MANAGEMENT_TEAM_NAME')
+MANAGEMENT_TEAM_EMAIL = os.getenv('CALYX_MANAGEMENT_TEAM_EMAIL', DEFAULT_FROM_EMAIL)
+
+# domain and protocol of petals
+PETALS_DOMAIN = os.getenv('PETALS_DOMAIN')
+PETALS_PROTOCOL = os.getenv('PETALS_PROTOCOL', 'https')
