@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
+from courses.models import Course
 
 
 class UserManager(BaseUserManager):
@@ -52,6 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     screen_name = models.CharField(max_length=255, null=True, blank=True, verbose_name='氏名')
     gpa = models.FloatField(verbose_name='GPA', blank=True, null=True)
+    # 荒らしに備え，課程の情報を削除してリセットできるようにする
+    # models.SET_NULLはリレーション先が削除されたときこのカラムにnullをセットする
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='課程')
 
     # 課程ごとのAdminかどうか
     is_admin = models.BooleanField(default=False)
