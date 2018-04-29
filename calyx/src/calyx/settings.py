@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework_jwt',
     'djoser',
     'years',
+    'courses',
     'users'
 ]
 
