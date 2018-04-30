@@ -21,6 +21,7 @@ class MyUserAdmin(UserAdmin):
         'username',
         'screen_name',
         'is_active',
+        'course'
     )
     add_fieldsets = (
         (None, {
@@ -32,7 +33,8 @@ class MyUserAdmin(UserAdmin):
                 'is_superuser',
                 'gpa',
                 'password1',
-                'password2'
+                'password2',
+                'course'
             )
         }),
     )
@@ -45,7 +47,8 @@ class MyUserAdmin(UserAdmin):
                 'is_staff',
                 'is_superuser',
                 'gpa',
-                'password'
+                'password',
+                'course'
             )
         }),
     )
