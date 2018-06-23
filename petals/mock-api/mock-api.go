@@ -1,28 +1,41 @@
 package main
 
 import (
-	"net/http"
-	"net/http/httputil"
-	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
-func helloHandler(w http.ResponseWriter, r *http.Request){
-	dump, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-		return
+func loginHandler(c *gin.Context){
+	email := c.PostForm("email")
+	password := c.PostForm("password")
+
+	if email == os.Getenv("EMAIL") && password == os.Getenv("PASSWORD") {
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "login success",
+		})
+	}else{
+		c.JSON(401, gin.H{
+			"success": false,
+			"message": "Authentication failed. Wrong password.",
+		})
 	}
-	log.Println(string(dump))
-	fmt.Fprint(w, "<html><body>Saffron API Mock</body></html>")
 }
 
 func main() {
-	var mock http.Server
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	http.HandleFunc("/", helloHandler)
-
-	log.Println("start api mock: http://localhost:3000")
-	mock.Addr = ":3000"
-	log.Println(mock.ListenAndServe())
+	router := gin.Default()
+	router.GET("/", func(c *gin.Context){
+		c.JSON(200, gin.H{
+			"message": "Saffron API Mock",
+		})
+	})
+	router.POST("/login", loginHandler)
+	router.Run(":3000")
 }
