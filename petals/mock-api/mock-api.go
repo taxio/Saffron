@@ -44,6 +44,22 @@ func signupHandler(c *gin.Context){
 	}
 }
 
+type Lab struct {
+	Name		string	`json:"name"`
+	Capacity	int		`json:"capacity"`
+	CourceId	int		`json:"course_id"`
+}
+type Labs []Lab
+var labs = Labs{
+	Lab{Name:"lab1", Capacity:4, CourceId:1},
+	Lab{Name:"lab2", Capacity:3, CourceId:2},
+	Lab{Name:"lab3", Capacity:4, CourceId:3},
+	Lab{Name:"lab4", Capacity:2, CourceId:4},
+}
+func labsHandler(c *gin.Context){
+	c.JSON(200, labs)
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -58,5 +74,7 @@ func main() {
 	})
 	router.POST("/login", loginHandler)
 	router.POST("/signup", signupHandler)
-	router.Run(":3000")
+	router.GET("/labs", labsHandler)
+
+	router.Run(os.Getenv("PORT"))
 }
