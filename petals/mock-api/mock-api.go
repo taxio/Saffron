@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"regexp"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func loginHandler(c *gin.Context) {
@@ -56,6 +57,7 @@ var labs = Labs{
 	Lab{Name: "lab2", Capacity: 3, CourceId: 2},
 	Lab{Name: "lab3", Capacity: 4, CourceId: 3},
 	Lab{Name: "lab4", Capacity: 2, CourceId: 4},
+	Lab{Name: "lab5", Capacity: 4, CourceId: 5},
 }
 
 func labsHandler(c *gin.Context) {
