@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func loginHandler(c *gin.Context){
+func loginHandler(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 
@@ -17,7 +17,7 @@ func loginHandler(c *gin.Context){
 			"success": true,
 			"message": "login success",
 		})
-	}else{
+	} else {
 		c.JSON(401, gin.H{
 			"success": false,
 			"message": "Authentication failed. Wrong password.",
@@ -25,7 +25,7 @@ func loginHandler(c *gin.Context){
 	}
 }
 
-func signupHandler(c *gin.Context){
+func signupHandler(c *gin.Context) {
 	email := c.PostForm("email")
 	//password := c.PostForm("password")
 
@@ -36,7 +36,7 @@ func signupHandler(c *gin.Context){
 			"success": true,
 			"message": "signup success",
 		})
-	}else {
+	} else {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "validation error of email",
@@ -45,18 +45,20 @@ func signupHandler(c *gin.Context){
 }
 
 type Lab struct {
-	Name		string	`json:"name"`
-	Capacity	int		`json:"capacity"`
-	CourceId	int		`json:"course_id"`
+	Name     string `json:"name"`
+	Capacity int    `json:"capacity"`
+	CourceId int    `json:"course_id"`
 }
 type Labs []Lab
+
 var labs = Labs{
-	Lab{Name:"lab1", Capacity:4, CourceId:1},
-	Lab{Name:"lab2", Capacity:3, CourceId:2},
-	Lab{Name:"lab3", Capacity:4, CourceId:3},
-	Lab{Name:"lab4", Capacity:2, CourceId:4},
+	Lab{Name: "lab1", Capacity: 4, CourceId: 1},
+	Lab{Name: "lab2", Capacity: 3, CourceId: 2},
+	Lab{Name: "lab3", Capacity: 4, CourceId: 3},
+	Lab{Name: "lab4", Capacity: 2, CourceId: 4},
 }
-func labsHandler(c *gin.Context){
+
+func labsHandler(c *gin.Context) {
 	c.JSON(200, labs)
 }
 
@@ -67,7 +69,7 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.GET("/", func(c *gin.Context){
+	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Saffron API Mock",
 		})
