@@ -1,17 +1,38 @@
-import React from 'react';
-import { Route, Switch } from 'react-router';
-import { HashRouter } from 'react-router-dom';
+import React, { Component } from 'react';
+import {HashRouter, Switch, Route} from 'react-router-dom';
 
-import TopPage from './components/TopPage';
+import NavBar from './components/NavBar';
+import Footer from './components/Footer';
+import Home from './components/Home';
 
-export const App = () => (
-  <HashRouter>
-    <Route path="/" component={ MainRoute } />
-  </HashRouter>
-);
+class Base extends Component {
+  render() {
+    return(
+      <div>
+        <NavBar/>
+        {this.props.children}
+        <Footer/>
+      </div>
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <HashRouter>
+        <Route path='/' component={MainRoute}/>
+      </HashRouter>
+    );
+  }
+}
 
 const MainRoute = () => (
-  <Switch>
-    <Route path="/" component={ TopPage }/>
-  </Switch>
+  <Base>
+    <Switch>
+      <Route path='/' component={Home}/>
+    </Switch>
+  </Base>
 );
+
+export default App;
