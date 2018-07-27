@@ -1,33 +1,45 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 
-const NavBar = () => (
-  <header>
-    <nav className="navbar navbar-default">
-      <div className="container-fluid">
-        <div className="navbar-header">
-          <button className="navbar-toggle collapsed" type="button" data-toggle="collapse"
-                  data-target="#navbar-collapse" aria-expanded="false">
-            <span className="sr-only">Toggle navifation</span>
-            <span className="icon-bar"/>
-            <span className="icon-bar"/>
-            <span className="icon-bar"/>
-          </button>
-          <Link to="#" className="navbar-brand">Saffron</Link>
-        </div>
-        <div className="collapse navbar-collapse" id="navbar-collapse">
-          <ul className="nav navbar-nav navbar-right">
-            {/*{this.props.isLogin ?*/}
-              {/*<li className="active"><Link to="#" onClick={this.logout.bind(this)}>Log out</Link></li> :*/}
-              {/*null*/}
-            {/*}*/}
-            <li><Link to="#">Saffronとは</Link></li>
-            <li><Link to="#">お問い合わせ</Link></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </header>
-);
+export default class NavBar extends Component {
+  constructor(props){
+    super(props);
 
-export default NavBar;
+    this.state = {
+      isLogin: false,
+    };
+  }
+
+  render() {
+    return (
+      <header>
+        <nav className='navbar navbar-expand-lg navbar-dark bg-primary'>
+          <Link to='#' className='navbar-brand'>Saffron</Link>
+          <button
+            className='navbar-toggler collapsed'
+            type='button'
+            data-toggle="collapse"
+            data-target="#headerNavbar"
+            aria-controls="headerNavbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className='navbar-toggler-icon'/>
+          </button>
+
+          <div className='collapse navbar-collapse' id='headerNavbar'>
+            <ul className='navbar-nav mr-auto'>
+              <li className='nav-item active'><Link to="#" className='nav-link'>Saffronとは</Link></li>
+              <li className='nav-item'><Link to="#" className='nav-link'>お問い合わせ</Link></li>
+            </ul>
+            {this.state.isLogin ? null :
+              <form className='form-inline'>
+                <button className='btn btn-info'>Log out</button>
+              </form>
+            }
+          </div>
+        </nav>
+      </header>
+    );
+  }
+}
