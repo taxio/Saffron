@@ -4,3 +4,5 @@ env
 bulb/data/*
 !.gitkeep
 .DS_Store
+.venv
+__pycache__
