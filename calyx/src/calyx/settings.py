@@ -5,14 +5,22 @@ Calyx is a backend implementation of Saffron ( https://github.com/StudioAquatan/
 """
 
 import os
+import dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DEBUG = os.getenv('CALYX_DEBUG', 'False').lower() == 'true'
+
+env_file = os.path.join(BASE_DIR, '.env')
+
+if DEBUG and os.path.exists(env_file):
+    dotenv.load_dotenv(env_file)
 
 SECRET_KEY = os.getenv('CALYX_SECRET_KEY')
 
 ALLOWED_HOSTS = []
 
-for host in os.getenv('CALYX_ALLOWED_HOSTS').split(','):
+for host in os.getenv('CALYX_ALLOWED_HOSTS', '*').split(','):
     ALLOWED_HOSTS.append(host.strip())
 
 INSTALLED_APPS = [
