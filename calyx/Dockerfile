@@ -17,10 +17,11 @@ RUN apk update && \
         build-base \
         linux-headers \
         tzdata && \
-    pip3 install -r requirements.txt && \
+    pip3 install pipenv && \
+    pipenv install && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     apk del --purge build_dep && \
     rm /usr/lib/libmysqld* && \
     rm -rf /var/cache/apk/*
 
-CMD ["/usr/bin/uwsgi", "--ini", "uwsgi.ini"]
+CMD ["pipenv", "run", "uwsgi", "--ini", "uwsgi.ini"]
