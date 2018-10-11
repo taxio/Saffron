@@ -9,12 +9,12 @@ import dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = os.getenv('CALYX_DEBUG', 'False').lower() == 'true'
-
 env_file = os.path.join(BASE_DIR, '.env')
 
-if DEBUG and os.path.exists(env_file):
+if os.path.exists(env_file):
     dotenv.load_dotenv(env_file)
+
+DEBUG = os.getenv('CALYX_DEBUG', 'False').lower() == 'true'
 
 SECRET_KEY = os.getenv('CALYX_SECRET_KEY')
 
@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'rest_framework_jwt',
     'rest_framework_swagger',
     'djoser',
-    'years',
     'courses',
     'users',
     'labs'
@@ -102,7 +101,9 @@ DJOSER = {
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': True,
-    'SERIALIZERS': {},
+    'SERIALIZERS': {
+        'user': 'users.serializers.UserSerializer',
+    },
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail'
     }
@@ -126,7 +127,13 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
+}
+
+SWAGGER_SETTINGS = {
+    'LOGIN_URL': 'accounts:login',
+    'LOGOUT_URL': 'accounts:logout',
 }
 
 LANGUAGE_CODE = 'ja-jp'

@@ -1,7 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.validators import ASCIIUsernameValidator
 from django.conf import settings
 from courses.models import Course
+
+
+class StudentNumberValidator(ASCIIUsernameValidator):
+    regex = r'^[bmd]\d{7}$'
+    message = 'Enter a valid student number. For example, b1234567 or m7654321.'
 
 
 class UserManager(BaseUserManager):
@@ -28,22 +34,27 @@ class UserManager(BaseUserManager):
         student.save(using=self.db)
         return student
 
-    def create_superuser(self, student_number, password):
+    def create_superuser(self, username, password, **kwargs):
         """
         /adminにログインできるスーパーユーザ作成用の関数
-        :param student_number: 学生ID *必須*
+        :param username: 学生ID *必須*
         :param password: パスワード
         :return: 作成されたStudentのインスタンス
         """
-        return self.create_user(student_number=student_number, password=password, is_staff=True, is_superuser=True)
+        return self.create_user(username=username, password=password, is_staff=True,
+                                is_superuser=True, is_active=True, **kwargs)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
     学生のモデル
     """
+    # ユーザ名をバリデーション
+    username_validator = StudentNumberValidator()
+
     username = models.CharField(max_length=64, unique=True, verbose_name='学生ID',
-                                help_text='小文字の英数字および数字のみ使用できます')
+                                help_text='小文字の英数字および数字のみ使用できます',
+                                validators=[username_validator])
     email = models.EmailField(max_length=255, unique=True, default='')
     is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
