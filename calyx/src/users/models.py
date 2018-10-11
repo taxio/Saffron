@@ -71,6 +71,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     # 課程ごとのAdminかどうか
     is_admin = models.BooleanField(default=False)
 
+    # 課程に正しいPINコードを入力して参加したかどうかのフラグ
+    joined = models.BooleanField(default=False)
+
     # ユーザ名のフィールドを学生IDに設定
     USERNAME_FIELD = 'username'
 
