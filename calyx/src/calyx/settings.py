@@ -101,7 +101,9 @@ DJOSER = {
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': True,
-    'SERIALIZERS': {},
+    'SERIALIZERS': {
+        'user': 'users.serializers.UserSerializer',
+    },
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail'
     }
@@ -125,7 +127,13 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
+}
+
+SWAGGER_SETTINGS = {
+    'LOGIN_URL': 'accounts:login',
+    'LOGOUT_URL': 'accounts:logout',
 }
 
 LANGUAGE_CODE = 'ja-jp'
