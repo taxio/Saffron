@@ -9,12 +9,12 @@ import dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = os.getenv('CALYX_DEBUG', 'False').lower() == 'true'
-
 env_file = os.path.join(BASE_DIR, '.env')
 
-if DEBUG and os.path.exists(env_file):
+if os.path.exists(env_file):
     dotenv.load_dotenv(env_file)
+
+DEBUG = os.getenv('CALYX_DEBUG', 'False').lower() == 'true'
 
 SECRET_KEY = os.getenv('CALYX_SECRET_KEY')
 
