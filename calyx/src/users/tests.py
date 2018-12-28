@@ -2,6 +2,7 @@ import re
 from urllib.parse import urlparse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase
+from rest_framework_jwt.settings import api_settings
 from django.urls import reverse, path, include
 from django.core import mail
 from django.conf import settings
@@ -12,7 +13,7 @@ from .models import User
 class UserRegistrationTests(APITestCase, URLPatternsTestCase):
     """ユーザ登録周りのテスト"""
     urlpatterns = [
-        path('auth/', include('djoser.urls'))
+        path('', include('djoser.urls.base'))
     ]
 
     def setUp(self):
@@ -29,6 +30,13 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         }
         self.user_data = {'username': 'b0000000', 'password': 'testpass', 'screen_name': 'testuser'}
         self.user_email = self.user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN
+
+    def _set_credentials(self, user):
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
 
     def test_create_user(self):
         """ユーザ作成プロセスのテスト"""
@@ -83,3 +91,11 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         extra_param_resp = self.client.post(reverse('user-create'),
                                             data=dict(**self.user_data, hoge='fuga'), format='json')
         self.assertEqual(extra_param_resp .status_code, status.HTTP_201_CREATED)
+
+    def test_delete_user(self):
+        """ユーザを論理削除するテスト"""
+        user = User.objects.create_user(**self.user_data, is_active=True)
+        self._set_credentials(user)
+        resp = self.client.delete('/users/me/', data=self.user_data)
+        self.assertEqual(204, resp.status_code)
+        self.assertEqual(True, User.all_objects.get(pk=user.pk).is_deleted)

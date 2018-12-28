@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_jwt',
+    'rest_framework.authtoken',
     'rest_framework_swagger',
     'djoser',
     'courses',
@@ -104,6 +105,7 @@ DJOSER = {
     'SERIALIZERS': {
         'user': 'users.serializers.UserSerializer',
         'user_create': 'users.serializers.UserSerializer',
+        'user_delete': 'users.serializers.UserSerializer',
     },
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail'
