@@ -3,6 +3,7 @@ import './App.css';
 
 import logo from './logo.svg';
 
+// Routing
 class App extends React.Component {
   public render() {
     return (

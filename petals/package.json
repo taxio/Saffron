@@ -9,12 +9,14 @@
     "react-dom": "^16.7.0",
     "react-redux": "^6.0.0",
     "react-scripts-ts": "3.1.0",
-    "redux": "^4.0.1"
+    "redux": "^4.0.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
   },
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
+    "test": "jest",
     "eject": "react-scripts-ts eject",
     "tslint:prettier-check": "tslint-config-prettier-check ./tslint.json",
     "tslint": "tslint --fix --force --format stylish --project ./tsconfig.json ./{src,__tests__}/**/*.{ts,tsx}",
@@ -26,6 +28,20 @@
     "printWidth": 120,
     "trailingComma": "es5"
   },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  },
   "devDependencies": {
     "@types/jest": "^23.3.10",
     "@types/node": "^10.12.18",
@@ -33,7 +49,9 @@
     "@types/react-dom": "^16.0.11",
     "@types/react-redux": "^6.0.11",
     "@types/redux": "^3.6.0",
+    "fetch-mock": "^7.2.7",
     "prettier": "^1.15.3",
+    "sinon": "^7.2.2",
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
     "tslint-plugin-prettier": "^2.0.1",
