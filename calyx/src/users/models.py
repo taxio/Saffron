@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, transaction
+from django.db.utils import IntegrityError
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import ASCIIUsernameValidator
 from django.conf import settings
@@ -51,13 +52,22 @@ class UserManager(BaseUserManager):
         """
         if not username:
             return ValueError('Student number is required')
-        student = self.model(
-            username=username,
-            email=username + '@' + settings.STUDENT_EMAIL_DOMAIN,  # メールアドレスを動的に生成
-            **extra_fields
-        )
-        student.set_password(password)
-        student.save(using=self.db)
+        try:
+            with transaction.atomic():
+                student = self.model(
+                    username=username,
+                    email=username + '@' + settings.STUDENT_EMAIL_DOMAIN,  # メールアドレスを動的に生成
+                    **extra_fields
+                )
+                student.set_password(password)
+                student.save(using=self.db)
+        except IntegrityError:
+            with transaction.atomic():
+                # 論理削除したユーザを復活
+                student = self.get(username=username)
+                student.is_deleted = False
+                student.deleted_at = None
+                student.save(using=self.db)
         return student
 
     def create_superuser(self, username, password, **kwargs):

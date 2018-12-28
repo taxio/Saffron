@@ -99,3 +99,10 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         resp = self.client.delete('/users/me/', data=self.user_data)
         self.assertEqual(204, resp.status_code)
         self.assertEqual(True, User.all_objects.get(pk=user.pk).is_deleted)
+        # 削除したユーザを再度作成
+        before_del_id = user.pk
+        user = User.all_objects.create_user(**self.user_data, is_active=True)
+        self._set_credentials(user)
+        resp = self.client.get('/users/me/')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(before_del_id, resp.data['pk'])

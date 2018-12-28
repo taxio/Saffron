@@ -15,4 +15,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Create new user"""
-        return User.objects.create_user(**validated_data)
+        return User.all_objects.create_user(**validated_data)
