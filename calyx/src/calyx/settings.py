@@ -103,6 +103,7 @@ DJOSER = {
     'SEND_CONFIRMATION_EMAIL': True,
     'SERIALIZERS': {
         'user': 'users.serializers.UserSerializer',
+        'user_create': 'users.serializers.UserSerializer',
     },
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail'

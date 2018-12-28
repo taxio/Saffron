@@ -5,4 +5,14 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'screen_name', 'gpa', 'is_admin', 'joined')
+        fields = ('pk', 'username', 'email', 'password','screen_name', 'gpa', 'is_admin', 'joined')
+        extra_kwargs = {
+            'joined': {'read_only': True},
+            'is_admin': {'read_only': True},
+            'email': {'read_only': True},
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        """Create new user"""
+        return User.objects.create_user(**validated_data)
