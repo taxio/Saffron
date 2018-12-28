@@ -1,27 +1,29 @@
-FROM alpine:3.7
+FROM python:3.7.0-alpine3.8
 
 ENV PROJECT_DIR /opt/calyx
+
+RUN apk update && \
+    apk add --no-cache \
+        mariadb-dev \
+        pcre-dev && \
+    rm -rf /var/cache/apk/*
 
 COPY src/ ${PROJECT_DIR}
 
 WORKDIR ${PROJECT_DIR}
 
 RUN apk update && \
-    apk add --no-cache \
-        mariadb-dev \
-        pcre-dev \
-        python3 && \
     apk add --no-cache --virtual=build_dep \
-        python3-dev \
         gcc \
         build-base \
         linux-headers \
         tzdata && \
     pip3 install pipenv && \
-    pipenv install && \
+    PIPENV_VENV_IN_PROJECT=true pipenv install && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     apk del --purge build_dep && \
-    rm /usr/lib/libmysqld* && \
     rm -rf /var/cache/apk/*
 
-CMD ["pipenv", "run", "uwsgi", "--ini", "uwsgi.ini"]
+ENTRYPOINT ["pipenv", "run"]
+
+CMD ["uwsgi", "--ini", "uwsgi.ini"]
