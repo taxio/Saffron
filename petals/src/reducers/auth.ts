@@ -1,4 +1,4 @@
-import { AuthAction, AuthActionType } from '../actions';
+import { AuthAction, AuthActionType } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 function auth(state: Auth, action: AuthAction): Auth {

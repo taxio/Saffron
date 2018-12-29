@@ -2,7 +2,7 @@ import { Button, Card, CardContent, FormControl, Grid, TextField } from '@materi
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { AuthAction, login } from '../actions';
+import { AuthAction, login } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 import * as H from 'history';

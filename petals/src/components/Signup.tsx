@@ -2,7 +2,7 @@ import { Button, Card, CardContent, Checkbox, FormControl, FormControlLabel, Gri
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { AuthAction, signup } from '../actions';
+import { AuthAction, signup } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 interface SignupProps {

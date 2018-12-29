@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { AuthAction, logout } from '../actions';
+import { AuthAction, logout } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 interface HeaderProps {
