@@ -85,17 +85,18 @@ DATABASES = {
     }
 }
 
-EMAIL_HOST = os.getenv('CALYX_EMAIL_HOST')
-EMAIL_PORT = int(os.getenv('CALYX_EMAIL_PORT'))
-EMAIL_HOST_USER = os.getenv('CALYX_EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('CALYX_EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = os.getenv('CALYX_EMAIL_USE_TLS', 'False').lower() == 'true'
-DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM')
+DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM', 'example@example.com')
+EMAIL_ENABLED = os.getenv('CALYX_EMAIL_ENABLED').lower() == 'true'
 
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # デバッグ時はコンソールに出力
-else:
+if EMAIL_ENABLED:
+    EMAIL_HOST = os.getenv('CALYX_EMAIL_HOST')
+    EMAIL_PORT = int(os.getenv('CALYX_EMAIL_PORT'))
+    EMAIL_HOST_USER = os.getenv('CALYX_EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('CALYX_EMAIL_HOST_PASSWORD')
+    EMAIL_USE_TLS = os.getenv('CALYX_EMAIL_USE_TLS', 'False').lower() == 'true'
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # デバッグ時はコンソールに出力
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
@@ -157,9 +158,9 @@ STUDENT_EMAIL_DOMAIN = os.getenv('CALYX_STUDENT_EMAIL_DOMAIN', 'edu.kit.ac.jp')
 
 # Site and email template variables
 SITE_NAME = os.getenv('SITE_NAME', 'Saffron')
-MANAGEMENT_TEAM_NAME = os.getenv('CALYX_MANAGEMENT_TEAM_NAME')
+MANAGEMENT_TEAM_NAME = os.getenv('CALYX_MANAGEMENT_TEAM_NAME', 'Saffron')
 MANAGEMENT_TEAM_EMAIL = os.getenv('CALYX_MANAGEMENT_TEAM_EMAIL', DEFAULT_FROM_EMAIL)
 
 # domain and protocol of petals
-PETALS_DOMAIN = os.getenv('PETALS_DOMAIN')
-PETALS_PROTOCOL = os.getenv('PETALS_PROTOCOL', 'https')
+PETALS_DOMAIN = os.getenv('PETALS_DOMAIN', 'localhost')
+PETALS_PROTOCOL = os.getenv('PETALS_PROTOCOL', 'http')
