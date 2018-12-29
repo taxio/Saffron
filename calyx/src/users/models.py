@@ -16,8 +16,10 @@ class SoftDeletionQuerySet(models.QuerySet):
 
     def delete(self):
         """削除日と削除フラグをアップデートするのみ"""
+        # TODO: 志望研究室も消す
         return super(SoftDeletionQuerySet, self).update(
             deleted_at=timezone.now(),
+            gpa=None,
             is_deleted=True
         )
 
@@ -65,6 +67,7 @@ class UserManager(BaseUserManager):
             with transaction.atomic():
                 # 論理削除したユーザを復活
                 student = self.get(username=username)
+                student.set_password(password)
                 student.is_deleted = False
                 student.deleted_at = None
                 student.save(using=self.db)
@@ -136,11 +139,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name = '学生'
         verbose_name_plural = '学生'
 
-    def delete(self):
+    def delete(self, *args, **kwargs):
         """
         ユーザを論理削除する関数
         :return:
         """
         self.is_deleted = True
         self.deleted_at = timezone.now()
+        # TODO: 志望研究室も消す
+        self.gpa = None
         self.save()
