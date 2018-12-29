@@ -6,6 +6,7 @@ import theme from './lib/theme';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
+import Signup from './components/Signup';
 
 const App = () => (
   <MuiThemeProvider theme={theme}>
@@ -15,6 +16,7 @@ const App = () => (
         <Switch>
           <Route exact={true} path="/" component={Home} />
           <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>

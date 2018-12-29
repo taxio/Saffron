@@ -13,6 +13,9 @@ function auth(state: Auth, action: AuthAction): Auth {
         isLogin: action.isLogin,
       };
 
+    case AuthActionType.SIGNUP:
+      return state;
+
     default:
       return state;
   }
