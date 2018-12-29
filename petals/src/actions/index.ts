@@ -1,6 +1,7 @@
 export enum AuthActionType {
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
+  SIGNUP = 'SIGNUP',
 }
 
 export interface LoginAuthAction {
@@ -9,6 +10,7 @@ export interface LoginAuthAction {
 }
 
 export function login(username: string, password: string): LoginAuthAction {
+  // TODO: Login API
   console.log(`login ${username} : ${password}`);
   return {
     type: AuthActionType.LOGIN,
@@ -16,4 +18,18 @@ export function login(username: string, password: string): LoginAuthAction {
   };
 }
 
-export type AuthAction = LoginAuthAction;
+export interface LogoutAuthAction {
+  type: AuthActionType.LOGOUT;
+  isLogin: boolean;
+}
+
+export function logout(): LogoutAuthAction {
+  // TODO: Logout API
+  console.log('logout');
+  return {
+    type: AuthActionType.LOGOUT,
+    isLogin: false,
+  };
+}
+
+export type AuthAction = LoginAuthAction | LogoutAuthAction;

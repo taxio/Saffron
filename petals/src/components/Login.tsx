@@ -1,24 +1,36 @@
 import { Button, Card, CardContent, FormControl, Grid, TextField } from '@material-ui/core';
 import * as React from 'react';
+import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { AuthAction, login } from '../actions';
+import { Auth } from '../store/AuthState';
+
+import * as H from 'history';
+
+interface LoginProps {
+  login: (usernema: string, password: string) => void;
+  history: H.History;
+}
 
 interface LoginState {
   username: string;
   password: string;
 }
 
-export default class Login extends React.Component<{}, LoginState> {
-  constructor(props: any) {
+class Login extends React.Component<LoginProps, LoginState> {
+  constructor(props: LoginProps) {
     super(props);
     this.state = {
       username: '',
       password: '',
     };
 
-    this.handleLogin.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
   }
 
   public handleLogin() {
-    console.log(`login ${this.state.username} ${this.state.password}`);
+    this.props.login(this.state.username, this.state.password);
+    this.props.history.goBack();
   }
 
   public render(): React.ReactNode {
@@ -62,3 +74,26 @@ export default class Login extends React.Component<{}, LoginState> {
     );
   }
 }
+
+interface StateFromProps {}
+
+interface DispatchFromProps {
+  login: (username: string, password: string) => void;
+}
+
+function mapStateToProps(state: Auth): StateFromProps {
+  return {};
+}
+
+function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
+  return {
+    login: (username: string, password: string) => {
+      dispatch(login(username, password));
+    },
+  };
+}
+
+export default connect<StateFromProps, DispatchFromProps, {}>(
+  mapStateToProps,
+  mapDispatchToProps
+)(Login);
