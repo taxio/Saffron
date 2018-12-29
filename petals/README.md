@@ -1,12 +1,21 @@
-# Petals
-Saffronのフロントエンド
+## Petals (Frontend)
 
-## 環境構築
-```
-yarn
+### Setup
+
+install dependencies
+```bash
+$ yarn install
 ```
 
-## 実行
+build
+```bash
+$ yarn build
 ```
-yarn start
+
+
+### Develop
+
+Run as Development
+```bash
+$ yarn start
 ```
