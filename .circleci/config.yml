@@ -83,8 +83,9 @@ jobs:
       - run:
           name: Run tests
           command: |
-            cd calyx/src && pipenv run python manage.py migrate
-            cd calyx/src && pipenv run python manage.py test -v 2
+            cd calyx/src
+            pipenv run python manage.py migrate
+            pipenv run python manage.py test -v 2
       - save_cache:
           name: Save venv
           key: calyx-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
