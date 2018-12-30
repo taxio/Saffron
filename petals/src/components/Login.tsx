@@ -1,20 +1,22 @@
-import { Button, Card, CardContent, FormControl, Grid, TextField } from '@material-ui/core';
+import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { AuthAction, login } from '../actions/auth';
+import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 import * as H from 'history';
 
 interface LoginProps {
-  login: (usernema: string, password: string) => void;
+  setLoginState: (isLogin: boolean) => void;
+  isLogin: boolean;
   history: H.History;
 }
 
 interface LoginState {
   username: string;
   password: string;
+  loginErr: boolean;
 }
 
 class Login extends React.Component<LoginProps, LoginState> {
@@ -23,39 +25,51 @@ class Login extends React.Component<LoginProps, LoginState> {
     this.state = {
       username: '',
       password: '',
+      loginErr: false,
     };
 
     this.handleLogin = this.handleLogin.bind(this);
   }
 
   public handleLogin() {
-    this.props.login(this.state.username, this.state.password);
+    // TODO: Login API
+    this.props.setLoginState(true);
     this.props.history.goBack();
   }
 
   public render(): React.ReactNode {
+    const formControlStyle = { padding: '10px 0px' };
+
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
               <form>
-                <FormControl style={{ width: '100%' }}>
-                  <TextField
-                    autoComplete="off"
-                    required={true}
-                    label="Username"
-                    margin="normal"
+                <FormControl fullWidth={true} style={formControlStyle}>
+                  <InputLabel htmlFor="login-username">ユーザー名</InputLabel>
+                  <Input
+                    id="login-username"
+                    value={this.state.username}
                     onChange={e => this.setState({ username: e.target.value })}
                   />
-                  <TextField
-                    required={true}
-                    label="Password"
+                </FormControl>
+
+                <FormControl fullWidth={true} style={formControlStyle}>
+                  <InputLabel htmlFor="login-password">パスワード</InputLabel>
+                  <Input
+                    id="login-password"
                     type="password"
-                    autoComplete="current-password"
-                    margin="normal"
+                    autoComplete="off"
+                    value={this.state.password}
                     onChange={e => this.setState({ password: e.target.value })}
                   />
+                </FormControl>
+
+                <FormControl fullWidth={true} style={formControlStyle} error={this.state.loginErr}>
+                  {this.state.loginErr ? (
+                    <FormHelperText id="login-error-text">ユーザー名かパスワードが間違っています</FormHelperText>
+                  ) : null}
                   <Button
                     style={{
                       marginTop: 16,
@@ -78,20 +92,24 @@ class Login extends React.Component<LoginProps, LoginState> {
   }
 }
 
-interface StateFromProps {}
+interface StateFromProps {
+  isLogin: boolean;
+}
 
 interface DispatchFromProps {
-  login: (username: string, password: string) => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 function mapStateToProps(state: Auth): StateFromProps {
-  return {};
+  return {
+    isLogin: state.isLogin,
+  };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   return {
-    login: (username: string, password: string) => {
-      dispatch(login(username, password));
+    setLoginState: (isLogin: boolean) => {
+      dispatch(setLoginState(isLogin));
     },
   };
 }

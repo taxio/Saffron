@@ -6,12 +6,12 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { AuthAction, logout } from '../actions/auth';
+import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
 interface HeaderProps {
   isLogin: boolean;
-  logout: () => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 interface HeaderState {
@@ -31,17 +31,17 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.handleClose = this.handleClose.bind(this);
   }
 
-  public handleLogout = (): void => {
-    this.props.logout();
-  };
+  public handleLogout() {
+    this.props.setLoginState(false);
+  }
 
-  public handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>): void => {
+  public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
     this.setState({ anchorEl: e.currentTarget });
-  };
+  }
 
-  public handleClose = () => {
+  public handleClose() {
     this.setState({ anchorEl: null });
-  };
+  }
 
   public render() {
     const anchorEl = this.state.anchorEl;
@@ -106,7 +106,7 @@ interface StateFromProps {
 }
 
 interface DispatchFromProps {
-  logout: () => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 function mapStateToProps(state: Auth): StateFromProps {
@@ -117,8 +117,8 @@ function mapStateToProps(state: Auth): StateFromProps {
 
 function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   return {
-    logout: () => {
-      dispatch(logout());
+    setLoginState: (isLogin: boolean) => {
+      dispatch(setLoginState(isLogin));
     },
   };
 }
