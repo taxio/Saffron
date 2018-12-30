@@ -179,7 +179,7 @@ workflows:
       - test-calyx:
           requires:
             - build-calyx
-      - publish-calyx
+      - publish-calyx:
           requires:
             - test-calyx
           filters:
@@ -187,7 +187,7 @@ workflows:
               only:
                 - master
                 - dev
-      - publish-tagged-calyx
+      - publish-tagged-calyx:
           requires:
             - test-calyx
           filters:
