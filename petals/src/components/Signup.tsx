@@ -11,11 +11,11 @@ import {
   InputLabel,
 } from '@material-ui/core';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PasswordValidationError, validateEmail, validatePassword } from '../lib/auth';
 
-interface SignupProps {}
+interface SignupProps extends RouteComponentProps {}
 
 interface SignupState {
   email: string;
@@ -91,6 +91,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
     }
     // TODO: Sign Up API
     console.log(`signup ${this.state.email} : ${this.state.password}`);
+    this.props.history.push('/auth/sentmail');
   }
 
   public render(): React.ReactNode {
@@ -157,7 +158,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
                     }
                     label={
                       <React.Fragment>
-                        <Link to="/termsofservice">利用規約</Link>に同意する
+                        <Link to="/auth/termsofservice">利用規約</Link>に同意する
                       </React.Fragment>
                     }
                   />
@@ -189,4 +190,4 @@ class Signup extends React.Component<SignupProps, SignupState> {
   }
 }
 
-export default Signup;
+export default withRouter(Signup);
