@@ -9,7 +9,7 @@ import dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-env_file = os.path.join(BASE_DIR, '.env')
+env_file = os.path.join(BASE_DIR, '.env.dev')
 
 if os.path.exists(env_file):
     dotenv.load_dotenv(env_file)
@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'rest_framework_jwt',
     'rest_framework.authtoken',
     'rest_framework_swagger',
+    'corsheaders',
     'djoser',
     'courses',
     'users',
@@ -45,6 +46,7 @@ AUTH_USER_MODEL = 'users.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,7 +88,7 @@ DATABASES = {
 }
 
 DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM', 'example@example.com')
-EMAIL_ENABLED = os.getenv('CALYX_EMAIL_ENABLED').lower() == 'true'
+EMAIL_ENABLED = os.getenv('CALYX_EMAIL_ENABLED', 'False').lower() == 'true'
 
 if EMAIL_ENABLED:
     EMAIL_HOST = os.getenv('CALYX_EMAIL_HOST')
@@ -140,6 +142,12 @@ SWAGGER_SETTINGS = {
     'LOGIN_URL': 'accounts:login',
     'LOGOUT_URL': 'accounts:logout',
 }
+
+CORS_ORIGIN_ALLOW_ALL = os.getenv("CALYX_CORS_ALLOW_ALL", "False").lower() == 'true'
+
+CORS_ORIGIN_WHITELIST = [
+    origin.strip() for origin in os.getenv("CALYX_CORS_ORIGIN_WHITELIST", "*").split(",")
+]
 
 LANGUAGE_CODE = 'ja-jp'
 
