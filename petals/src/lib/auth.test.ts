@@ -22,7 +22,7 @@ describe('validateEmail', () => {
   it('incorrect', () => {
     expect(auth.validateEmail('foo')).toBe(false);
   });
-  it('no username', () => {
+  it('no email', () => {
     expect(auth.validateEmail('@is.kit.ac.jp')).toBe(false);
   });
   it('edge case1', () => {

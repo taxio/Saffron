@@ -1,57 +1,75 @@
-import { Button, Card, CardContent, Checkbox, FormControl, FormControlLabel, Grid, TextField } from '@material-ui/core';
+import {
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+} from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
-import { AuthAction, signup } from '../actions/auth';
-import { Auth } from '../store/AuthState';
 
-import { PasswordValidationError, validatePassword } from '../lib/auth';
+import { PasswordValidationError, validateEmail, validatePassword } from '../lib/auth';
 
-interface SignupProps {
-  signup: (username: string, password: string) => void;
-}
+interface SignupProps {}
 
 interface SignupState {
-  username: string;
+  email: string;
+  emailErr: boolean;
   password: string;
   passwordErrMsg: string;
   confirmPassword: string;
   confirmPasswordErrMsg: string;
   agreedWithTermsOfService: boolean;
+  agreedWithTermsOfServiceErr: boolean;
 }
 
 class Signup extends React.Component<SignupProps, SignupState> {
   constructor(props: SignupProps) {
     super(props);
     this.state = {
-      username: '',
+      email: '',
+      emailErr: false,
       password: '',
       passwordErrMsg: '',
       confirmPassword: '',
       confirmPasswordErrMsg: '',
       agreedWithTermsOfService: false,
+      agreedWithTermsOfServiceErr: false,
     };
 
+    this.handleChangeEmail = this.handleChangeEmail.bind(this);
     this.handleChangePassword = this.handleChangePassword.bind(this);
     this.handleChangeConfirmPassword = this.handleChangeConfirmPassword.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
   }
 
+  public handleChangeEmail(e: React.ChangeEvent<HTMLInputElement>) {
+    const email = e.target.value;
+    const emailErr = !validateEmail(email);
+    this.setState({ email, emailErr });
+  }
+
   public handleChangePassword(e: React.ChangeEvent<HTMLInputElement>) {
     const password = e.target.value;
-    this.setState({ password });
+    let passwordErrMsg = '';
 
     const ret = validatePassword(password);
     switch (ret) {
       case PasswordValidationError.NONE:
-        return;
+        break;
       case PasswordValidationError.LENGTH:
-        console.log('パスワードは8文字以上にしてください');
-        return;
+        passwordErrMsg = 'パスワードは8文字以上にしてください';
+        break;
       case PasswordValidationError.UNAVAILABLE:
-        console.log('使用不可能な文字が含まれています');
-        return;
+        passwordErrMsg = '使用不可能な文字が含まれています';
+        break;
     }
+
+    this.setState({ password, passwordErrMsg });
   }
 
   public handleChangeConfirmPassword(e: React.ChangeEvent<HTMLInputElement>) {
@@ -66,40 +84,66 @@ class Signup extends React.Component<SignupProps, SignupState> {
   }
 
   public handleSignup() {
-    this.props.signup(this.state.username, this.state.password);
+    if (!this.state.agreedWithTermsOfService) {
+      this.setState({ agreedWithTermsOfServiceErr: true });
+      return;
+    }
+    // TODO: Sign Up API
+    console.log(`signup ${this.state.email} : ${this.state.password}`);
   }
 
   public render(): React.ReactNode {
+    const formControlStyle = { padding: '10px 0px' };
+
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
               <form>
-                <FormControl style={{ width: '100%' }}>
-                  <TextField
-                    autoComplete="off"
-                    required={true}
-                    label="Username"
-                    margin="normal"
-                    onChange={e => this.setState({ username: e.target.value })}
-                  />
-                  <TextField
-                    required={true}
-                    label="Password"
+                <FormControl fullWidth={true} style={formControlStyle} error={this.state.emailErr}>
+                  <InputLabel htmlFor="signup-email">メールアドレス</InputLabel>
+                  <Input id="signup-email" value={this.state.email} onChange={this.handleChangeEmail} />
+                  <FormHelperText id="signup-email-text">
+                    @is.kit.ac.jpで終わるメールアドレスを入力してください
+                  </FormHelperText>
+                </FormControl>
+
+                <FormControl fullWidth={true} error={Boolean(this.state.passwordErrMsg)} style={formControlStyle}>
+                  <InputLabel htmlFor="signup-password">パスワード</InputLabel>
+                  <Input
+                    id="signup-password"
                     type="password"
-                    autoComplete="current-password"
-                    margin="normal"
+                    value={this.state.password}
                     onChange={this.handleChangePassword}
+                    autoComplete="off"
                   />
-                  <TextField
-                    required={true}
-                    label="Confirm Password"
+                  {this.state.passwordErrMsg ? (
+                    <FormHelperText id="signup-confirm-password-error-text">{this.state.passwordErrMsg}</FormHelperText>
+                  ) : null}
+                </FormControl>
+
+                <FormControl
+                  fullWidth={true}
+                  error={Boolean(this.state.confirmPasswordErrMsg)}
+                  style={formControlStyle}
+                >
+                  <InputLabel htmlFor="signup-confirm-password">パスワード再入力</InputLabel>
+                  <Input
+                    id="signup-confirm-password"
                     type="password"
-                    autoComplete="current-password"
-                    margin="normal"
+                    value={this.state.confirmPassword}
                     onChange={this.handleChangeConfirmPassword}
+                    autoComplete="off"
                   />
+                  {this.state.confirmPasswordErrMsg ? (
+                    <FormHelperText id="signup-confirm-password-error-text">
+                      {this.state.confirmPasswordErrMsg}
+                    </FormHelperText>
+                  ) : null}
+                </FormControl>
+
+                <FormControl fullWidth={true} error={this.state.agreedWithTermsOfServiceErr} style={formControlStyle}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -112,6 +156,12 @@ class Signup extends React.Component<SignupProps, SignupState> {
                     }
                     label="利用規約に同意する"
                   />
+                  {this.state.agreedWithTermsOfServiceErr ? (
+                    <FormHelperText id="signup-agreed-error-text">利用規約に同意してください</FormHelperText>
+                  ) : null}
+                </FormControl>
+
+                <FormControl fullWidth={true} style={formControlStyle}>
                   <Button
                     style={{
                       marginTop: 16,
@@ -134,25 +184,4 @@ class Signup extends React.Component<SignupProps, SignupState> {
   }
 }
 
-interface StateFronProps {}
-
-interface DispatchFromProps {
-  signup: (username: string, password: string) => void;
-}
-
-function mapStateToProps(state: Auth): StateFronProps {
-  return {};
-}
-
-function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
-  return {
-    signup: (username: string, password: string) => {
-      dispatch(signup(username, password));
-    },
-  };
-}
-
-export default connect<StateFronProps, DispatchFromProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Signup);
+export default Signup;
