@@ -30,7 +30,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.06.1-ce
+          # version: 18.06.1-ce
           docker_layer_caching: true
       - run:
           name: Build image
@@ -83,8 +83,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          version: 18.06.1-ce
+      - setup_remote_docker
+          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -95,8 +95,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          version: 18.06.1-ce
+      - setup_remote_docker
+          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -107,7 +107,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.06.1-ce
+          # version: 18.06.1-ce
           docker_layer_caching: true
       - restore_cache:
           keys:
@@ -144,8 +144,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          version: 18.06.1-ce
+      - setup_remote_docker
+          # version: 18.06.1-ce
       - run:
           name: Load previous image
           command: docker load -i /tmp/workspace/petals-cache.tar || true
@@ -157,8 +157,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/workspace
-      - setup_remote_docker:
-          version: 18.06.1-ce
+      - setup_remote_docker
+          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
