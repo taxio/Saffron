@@ -1,4 +1,18 @@
 version: 2.1
+commands:
+  docker_push:
+    description: "Push image to Docker hub with given tag "
+    parameters:
+      tag:
+        type: string
+        default: "latest"
+    steps:
+      - run:
+          name: Login and push image
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:<< parameters.tag >>
+            docker push $IMAGE_NAME:<< parameters.tag >>
 executors:
   calyx-executor:
     environment:
@@ -16,7 +30,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
           docker_layer_caching: true
       - run:
           name: Build image
@@ -29,70 +43,71 @@ jobs:
           paths:
             - ./calyx-image.tar
   test-calyx:
+    working_directory: ~/calyx
     docker:
       - image: circleci/python:3.7
       - image: studioaquatan/mysql-utf8mb4:latest
         environment:
-          MYSQL_ROOT_PASSWORD: 'root'
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: saffron
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker:
-          version: 18.09.0-ce
+      - checkout
+      - restore_cache:
+          keys:
+            - calyx-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
+            - calyx-cache-v1-
+            - calyx-cache-
       - run:
-          name: Load archived image
-          command: docker load -i /tmp/workspace/calyx-image.tar
+          name: Pipenv sync
+          command: cd calyx/src && pipenv sync
       - run:
           name: Wait for MySQL
-          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+          command: docker exec bulb dockerize -wait tcp://localhost:3306 -timeout 1m
       - run:
           name: Run tests
           command: |
-            docker run --rm --net host -e CALYX_SECRET_KEY=hogefugapiyopoyo \
-              -e BULB_DB_USER=root -e BULB_DB_PASSWORD=root -e BULB_DB_NAME=saffron -e BULB_DB_HOST=localhost \
-              $IMAGE_NAME:latest python manage.py migrate
-            docker run --rm --net host -e CALYX_SECRET_KEY=hogefugapiyopoyo \
-              -e BULB_DB_USER=root -e BULB_DB_PASSWORD=root -e BULB_DB_NAME=saffron -e BULB_DB_HOST=localhost \
-              $IMAGE_NAME:latest python manage.py test -v 2
+            export CALYX_SECRET_KEY=hogefugapiyopoyo
+            export BULB_DB_USER=root
+            export BULB_DB_PASSWORD=root
+            export BULB_DB_NAME=saffron
+            export BULB_DB_HOST=localhost
+            cd calyx/src && pipenv run python manage.py migrate
+            cd calyx/src && pipenv run python manage.py test -v 2
+      - save_cache:
+          name: Save venv
+          key: calyx-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
+          paths:
+            - calyx/src/.venv
   publish-calyx:
     executor: calyx-executor
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
-      - run:
-          name: Login and push image
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_BRANCH
-            docker push $IMAGE_NAME:$CIRCLE_BRANCH
+      - docker_push:
+          tag: $CIRCLE_BRANCH
   publish-tagged-calyx:
     executor: calyx-executor
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
-      - run:
-          name: Login and push image
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_TAG
-            docker push $IMAGE_NAME:$CIRCLE_TAG
+      - docker_push:
+          tag: $CIRCLE_TAG
   build-petals:
     executor: petals-executor
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
           docker_layer_caching: true
       - restore_cache:
           keys:
@@ -130,8 +145,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0-ce
-          docker_layer_caching: true
+          version: 18.06.1-ce
       - run:
           name: Load previous image
           command: docker load -i /tmp/workspace/petals-cache.tar || true
@@ -144,43 +158,33 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
-      - run:
-          name: Login and push image
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_BRANCH
-            docker push $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:$CIRCLE_BRANCH
+      - docker_push:
+          tag: $CIRCLE_BRANCH
   publish-tagged-petals:
     executor: petals-executor
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0-ce
+          version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
-      - run:
-          name: Login and push image
-          command: |
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_TAG
-            docker push $IMAGE_NAME:$CIRCLE_TAG
+      - docker_push:
+          tag: $CIRCLE_TAG
 workflows:
   version: 2
   build-master:
     jobs:
       - build-calyx
-      - test-calyx:
-          requires:
-            - build-calyx
+      - test-calyx
       - publish-calyx:
           requires:
+            - build-calyx
             - test-calyx
           filters:
             branches:
@@ -189,16 +193,18 @@ workflows:
                 - dev
       - publish-tagged-calyx:
           requires:
+            - build-calyx
             - test-calyx
           filters:
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/
       - build-petals
-      - test-petals:
-          requires:
-            - build-petals
+      - test-petals
       - publish-petals:
           requires:
+            - build-petals
             - test-petals
           filters:
             branches:
@@ -207,7 +213,10 @@ workflows:
                 - dev
       - publish-tagged-petals:
           requires:
+            - build-petals
             - test-petals
           filters:
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/

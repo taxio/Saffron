@@ -1,4 +1,7 @@
 # Saffron
+
+[![CircleCI](https://circleci.com/gh/StudioAquatan/Saffron.svg?style=svg)](https://circleci.com/gh/StudioAquatan/Saffron)
+
 研究室配属支援サービス
 
 2018年度中のリリースを予定
