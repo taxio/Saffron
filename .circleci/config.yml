@@ -16,7 +16,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
           docker_layer_caching: true
       - run:
           name: Build image
@@ -39,7 +39,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -61,7 +61,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -77,7 +77,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -92,7 +92,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
           docker_layer_caching: true
       - restore_cache:
           keys:
@@ -130,7 +130,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
           docker_layer_caching: true
       - run:
           name: Load previous image
@@ -144,7 +144,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
@@ -161,7 +161,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          version: 18.09.0
+          version: 18.09.0-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
