@@ -100,10 +100,10 @@ clean-%: guard-env-% stop-%
 	@docker-compose -f docker-compose.${*}.yml rm
 
 migrate-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py migrate
+	@docker-compose -f docker-compose.${*}.yml exec calyx pipenv run python manage.py migrate
 
 manage-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py $(args)
+	@docker-compose -f docker-compose.${*}.yml exec calyx pipenv run python manage.py $(args)
 
 restart-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart
