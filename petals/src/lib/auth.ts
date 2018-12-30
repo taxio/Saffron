@@ -20,13 +20,25 @@ export enum PasswordValidationError {
   UNAVAILABLE,
 }
 
+const PasswordRegex = new RegExp('[^\x21-\x7e]+');
+
 export const validatePassword = (password: string): PasswordValidationError => {
   if (password.length < 8) {
     return PasswordValidationError.LENGTH;
   }
 
-  // TODO: 使用可能文字チェック
-  // 正規表現作ってそれにマッチしてるかチェック
+  // 使用可能文字チェック
+  const ret = password.match(PasswordRegex);
+  if (ret) {
+    return PasswordValidationError.UNAVAILABLE;
+  }
 
   return PasswordValidationError.NONE;
+};
+
+const EmailRegex = new RegExp('.+@is\\.kit\\.ac\\.jp$');
+
+export const validateEmail = (email: string): boolean => {
+  const ret = email.match(EmailRegex);
+  return Boolean(ret);
 };
