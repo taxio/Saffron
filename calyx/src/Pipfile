@@ -12,6 +12,7 @@ django-rest-swagger = "*"
 python-dotenv = "*"
 uwsgi = "*"
 mysqlclient = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

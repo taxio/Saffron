@@ -1,0 +1,63 @@
+version: '3'
+services:
+  calyx:
+    image: studioaquatan/saffron-calyx:dev
+    container_name: saffron-calyx-prod
+    env_file:
+      - ./calyx/src/.env.prod
+    expose:
+      - 8000
+    depends_on:
+      - bulb
+    links:
+      - bulb
+    restart: always
+  bulb:
+    image: studioaquatan/mysql-utf8mb4:latest
+    container_name: saffron-db-prod
+    expose:
+      - 3306
+    env_file:
+      - ./bulb/.env.prod
+    volumes:
+      - saffron-db-prod:/var/lib/mysql
+    restart: always
+  stigma:
+    image: nginx:stable-alpine
+    container_name: saffron-stigma-prod
+    ports:
+      - '8000:80'
+    env_file:
+      - ./calyx/src/.env.prod
+    depends_on:
+      - calyx
+    links:
+      - calyx
+    logging:
+      options:
+        max-size: 10m
+        max-file: 3
+    networks:
+      - internal
+    restart: always
+  petals:
+    image: studioaquatan/saffron-petals:dev
+    container_name: saffron-petals-prod
+    environment:
+      VIRTUAL_HOST: saffron.aquatan.studio
+      VIRTUAL_PORT: 80
+      VIRTUAL_NETWORK: internal
+      LETSENCRYPT_HOST: saffron.aquatan.studio
+      LETSENCRYPT_EMAIL: studioaquatan@mail.poyo.info
+    depends_on:
+      - stigma
+    networks:
+      - internal
+    restart: always
+
+volumes:
+  saffron-db-prod:
+
+networks:
+  internal:
+    external: true

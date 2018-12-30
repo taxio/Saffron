@@ -8,7 +8,8 @@ RUN apk update && \
         pcre-dev && \
     rm -rf /var/cache/apk/*
 
-COPY src/ ${PROJECT_DIR}
+COPY src/Pipfile ${PROJECT_DIR}/
+COPY src/Pipfile.lock ${PROJECT_DIR}/
 
 WORKDIR ${PROJECT_DIR}
 
@@ -20,9 +21,12 @@ RUN apk update && \
         tzdata && \
     pip3 install pipenv && \
     PIPENV_VENV_IN_PROJECT=true pipenv install && \
+    chmod +x ${PROJECT_DIR}/.venv/bin/uwsgi && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     apk del --purge build_dep && \
     rm -rf /var/cache/apk/*
+
+COPY src/ ${PROJECT_DIR}
 
 ENTRYPOINT ["pipenv", "run"]
 
