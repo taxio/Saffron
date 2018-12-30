@@ -45,6 +45,12 @@ jobs:
   test-calyx:
     docker:
       - image: circleci/python:3.7
+        environment:
+          CALYX_SECRET_KEY: hogefugapiyopoyo
+          BULB_DB_USER: root
+          BULB_DB_PASSWORD: root
+          BULB_DB_NAME: saffron
+          BULB_DB_HOST: localhost
       - image: studioaquatan/mysql-utf8mb4:latest
         environment:
           MYSQL_ROOT_PASSWORD: root
@@ -65,11 +71,6 @@ jobs:
       - run:
           name: Run tests
           command: |
-            export CALYX_SECRET_KEY=hogefugapiyopoyo
-            export BULB_DB_USER=root
-            export BULB_DB_PASSWORD=root
-            export BULB_DB_NAME=saffron
-            export BULB_DB_HOST=localhost
             cd calyx/src && pipenv run python manage.py migrate
             cd calyx/src && pipenv run python manage.py test -v 2
       - save_cache:
