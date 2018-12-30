@@ -39,34 +39,37 @@ class Login extends React.Component<LoginProps, LoginState> {
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <FormControl style={{ width: '100%' }}>
-                <TextField
-                  required={true}
-                  label="Username"
-                  margin="normal"
-                  onChange={e => this.setState({ username: e.target.value })}
-                />
-                <TextField
-                  required={true}
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  margin="normal"
-                  onChange={e => this.setState({ password: e.target.value })}
-                />
-                <Button
-                  style={{
-                    marginTop: 16,
-                    marginBottom: 8,
-                    boxShadow: 'none',
-                  }}
-                  variant="contained"
-                  color="primary"
-                  onClick={this.handleLogin}
-                >
-                  Login
-                </Button>
-              </FormControl>
+              <form>
+                <FormControl style={{ width: '100%' }}>
+                  <TextField
+                    autoComplete="off"
+                    required={true}
+                    label="Username"
+                    margin="normal"
+                    onChange={e => this.setState({ username: e.target.value })}
+                  />
+                  <TextField
+                    required={true}
+                    label="Password"
+                    type="password"
+                    autoComplete="current-password"
+                    margin="normal"
+                    onChange={e => this.setState({ password: e.target.value })}
+                  />
+                  <Button
+                    style={{
+                      marginTop: 16,
+                      marginBottom: 8,
+                      boxShadow: 'none',
+                    }}
+                    variant="contained"
+                    color="primary"
+                    onClick={this.handleLogin}
+                  >
+                    Login
+                  </Button>
+                </FormControl>
+              </form>
             </CardContent>
           </Card>
         </Grid>

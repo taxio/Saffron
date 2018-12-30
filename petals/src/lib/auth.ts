@@ -1,15 +1,32 @@
-const isLogin = (): boolean => {
-  const token: string | null = localStorage.getItem('token');
-  if (token == null) {
-    return false;
+// const isLogin = (): boolean => {
+//   const token: string | null = localStorage.getItem('token');
+//   if (token == null) {
+//     return false;
+//   }
+//
+//   // TOFO: verify
+//
+//   return true;
+// };
+//
+// const getToken = (): string | null => {
+//   const token: string | null = localStorage.getItem('token');
+//   return token;
+// };
+
+export enum PasswordValidationError {
+  NONE,
+  LENGTH,
+  UNAVAILABLE,
+}
+
+export const validatePassword = (password: string): PasswordValidationError => {
+  if (password.length < 8) {
+    return PasswordValidationError.LENGTH;
   }
 
-  // TOFO: verify
+  // TODO: 使用可能文字チェック
+  // 正規表現作ってそれにマッチしてるかチェック
 
-  return true;
-};
-
-const getToken = (): string | null => {
-  const token: string | null = localStorage.getItem('token');
-  return token;
+  return PasswordValidationError.NONE;
 };
