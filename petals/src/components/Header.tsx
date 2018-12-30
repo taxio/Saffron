@@ -88,12 +88,12 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                 onClose={this.handleClose}
               >
                 <MenuItem onClick={this.handleClose}>
-                  <Link to="/login" style={{ textDecoration: 'none' }}>
+                  <Link to="/auth/login" style={{ textDecoration: 'none' }}>
                     Login
                   </Link>
                 </MenuItem>
                 <MenuItem onClick={this.handleClose}>
-                  <Link to="/signup" style={{ textDecoration: 'none' }}>
+                  <Link to="/auth/signup" style={{ textDecoration: 'none' }}>
                     Sign up
                   </Link>
                 </MenuItem>

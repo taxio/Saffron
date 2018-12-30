@@ -6,6 +6,8 @@ import theme from './lib/theme';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
+import NotFound from './components/NotFound';
+import SentMail from './components/SendMail';
 import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
 
@@ -16,13 +18,21 @@ const App = () => (
         <Header />
         <Switch>
           <Route exact={true} path="/" component={Home} />
-          <Route path="/login" component={Login} />
-          <Route path="/signup" component={Signup} />
-          <Route path="/termsofservice" component={TermsOfService} />
+          <Route path="/auth" component={AuthRouter} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>
   </MuiThemeProvider>
+);
+
+const AuthRouter = () => (
+  <Switch>
+    <Route exact={true} path={`/auth/login`} component={Login} />
+    <Route exact={true} path={`/auth/signup`} component={Signup} />
+    <Route exact={true} path={`/auth/termsofservice`} component={TermsOfService} />
+    <Route exact={true} path={`/auth/sentmail`} component={SentMail} />
+    <Route exact={true} component={NotFound} />
+  </Switch>
 );
 
 export default App;
