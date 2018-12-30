@@ -1,7 +1,7 @@
 import { AppBar, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
 import { AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -29,6 +29,8 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.handleLogout = this.handleLogout.bind(this);
     this.handleMenu = this.handleMenu.bind(this);
     this.handleClose = this.handleClose.bind(this);
+    this.handleClickLogin = this.handleClickLogin.bind(this);
+    this.handleClickSignup = this.handleClickSignup.bind(this);
   }
 
   public handleLogout() {
@@ -39,6 +41,15 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.setState({ anchorEl: e.currentTarget });
   }
 
+  public handleClickLogin() {
+    this.props.history.push('/auth/login');
+    this.setState({ anchorEl: null });
+  }
+
+  public handleClickSignup() {
+    this.props.history.push('/auth/signup');
+    this.setState({ anchorEl: null });
+  }
   public handleClose() {
     this.setState({ anchorEl: null });
   }
@@ -87,16 +98,8 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                 open={open}
                 onClose={this.handleClose}
               >
-                <MenuItem onClick={this.handleClose}>
-                  <Link to="/auth/login" style={{ textDecoration: 'none' }}>
-                    Login
-                  </Link>
-                </MenuItem>
-                <MenuItem onClick={this.handleClose}>
-                  <Link to="/auth/signup" style={{ textDecoration: 'none' }}>
-                    Sign up
-                  </Link>
-                </MenuItem>
+                <MenuItem onClick={this.handleClickLogin}>Login</MenuItem>
+                <MenuItem onClick={this.handleClickSignup}>Sign up</MenuItem>
               </Menu>
             </React.Fragment>
           )}
