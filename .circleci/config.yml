@@ -43,7 +43,6 @@ jobs:
           paths:
             - ./calyx-image.tar
   test-calyx:
-    working_directory: ~/calyx
     docker:
       - image: circleci/python:3.7
       - image: studioaquatan/mysql-utf8mb4:latest
