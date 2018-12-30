@@ -1,4 +1,4 @@
-enum Methods {
+export enum Methods {
   Get,
   Post,
 }
@@ -13,7 +13,7 @@ const convertMethodName = (method: Methods): string => {
   throw new Error(`${method} not found`);
 };
 
-export const sendRequest = (method: Methods, path: string, data: object): Promise<Response> => {
+export const sendRequest = async (method: Methods, path: string, data: object): Promise<any> => {
   const headers: Headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
@@ -23,7 +23,7 @@ export const sendRequest = (method: Methods, path: string, data: object): Promis
     headers,
   };
 
-  let url: string = path;
+  let url: string = process.env.REACT_APP_API_ENDPOINT + path;
   switch (method) {
     case Methods.Post:
       options = { ...options, body: JSON.stringify(data) };
@@ -33,7 +33,8 @@ export const sendRequest = (method: Methods, path: string, data: object): Promis
       break;
   }
 
-  return fetch(url, options);
+  const res = await fetch(url, options);
+  return await res.json();
 };
 
 export const convertGetQueries = (data: object): string => {

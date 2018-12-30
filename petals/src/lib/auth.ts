@@ -1,3 +1,5 @@
+import * as api from './api';
+
 // const isLogin = (): boolean => {
 //   const token: string | null = localStorage.getItem('token');
 //   if (token == null) {
@@ -41,4 +43,18 @@ const EmailRegex = new RegExp('.+@is\\.kit\\.ac\\.jp$');
 export const validateEmail = (email: string): boolean => {
   const ret = email.match(EmailRegex);
   return Boolean(ret);
+};
+
+interface LoginResponse {
+  token: string;
+  non_field_errors: string[];
+}
+
+export const login = async (username: string, password: string): Promise<LoginResponse> => {
+  return await api.sendRequest(api.Methods.Post, '/auth/jwt/create/', { username, password });
+};
+
+export const logout = () => {
+  // TODO: API
+  localStorage.removeItem('token');
 };
