@@ -11,6 +11,7 @@ import {
   InputLabel,
 } from '@material-ui/core';
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 
 import { PasswordValidationError, validateEmail, validatePassword } from '../lib/auth';
 
@@ -154,7 +155,11 @@ class Signup extends React.Component<SignupProps, SignupState> {
                         value="AgreedWithTermsOfService"
                       />
                     }
-                    label="利用規約に同意する"
+                    label={
+                      <React.Fragment>
+                        <Link to="/termsofservice">利用規約</Link>に同意する
+                      </React.Fragment>
+                    }
                   />
                   {this.state.agreedWithTermsOfServiceErr ? (
                     <FormHelperText id="signup-agreed-error-text">利用規約に同意してください</FormHelperText>
