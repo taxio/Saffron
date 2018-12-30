@@ -1,7 +1,7 @@
 import { AppBar, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
 import { AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -9,7 +9,7 @@ import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
-interface HeaderProps {
+interface HeaderProps extends RouteComponentProps<any> {
   isLogin: boolean;
   setLoginState: (isLogin: boolean) => void;
 }
@@ -50,7 +50,12 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     return (
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" color="inherit" style={{ flex: 1, textDecoration: 'none' }}>
+          <Typography
+            variant="h6"
+            color="inherit"
+            style={{ flex: 1, textDecoration: 'none' }}
+            onClick={() => this.props.history.push('/')}
+          >
             Saffron
           </Typography>
 
@@ -123,7 +128,9 @@ function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   };
 }
 
-export default connect<StateFromProps, DispatchFromProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Header);
+export default withRouter(
+  connect<StateFromProps, DispatchFromProps, {}>(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Header)
+);

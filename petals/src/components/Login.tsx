@@ -1,16 +1,14 @@
 import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
-import * as H from 'history';
-
-interface LoginProps {
+interface LoginProps extends RouteComponentProps<any> {
   setLoginState: (isLogin: boolean) => void;
   isLogin: boolean;
-  history: H.History;
 }
 
 interface LoginState {
@@ -29,6 +27,12 @@ class Login extends React.Component<LoginProps, LoginState> {
     };
 
     this.handleLogin = this.handleLogin.bind(this);
+  }
+
+  public componentWillMount() {
+    if (this.props.isLogin) {
+      this.props.history.push('/');
+    }
   }
 
   public handleLogin() {
@@ -114,7 +118,9 @@ function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   };
 }
 
-export default connect<StateFromProps, DispatchFromProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Login);
+export default withRouter(
+  connect<StateFromProps, DispatchFromProps, {}>(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Login)
+);
