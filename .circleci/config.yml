@@ -30,8 +30,15 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          # version: 18.06.1-ce
           docker_layer_caching: true
+      - restore_cache:
+          keys:
+            - calyx-image-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
+            - calyx-image-cache-v1-
+            - calyx-image-cache-
+      - run:
+          name: Load archived image
+          command: docker load -i calyx-image.tar || true
       - run:
           name: Build image
           command: docker build ./calyx -t $IMAGE_NAME:latest
@@ -42,6 +49,11 @@ jobs:
           root: .
           paths:
             - ./calyx-image.tar
+      - save_cache:
+          name: Save image cache
+          key: calyx-image-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
+          paths:
+            - ./calyx-image.tar
   test-calyx:
     docker:
       - image: circleci/python:3.7
@@ -50,7 +62,7 @@ jobs:
           BULB_DB_USER: root
           BULB_DB_PASSWORD: root
           BULB_DB_NAME: saffron
-          BULB_DB_HOST: localhost
+          BULB_DB_HOST: 127.0.0.1
       - image: studioaquatan/mysql-utf8mb4:latest
         environment:
           MYSQL_ROOT_PASSWORD: root
@@ -84,7 +96,6 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
-          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -96,7 +107,6 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
-          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/calyx-image.tar
@@ -107,7 +117,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          # version: 18.06.1-ce
           docker_layer_caching: true
       - restore_cache:
           keys:
@@ -116,7 +125,9 @@ jobs:
             - petals-cache-
       - run:
           name: Load previous image
-          command: docker load -i petals-cache.tar || true
+          command: |
+            docker load -i petals-cache.tar || true
+            docker load -i petals-image.tar || true
       - run:
           name: Build cache image
           command: docker build ./petals --target develop -t $IMAGE_NAME:latest-cache
@@ -136,8 +147,9 @@ jobs:
             - ./petals-cache.tar
       - save_cache:
           name: Save cache image
-          key: petals-cacche-v1-{{ checksum "petals/yarn.lock" }}
+          key: petals-cache-v1-{{ checksum "petals/yarn.lock" }}
           paths:
+            - ./petals-image.tar
             - ./petals-cache.tar
   test-petals:
     executor: petals-executor
@@ -145,7 +157,6 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
-          # version: 18.06.1-ce
       - run:
           name: Load previous image
           command: docker load -i /tmp/workspace/petals-cache.tar || true
@@ -158,7 +169,6 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
-          # version: 18.06.1-ce
       - run:
           name: Load archived image
           command: docker load -i /tmp/workspace/petals-image.tar
