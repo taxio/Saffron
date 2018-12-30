@@ -1,0 +1,45 @@
+version: '3'
+services:
+  calyx:
+    image: studioaquatan/saffron-calyx:dev
+    container_name: saffron-calyx-qa
+    env_file:
+      - ./calyx/src/.env.qa
+    expose:
+      - 8000
+    depends_on:
+      - bulb
+    links:
+      - bulb
+  bulb:
+    image: studioaquatan/mysql-utf8mb4:latest
+    container_name: saffron-db-qa
+    expose:
+      - 3306
+    env_file:
+      - ./bulb/.env.qa
+    volumes:
+      - saffron-db-qa:/var/lib/mysql
+  stigma:
+    image: nginx:stable-alpine
+    container_name: saffron-stigma-qa
+    ports:
+      - '8000:80'
+    env_file:
+      - ./calyx/src/.env.qa
+    volumes:
+      - ./calyx/conf/calyx.qa.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - calyx
+    links:
+      - calyx
+  petals:
+    image: studioaquatan/saffron-petals:dev
+    container_name: saffron-petals-qa
+    ports:
+      - '8080:80'
+    volumes:
+      - ./petals/conf/petals.qa.conf:/etc/nginx/conf.d/default.conf
+
+volumes:
+  saffron-db-qa:
