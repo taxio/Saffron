@@ -1,0 +1,213 @@
+version: 2.1
+executors:
+  calyx-executor:
+    environment:
+      IMAGE_NAME: studioaquatan/saffron-calyx
+    docker:
+      - image: circleci/python:3.7
+  petals-executor:
+    environment:
+      IMAGE_NAME: studioaquatan/saffron-petals
+    docker:
+      - image: circleci/node:11.1.0
+jobs:
+  build-calyx:
+    executor: calyx-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 18.09.0
+          docker_layer_caching: true
+      - run:
+          name: Build image
+          command: docker build ./calyx -t $IMAGE_NAME:latest
+      - run:
+          name: Archive docker image
+          command: docker save -o calyx-image.tar $IMAGE_NAME:latest
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./calyx-image.tar
+  test-calyx:
+    docker:
+      - image: circleci/python:3.7
+      - image: studioaquatan/mysql-utf8mb4:latest
+        environment:
+          MYSQL_ROOT_PASSWORD: 'root'
+          MYSQL_DATABASE: saffron
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+      - run:
+          name: Load archived image
+          command: docker load -i /tmp/workspace/calyx-image.tar
+      - run:
+          name: Wait for MySQL
+          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+      - run:
+          name: Run tests
+          command: |
+            docker run --rm --net host -e CALYX_SECRET_KEY=hogefugapiyopoyo \
+              -e BULB_DB_USER=root -e BULB_DB_PASSWORD=root -e BULB_DB_NAME=saffron -e BULB_DB_HOST=localhost \
+              $IMAGE_NAME:latest python manage.py migrate
+            docker run --rm --net host -e CALYX_SECRET_KEY=hogefugapiyopoyo \
+              -e BULB_DB_USER=root -e BULB_DB_PASSWORD=root -e BULB_DB_NAME=saffron -e BULB_DB_HOST=localhost \
+              $IMAGE_NAME:latest python manage.py test -v 2
+  publish-calyx:
+    executor: calyx-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+      - run:
+          name: Load archived image
+          command: docker load -i /tmp/workspace/calyx-image.tar
+      - run:
+          name: Login and push image
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_BRANCH
+            docker push $IMAGE_NAME:$CIRCLE_BRANCH
+  publish-tagged-calyx:
+    executor: calyx-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+      - run:
+          name: Load archived image
+          command: docker load -i /tmp/workspace/calyx-image.tar
+      - run:
+          name: Login and push image
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_TAG
+            docker push $IMAGE_NAME:$CIRCLE_TAG
+  build-petals:
+    executor: petals-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 18.09.0
+          docker_layer_caching: true
+      - restore_cache:
+          keys:
+            - petals-cache-v1-{{ checksum "petals/yarn.lock" }}
+            - petals-cache-v1-
+            - petals-cache-
+      - run:
+          name: Load previous image
+          command: docker load -i petals-cache.tar || true
+      - run:
+          name: Build cache image
+          command: docker build ./petals --target develop -t $IMAGE_NAME:latest-cache
+      - run:
+          name: Archive cache image
+          command: docker save -o petals-cache.tar $IMAGE_NAME:latest-cache
+      - run:
+          name: Build production image
+          command: docker build ./petals --target production -t $IMAGE_NAME:latest
+      - run:
+          name: Archive docker image
+          command: docker save -o petals-image.tar $IMAGE_NAME:latest
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./petals-image.tar
+            - ./petals-cache.tar
+      - save_cache:
+          name: Save cache image
+          key: petals-cacche-v1-{{ checksum "petals/yarn.lock" }}
+          paths:
+            - ./petals-cache.tar
+  test-petals:
+    executor: petals-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+          docker_layer_caching: true
+      - run:
+          name: Load previous image
+          command: docker load -i /tmp/workspace/petals-cache.tar || true
+      - run:
+          name: Test petals
+          command: docker run --rm $IMAGE_NAME:latest-cache yarn test
+  publish-petals:
+    executor: petals-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+      - run:
+          name: Load archived image
+          command: docker load -i /tmp/workspace/petals-image.tar
+      - run:
+          name: Login and push image
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_BRANCH
+            docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:$CIRCLE_BRANCH
+  publish-tagged-petals:
+    executor: petals-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          version: 18.09.0
+      - run:
+          name: Load archived image
+          command: docker load -i /tmp/workspace/petals-image.tar
+      - run:
+          name: Login and push image
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CIRCLE_TAG
+            docker push $IMAGE_NAME:$CIRCLE_TAG
+workflows:
+  version: 2
+  build-master:
+    jobs:
+      - build-calyx
+      - test-calyx:
+          requires:
+            - build-calyx
+      - publish-calyx
+          requires:
+            - test-calyx
+          filters:
+            branches:
+              only:
+                - master
+                - dev
+      - publish-tagged-calyx
+          requires:
+            - test-calyx
+          filters:
+            tags:
+              only: /^v.*/
+      - build-petals
+      - test-petals:
+          requires:
+            - build-petals
+      - publish-petals:
+          requires:
+            - test-petals
+          filters:
+            branches:
+              only:
+                - master
+                - dev
+      - publish-tagged-petals:
+          requires:
+            - test-petals
+          filters:
+            tags:
+              only: /^v.*/
