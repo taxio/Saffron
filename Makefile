@@ -1,7 +1,7 @@
-SHELL   := /bin/bash
+SHELL := /bin/bash
 
-NAME    := saffron
-ORG		:= studioaquatan
+NAME := saffron
+ORG	:= studioaquatan
 
 # Calyx container image
 API_SRC_DIR := ./calyx
