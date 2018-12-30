@@ -61,7 +61,7 @@ jobs:
           command: cd calyx/src && pipenv sync
       - run:
           name: Wait for MySQL
-          command: docker exec bulb dockerize -wait tcp://localhost:3306 -timeout 1m
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
       - run:
           name: Run tests
           command: |
@@ -180,10 +180,11 @@ workflows:
   build-master:
     jobs:
       - build-calyx
-      - test-calyx
-      - publish-calyx:
+      - test-calyx:
           requires:
             - build-calyx
+      - publish-calyx:
+          requires:
             - test-calyx
           filters:
             branches:
@@ -200,10 +201,11 @@ workflows:
             branches:
               ignore: /.*/
       - build-petals
-      - test-petals
-      - publish-petals:
+      - test-petals:
           requires:
             - build-petals
+      - publish-petals:
+          requires:
             - test-petals
           filters:
             branches:
