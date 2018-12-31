@@ -8,8 +8,8 @@ RUN apk update && \
         pcre-dev && \
     rm -rf /var/cache/apk/*
 
-COPY src/Pipfile ${PROJECT_DIR}/
-COPY src/Pipfile.lock ${PROJECT_DIR}/
+COPY ./src/Pipfile ${PROJECT_DIR}/
+COPY ./src/Pipfile.lock ${PROJECT_DIR}/
 
 WORKDIR ${PROJECT_DIR}
 
