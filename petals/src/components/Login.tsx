@@ -1,20 +1,21 @@
-import { Button, Card, CardContent, FormControl, Grid, TextField } from '@material-ui/core';
+import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
-import { AuthAction, login } from '../actions/auth';
+import { AuthAction, setLoginState } from '../actions/auth';
+import * as auth from '../api/auth';
 import { Auth } from '../store/AuthState';
 
-import * as H from 'history';
-
-interface LoginProps {
-  login: (usernema: string, password: string) => void;
-  history: H.History;
+interface LoginProps extends RouteComponentProps<any> {
+  setLoginState: (isLogin: boolean) => void;
+  isLogin: boolean;
 }
 
 interface LoginState {
   username: string;
   password: string;
+  loginErr: boolean;
 }
 
 class Login extends React.Component<LoginProps, LoginState> {
@@ -23,50 +24,77 @@ class Login extends React.Component<LoginProps, LoginState> {
     this.state = {
       username: '',
       password: '',
+      loginErr: false,
     };
 
     this.handleLogin = this.handleLogin.bind(this);
   }
 
+  public componentWillMount() {
+    if (this.props.isLogin) {
+      this.props.history.push('/');
+    }
+  }
+
   public handleLogin() {
-    this.props.login(this.state.username, this.state.password);
-    this.props.history.goBack();
+    auth.login(this.state.username, this.state.password).then(success => {
+      if (!success) {
+        this.setState({ loginErr: true });
+        return;
+      }
+
+      this.props.setLoginState(true);
+      this.props.history.push('/');
+    });
   }
 
   public render(): React.ReactNode {
+    const formControlStyle = { padding: '10px 0px' };
+
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <FormControl style={{ width: '100%' }}>
-                <TextField
-                  required={true}
-                  label="Username"
-                  margin="normal"
-                  onChange={e => this.setState({ username: e.target.value })}
-                />
-                <TextField
-                  required={true}
-                  label="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  margin="normal"
-                  onChange={e => this.setState({ password: e.target.value })}
-                />
-                <Button
-                  style={{
-                    marginTop: 16,
-                    marginBottom: 8,
-                    boxShadow: 'none',
-                  }}
-                  variant="contained"
-                  color="primary"
-                  onClick={this.handleLogin}
-                >
-                  Login
-                </Button>
-              </FormControl>
+              <form>
+                <FormControl fullWidth={true} style={formControlStyle}>
+                  <InputLabel htmlFor="login-username">ユーザー名</InputLabel>
+                  <Input
+                    id="login-username"
+                    value={this.state.username}
+                    onChange={e => this.setState({ username: e.target.value })}
+                  />
+                </FormControl>
+
+                <FormControl fullWidth={true} style={formControlStyle}>
+                  <InputLabel htmlFor="login-password">パスワード</InputLabel>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    autoComplete="off"
+                    value={this.state.password}
+                    onChange={e => this.setState({ password: e.target.value })}
+                  />
+                </FormControl>
+
+                <FormControl fullWidth={true} style={formControlStyle} error={this.state.loginErr}>
+                  {this.state.loginErr ? (
+                    <FormHelperText id="login-error-text">ユーザー名かパスワードが間違っています</FormHelperText>
+                  ) : null}
+                  <Button
+                    style={{
+                      marginTop: 16,
+                      marginBottom: 8,
+                      boxShadow: 'none',
+                    }}
+                    variant="contained"
+                    color="primary"
+                    onClick={this.handleLogin}
+                  >
+                    Login
+                  </Button>
+                </FormControl>
+              </form>
             </CardContent>
           </Card>
         </Grid>
@@ -75,25 +103,31 @@ class Login extends React.Component<LoginProps, LoginState> {
   }
 }
 
-interface StateFromProps {}
+interface StateFromProps {
+  isLogin: boolean;
+}
 
 interface DispatchFromProps {
-  login: (username: string, password: string) => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 function mapStateToProps(state: Auth): StateFromProps {
-  return {};
+  return {
+    isLogin: state.isLogin,
+  };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   return {
-    login: (username: string, password: string) => {
-      dispatch(login(username, password));
+    setLoginState: (isLogin: boolean) => {
+      dispatch(setLoginState(isLogin));
     },
   };
 }
 
-export default connect<StateFromProps, DispatchFromProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Login);
+export default withRouter(
+  connect<StateFromProps, DispatchFromProps, {}>(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Login)
+);

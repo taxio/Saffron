@@ -1,17 +1,19 @@
 import { AppBar, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
 import { AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { AuthAction, logout } from '../actions/auth';
+import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
-interface HeaderProps {
+import { logout } from '../api/auth';
+
+interface HeaderProps extends RouteComponentProps<any> {
   isLogin: boolean;
-  logout: () => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 interface HeaderState {
@@ -29,19 +31,33 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.handleLogout = this.handleLogout.bind(this);
     this.handleMenu = this.handleMenu.bind(this);
     this.handleClose = this.handleClose.bind(this);
+    this.handleClickLogin = this.handleClickLogin.bind(this);
+    this.handleClickSignup = this.handleClickSignup.bind(this);
   }
 
-  public handleLogout = (): void => {
-    this.props.logout();
-  };
+  public handleLogout() {
+    if (window.confirm('ログアウトしてもよろしいですか？')) {
+      logout();
+      this.props.setLoginState(false);
+    }
+  }
 
-  public handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>): void => {
+  public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
     this.setState({ anchorEl: e.currentTarget });
-  };
+  }
 
-  public handleClose = () => {
+  public handleClickLogin() {
+    this.props.history.push('/auth/login');
     this.setState({ anchorEl: null });
-  };
+  }
+
+  public handleClickSignup() {
+    this.props.history.push('/auth/signup');
+    this.setState({ anchorEl: null });
+  }
+  public handleClose() {
+    this.setState({ anchorEl: null });
+  }
 
   public render() {
     const anchorEl = this.state.anchorEl;
@@ -50,7 +66,12 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     return (
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" color="inherit" style={{ flex: 1, textDecoration: 'none' }}>
+          <Typography
+            variant="h6"
+            color="inherit"
+            style={{ flex: 1, textDecoration: 'none' }}
+            onClick={() => this.props.history.push('/')}
+          >
             Saffron
           </Typography>
 
@@ -82,16 +103,8 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                 open={open}
                 onClose={this.handleClose}
               >
-                <MenuItem onClick={this.handleClose}>
-                  <Link to="/login" style={{ textDecoration: 'none' }}>
-                    Login
-                  </Link>
-                </MenuItem>
-                <MenuItem onClick={this.handleClose}>
-                  <Link to="/signup" style={{ textDecoration: 'none' }}>
-                    Sign up
-                  </Link>
-                </MenuItem>
+                <MenuItem onClick={this.handleClickLogin}>Login</MenuItem>
+                <MenuItem onClick={this.handleClickSignup}>Sign up</MenuItem>
               </Menu>
             </React.Fragment>
           )}
@@ -106,7 +119,7 @@ interface StateFromProps {
 }
 
 interface DispatchFromProps {
-  logout: () => void;
+  setLoginState: (isLogin: boolean) => void;
 }
 
 function mapStateToProps(state: Auth): StateFromProps {
@@ -117,13 +130,15 @@ function mapStateToProps(state: Auth): StateFromProps {
 
 function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   return {
-    logout: () => {
-      dispatch(logout());
+    setLoginState: (isLogin: boolean) => {
+      dispatch(setLoginState(isLogin));
     },
   };
 }
 
-export default connect<StateFromProps, DispatchFromProps, {}>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Header);
+export default withRouter(
+  connect<StateFromProps, DispatchFromProps, {}>(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Header)
+);
