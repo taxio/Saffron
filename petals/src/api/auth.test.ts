@@ -15,20 +15,16 @@ describe('validatePassword', () => {
   });
 });
 
-describe('validateEmail', () => {
+describe('validateUsername', () => {
   it('correct', () => {
-    expect(auth.validateEmail('hoge@is.kit.ac.jp')).toBe(true);
+    expect(auth.validateUsername('b1111111')).toBe(true);
+    expect(auth.validateUsername('m1111111')).toBe(true);
+    expect(auth.validateUsername('d1111111')).toBe(true);
   });
-  it('incorrect', () => {
-    expect(auth.validateEmail('foo')).toBe(false);
+  it('short', () => {
+    expect(auth.validateUsername('b111111')).toBe(false);
   });
-  it('no email', () => {
-    expect(auth.validateEmail('@is.kit.ac.jp')).toBe(false);
-  });
-  it('edge case1', () => {
-    expect(auth.validateEmail('hoge@isakitbaccjp')).toBe(false);
-  });
-  it('edge case2', () => {
-    expect(auth.validateEmail('hoge@is.kit.ac.jphogehoge')).toBe(false);
+  it('bad prefix', () => {
+    expect(auth.validateUsername('a1111111')).toBe(false);
   });
 });

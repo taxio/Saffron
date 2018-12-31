@@ -22,10 +22,10 @@ export const validatePassword = (password: string): PasswordValidationError => {
   return PasswordValidationError.NONE;
 };
 
-const EmailRegex = new RegExp('.+@is\\.kit\\.ac\\.jp$');
+const UsernameRegex = new RegExp('^[bmd]\\d{7}$');
 
-export const validateEmail = (email: string): boolean => {
-  const ret = email.match(EmailRegex);
+export const validateUsername = (email: string): boolean => {
+  const ret = email.match(UsernameRegex);
   return Boolean(ret);
 };
 

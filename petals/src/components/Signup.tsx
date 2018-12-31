@@ -13,45 +13,48 @@ import {
 import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { PasswordValidationError, validateEmail, validatePassword } from '../api/auth';
+import { PasswordValidationError, validatePassword, validateUsername } from '../api/auth';
+import { createUser } from '../api/users';
 
 interface SignupProps extends RouteComponentProps {}
 
 interface SignupState {
-  email: string;
-  emailErr: boolean;
+  username: string;
+  usernameErr: boolean;
   password: string;
   passwordErrMsg: string;
   confirmPassword: string;
   confirmPasswordErrMsg: string;
   agreedWithTermsOfService: boolean;
   agreedWithTermsOfServiceErr: boolean;
+  signupErrMsg: string;
 }
 
 class Signup extends React.Component<SignupProps, SignupState> {
   constructor(props: SignupProps) {
     super(props);
     this.state = {
-      email: '',
-      emailErr: false,
+      username: '',
+      usernameErr: false,
       password: '',
       passwordErrMsg: '',
       confirmPassword: '',
       confirmPasswordErrMsg: '',
       agreedWithTermsOfService: false,
       agreedWithTermsOfServiceErr: false,
+      signupErrMsg: '',
     };
 
-    this.handleChangeEmail = this.handleChangeEmail.bind(this);
+    this.handleChangeUsername = this.handleChangeUsername.bind(this);
     this.handleChangePassword = this.handleChangePassword.bind(this);
     this.handleChangeConfirmPassword = this.handleChangeConfirmPassword.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
   }
 
-  public handleChangeEmail(e: React.ChangeEvent<HTMLInputElement>) {
-    const email = e.target.value;
-    const emailErr = !validateEmail(email);
-    this.setState({ email, emailErr });
+  public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
+    const username = e.target.value;
+    const usernameErr = !validateUsername(username);
+    this.setState({ username, usernameErr });
   }
 
   public handleChangePassword(e: React.ChangeEvent<HTMLInputElement>) {
@@ -85,13 +88,28 @@ class Signup extends React.Component<SignupProps, SignupState> {
   }
 
   public handleSignup() {
+    if (
+      this.state.usernameErr ||
+      this.state.confirmPasswordErrMsg ||
+      !this.state.username ||
+      !this.state.password ||
+      !this.state.confirmPassword
+    ) {
+      this.setState({ signupErrMsg: '入力情報に誤りがあります' });
+      return;
+    }
     if (!this.state.agreedWithTermsOfService) {
       this.setState({ agreedWithTermsOfServiceErr: true });
       return;
     }
-    // TODO: Sign Up API
-    console.log(`signup ${this.state.email} : ${this.state.password}`);
-    this.props.history.push('/auth/sentmail');
+
+    createUser(this.state.username, this.state.password).then(success => {
+      if (!success) {
+        this.setState({ signupErrMsg: 'アカウント作成に失敗しました' });
+        return;
+      }
+      this.props.history.push('/auth/sentmail');
+    });
   }
 
   public render(): React.ReactNode {
@@ -103,11 +121,11 @@ class Signup extends React.Component<SignupProps, SignupState> {
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
               <form>
-                <FormControl fullWidth={true} style={formControlStyle} error={this.state.emailErr}>
-                  <InputLabel htmlFor="signup-email">メールアドレス</InputLabel>
-                  <Input id="signup-email" value={this.state.email} onChange={this.handleChangeEmail} />
+                <FormControl fullWidth={true} style={formControlStyle} error={this.state.usernameErr}>
+                  <InputLabel htmlFor="signup-email">ユーザー名</InputLabel>
+                  <Input id="signup-email" value={this.state.username} onChange={this.handleChangeUsername} />
                   <FormHelperText id="signup-email-text">
-                    @is.kit.ac.jpで終わるメールアドレスを入力してください
+                    bまたはm,dで始まる8文字の大学ユーザー名を入力してください
                   </FormHelperText>
                 </FormControl>
 
@@ -167,7 +185,8 @@ class Signup extends React.Component<SignupProps, SignupState> {
                   ) : null}
                 </FormControl>
 
-                <FormControl fullWidth={true} style={formControlStyle}>
+                <FormControl fullWidth={true} style={formControlStyle} error={Boolean(this.state.signupErrMsg)}>
+                  {this.state.signupErrMsg ? <FormHelperText>{this.state.signupErrMsg}</FormHelperText> : null}
                   <Button
                     style={{
                       marginTop: 16,

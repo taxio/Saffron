@@ -12,8 +12,16 @@ interface CreateResponse {
   username: string;
   email: string;
   screenName: string;
+  non_field_errors: string[];
 }
 
-export const create = async (data: CreateRequest): Promise<CreateResponse> => {
+const create = async (data: CreateRequest): Promise<CreateResponse> => {
   return await util.sendRequest(util.Methods.Post, '/users/create/', data);
+};
+
+export const createUser = async (username: string, password: string): Promise<boolean> => {
+  const req: CreateRequest = { username, password, screenName: null, gpa: null };
+  return create(req).then(res => {
+    return Boolean(res.non_field_errors);
+  });
 };
