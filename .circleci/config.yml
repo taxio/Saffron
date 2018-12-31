@@ -41,7 +41,7 @@ jobs:
           command: docker load -i calyx-image.tar || true
       - run:
           name: Build image
-          command: docker build ./calyx -t $IMAGE_NAME:latest
+          command: docker build --cache-from $IMAGE_NAME:latest ./calyx -t $IMAGE_NAME:latest
       - run:
           name: Archive docker image
           command: docker save -o calyx-image.tar $IMAGE_NAME:latest
@@ -131,16 +131,15 @@ jobs:
             docker load -i petals-image.tar || true
       - run:
           name: Build cache image
-          command: docker build ./petals --target develop -t $IMAGE_NAME:latest-cache
-      - run:
-          name: Archive cache image
-          command: docker save -o petals-cache.tar $IMAGE_NAME:latest-cache
+          command: docker build ./petals --target build -t $IMAGE_NAME:latest-cache --cache-from $IMAGE_NAME:latest-cache
       - run:
           name: Build production image
-          command: docker build ./petals --target production -t $IMAGE_NAME:latest
+          command: docker build ./petals -t $IMAGE_NAME:latest --cache-from $IMAGE_NAME:latest-cache
       - run:
-          name: Archive docker image
-          command: docker save -o petals-image.tar $IMAGE_NAME:latest
+          name: Archive images
+          command: |
+            docker save -o petals-image.tar $IMAGE_NAME:latest
+            docker save -o petals-cache.tar $IMAGE_NAME:latest-cache
       - persist_to_workspace:
           root: .
           paths:
