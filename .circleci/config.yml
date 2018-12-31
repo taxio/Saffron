@@ -41,7 +41,7 @@ jobs:
           command: docker load -i calyx-image.tar || true
       - run:
           name: Build image
-          command: docker build --cache-from $IMAGE_NAME:latest-cache ./calyx -t $IMAGE_NAME:latest
+          command: docker build --cache-from $IMAGE_NAME:latest ./calyx -t $IMAGE_NAME:latest
       - run:
           name: Archive docker image
           command: docker save -o calyx-image.tar $IMAGE_NAME:latest
