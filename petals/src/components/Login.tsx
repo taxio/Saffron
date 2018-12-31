@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
-import * as auth from '../lib/auth';
+import * as auth from '../api/auth';
 import { Auth } from '../store/AuthState';
 
 interface LoginProps extends RouteComponentProps<any> {
@@ -37,8 +37,8 @@ class Login extends React.Component<LoginProps, LoginState> {
   }
 
   public handleLogin() {
-    auth.login(this.state.username, this.state.password).then(res => {
-      if (!res.token) {
+    auth.login(this.state.username, this.state.password).then(success => {
+      if (!success) {
         this.setState({ loginErr: true });
         return;
       }

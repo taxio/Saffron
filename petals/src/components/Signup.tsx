@@ -13,7 +13,7 @@ import {
 import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { PasswordValidationError, validateEmail, validatePassword } from '../lib/auth';
+import { PasswordValidationError, validateEmail, validatePassword } from '../api/auth';
 
 interface SignupProps extends RouteComponentProps {}
 

@@ -43,7 +43,16 @@ export const convertGetQueries = (data: object): string => {
     if (data[key] instanceof Object) {
       throw new Error('not correct data');
     }
-    buf.push(`${key}=${data[key]}`);
+    const convertedKey = convertCamelToSnake(key);
+    buf.push(`${convertedKey}=${data[key]}`);
   }
   return buf.join('&');
+};
+
+const CamelToSnakeRegex = new RegExp('[A-Z]', 'g');
+
+export const convertCamelToSnake = (camelStr: string): string => {
+  return camelStr.replace(CamelToSnakeRegex, (s: string) => {
+    return '_' + s.charAt(0).toLowerCase();
+  });
 };
