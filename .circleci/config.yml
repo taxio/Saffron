@@ -137,7 +137,7 @@ jobs:
           command: docker save -o petals-cache.tar $IMAGE_NAME:latest-cache
       - run:
           name: Build production image
-          command: docker build ./petals --target production -t $IMAGE_NAME:latest
+          command: docker build ./petals -t $IMAGE_NAME:latest
       - run:
           name: Archive docker image
           command: docker save -o petals-image.tar $IMAGE_NAME:latest
