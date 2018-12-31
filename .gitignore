@@ -6,3 +6,5 @@ bulb/data/*
 .DS_Store
 .venv
 __pycache__
+
+.python-version
