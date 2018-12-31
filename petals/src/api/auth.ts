@@ -120,3 +120,28 @@ export const verifyToken = async (token: string): Promise<boolean> => {
       return false;
     });
 };
+
+interface JwtPayload {
+  user_id: number;
+  username: string;
+  exp: number;
+  email: string;
+}
+
+export const parseJwtTokenPayload = (token: string): JwtPayload => {
+  const base64Token = token.split('.')[1];
+  const decodedToken = new Buffer(base64Token, 'base64');
+  return JSON.parse(decodedToken.toString());
+};
+
+export const isLogin = (): boolean => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return false;
+  }
+
+  const payload = parseJwtTokenPayload(token);
+  const now = Math.floor(new Date().getTime() / 1000);
+
+  return now <= payload.exp;
+};

@@ -7,9 +7,10 @@ import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
 import auth from './reducers/auth';
 
+import { isLogin } from './api/auth';
 import { Auth } from './store/AuthState';
 
-const store: Store<Auth> = createStore(auth, { isLogin: false });
+const store: Store<Auth> = createStore(auth, { isLogin: isLogin() });
 
 ReactDOM.render(
   <Provider store={store}>

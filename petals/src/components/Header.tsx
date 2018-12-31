@@ -9,6 +9,8 @@ import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
 import { Auth } from '../store/AuthState';
 
+import { logout } from '../api/auth';
+
 interface HeaderProps extends RouteComponentProps<any> {
   isLogin: boolean;
   setLoginState: (isLogin: boolean) => void;
@@ -34,7 +36,10 @@ class Header extends React.Component<HeaderProps, HeaderState> {
   }
 
   public handleLogout() {
-    this.props.setLoginState(false);
+    if (window.confirm('ログアウトしてもよろしいですか？')) {
+      logout();
+      this.props.setLoginState(false);
+    }
   }
 
   public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
