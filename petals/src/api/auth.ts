@@ -93,7 +93,7 @@ export const refreshToken = async (token: string): Promise<boolean> => {
     });
 };
 
-interface JwtVerifyReequest {
+interface JctVerifyRequest {
   token: string;
 }
 
@@ -102,7 +102,7 @@ interface JwtVerifyResponse {
   non_field_errors: string[];
 }
 
-const jwtVerify = async (data: JwtVerifyReequest): Promise<JwtVerifyResponse> => {
+const jwtVerify = async (data: JctVerifyRequest): Promise<JwtVerifyResponse> => {
   const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/verify/', data);
   if (res.status >= 400) {
     throw await res.json();
@@ -111,7 +111,7 @@ const jwtVerify = async (data: JwtVerifyReequest): Promise<JwtVerifyResponse> =>
 };
 
 export const verifyToken = async (token: string): Promise<boolean> => {
-  const req: JwtVerifyReequest = { token };
+  const req: JctVerifyRequest = { token };
   return jwtVerify(req)
     .then(res => {
       return true;
