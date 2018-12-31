@@ -13,7 +13,7 @@ const convertMethodName = (method: Methods): string => {
   throw new Error(`${method} not found`);
 };
 
-export const sendRequest = async (method: Methods, path: string, data: object): Promise<any> => {
+export const sendRequest = async (method: Methods, path: string, data: object): Promise<Response> => {
   const headers: Headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
@@ -33,8 +33,7 @@ export const sendRequest = async (method: Methods, path: string, data: object): 
       break;
   }
 
-  const res = await fetch(url, options);
-  return await res.json();
+  return await fetch(url, options);
 };
 
 export const convertGetQueries = (data: object): string => {

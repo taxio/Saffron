@@ -40,17 +40,23 @@ interface JwtCreateResponse {
 }
 
 const jwtCreate = async (data: JwtCreateRequest): Promise<JwtCreateResponse> => {
-  return await util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  return await res.json();
 };
 
 export const login = async (username: string, password: string): Promise<boolean> => {
   const req: JwtCreateRequest = { username, password };
-  return jwtCreate(req).then(res => {
-    if (res.token) {
+  return jwtCreate(req)
+    .then(res => {
       localStorage.setItem('token', res.token);
-    }
-    return Boolean(res.token);
-  });
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
 };
 
 export const logout = () => {
@@ -68,17 +74,23 @@ interface JwtRefreshResponse {
 }
 
 const jwtRefresh = async (data: JwtRefreshRequest): Promise<JwtRefreshResponse> => {
-  return await util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  return await res.json();
 };
 
 export const refreshToken = async (token: string): Promise<boolean> => {
   const req: JwtRefreshRequest = { token };
-  return jwtRefresh(req).then(res => {
-    if (res.token) {
+  return jwtRefresh(req)
+    .then(res => {
       localStorage.setItem('token', res.token);
-    }
-    return Boolean(res.token);
-  });
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
 };
 
 interface JwtVerifyReequest {
@@ -91,12 +103,20 @@ interface JwtVerifyResponse {
 }
 
 const jwtVerify = async (data: JwtVerifyReequest): Promise<JwtVerifyResponse> => {
-  return await util.sendRequest(util.Methods.Post, '/auth/jwt/verify/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/verify/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  return await res.json();
 };
 
 export const verifyToken = async (token: string): Promise<boolean> => {
   const req: JwtVerifyReequest = { token };
-  return jwtVerify(req).then(res => {
-    return Boolean(res.token);
-  });
+  return jwtVerify(req)
+    .then(res => {
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
 };
