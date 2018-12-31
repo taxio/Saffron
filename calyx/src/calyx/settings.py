@@ -6,6 +6,7 @@ Calyx is a backend implementation of Saffron ( https://github.com/StudioAquatan/
 
 import os
 import dotenv
+import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -114,6 +115,16 @@ DJOSER = {
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail'
     }
+}
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(
+        hours=int(os.getenv('CALYX_JWT_EXPIRATION_HOURS', '24'))
+    ),
+    'JWT_ALLOW_REFRESH': os.getenv('CALYX_JWT_ALLOW_REFRESH', 'True').lower() == 'true',
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(
+        hours=int(os.getenv('CALYX_JWT_REFRESH_EXPIRATION_HOURS', '168'))
+    ),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
