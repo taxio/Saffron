@@ -17,10 +17,10 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
     ]
 
     def setUp(self):
+        super(UserRegistrationTests, self).setUp()
         self.urlregex = re.compile(r'^https?://[\w/:%#$&?()~.=+\-]+$', re.MULTILINE)
         self.expected_mail_subject = 'アカウント有効化 - Saffron'
         self.expect_created_result = {
-            'pk': 1,
             'username': 'b0000000',
             'email': 'b0000000@' + settings.STUDENT_EMAIL_DOMAIN,
             'screen_name': 'testuser',
@@ -42,6 +42,7 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         """ユーザ作成プロセスのテスト"""
         resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        resp.data.pop('pk')
         self.assertEqual(resp.data, self.expect_created_result)
         # 登録されたユーザ情報を検証
         users = User.objects.all()
@@ -66,12 +67,12 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         invalid_resp = self.client.post(reverse('user-activate'),
                                         data={'token': 'invalid', 'uid': 'invalid'}, format='json')
         self.assertEqual(invalid_resp.status_code, status.HTTP_400_BAD_REQUEST)
-        not_activated_user = User.objects.get(pk=self.expect_created_result['pk'])
+        not_activated_user = User.objects.get(username=self.user_data['username'])
         self.assertEqual(not_activated_user.is_active, False)
         # 正しいトークンとuidでアクティベート
         post_resp = self.client.post(reverse('user-activate'), data={'token': token, 'uid': uid}, format='json')
         self.assertEqual(post_resp.status_code, status.HTTP_204_NO_CONTENT)
-        activated_user = User.objects.get(pk=self.expect_created_result['pk'])
+        activated_user = User.objects.get(username=self.user_data['username'])
         self.assertEqual(activated_user.is_active, True)
 
     def test_duplicate_create_user(self):

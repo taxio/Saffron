@@ -1,10 +1,13 @@
+from typing import TYPE_CHECKING
 from django.db import models, transaction
 from django.db.utils import IntegrityError
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import ASCIIUsernameValidator
 from django.conf import settings
 from django.utils import timezone
-from courses.models import Course
+
+if TYPE_CHECKING:
+    from courses.models import Course
 
 
 class StudentNumberValidator(ASCIIUsernameValidator):
@@ -34,6 +37,13 @@ class SoftDeletionQuerySet(models.QuerySet):
     def dead_only(self):
         """削除済みユーザのみを返す"""
         return self.filter(is_deleted=True)
+
+    def leave(self, course: 'Course'):
+        """指定の課程にジョインしているユーザを全て脱退させる"""
+        return super(SoftDeletionQuerySet, self).filter(course_id=course.pk).update(
+            course=None,
+            joined=False
+        )
 
 
 class UserManager(BaseUserManager):
@@ -109,9 +119,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     screen_name = models.CharField(max_length=255, null=True, blank=True, verbose_name='氏名')
     gpa = models.FloatField(verbose_name='GPA', blank=True, null=True)
-    # 荒らしに備え，課程の情報を削除してリセットできるようにする
-    # models.SET_NULLはリレーション先が削除されたときこのカラムにnullをセットする
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, blank=True, null=True, verbose_name='課程')
 
     # 課程ごとのAdminかどうか
     is_admin = models.BooleanField(default=False)
