@@ -29,21 +29,6 @@ class Year(models.Model):
         return str(self.year)
 
 
-# class Membership(models.Model):
-#     """
-#     課程への参加の中間テーブル
-#     """
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="ユーザ")
-#     course = models.ForeignKey('Course', on_delete=models.CASCADE, verbose_name="課程")
-#     joined_at = models.DateTimeField('参加日時', auto_now_add=True)
-#
-#     class Meta:
-#         auto_created = True
-#
-#     def __str__(self) -> str:
-#         return f'{self.user} joined {self.course} at {self.joined_at}'
-
-
 class CourseManager(models.Manager):
     """
     課程を操作するマネージャ
