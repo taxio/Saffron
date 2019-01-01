@@ -38,13 +38,6 @@ class SoftDeletionQuerySet(models.QuerySet):
         """削除済みユーザのみを返す"""
         return self.filter(is_deleted=True)
 
-    def leave(self, course: 'Course'):
-        """指定の課程にジョインしているユーザを全て脱退させる"""
-        return super(SoftDeletionQuerySet, self).filter(course_id=course.pk).update(
-            course=None,
-            joined=False
-        )
-
 
 class UserManager(BaseUserManager):
     """
