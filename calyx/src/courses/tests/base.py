@@ -1,3 +1,7 @@
+from copy import deepcopy
+from django.test import TestCase
+
+
 years = [2017, 2018, 2019]
 
 course_data_set = [
@@ -24,3 +28,11 @@ user_data_set = [
         "password": "password"
     }
 ]
+
+
+class DatasetMixin(object):
+
+    def setUp(self):
+        self.course_data_set = deepcopy(course_data_set)
+        self.user_data_set = deepcopy(user_data_set)
+        self.years = deepcopy(years)
