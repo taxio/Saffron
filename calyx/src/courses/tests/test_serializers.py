@@ -1,7 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from courses.models import Course, Year
-from courses.serializers import YearSerializer
+from courses.serializers import YearSerializer, CourseSerializer, CourseWithoutUserSerializer
 from .base import DatasetMixin
+
+User = get_user_model()
 
 
 class YearSerializerTest(DatasetMixin, TestCase):
@@ -46,4 +49,63 @@ class YearSerializerTest(DatasetMixin, TestCase):
             self.assertEqual(y_int, year.year)
 
 
+class CourseWithoutUserSerializerTest(DatasetMixin, TestCase):
 
+    def test_serialize(self):
+        """CourseモデルをJSONへ変換"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        serializer = CourseWithoutUserSerializer(course)
+        expected_json = {
+            'pk': course.pk,
+            'name': course.name,
+            'year': course.year.year
+        }
+        self.assertEqual(expected_json, serializer.data)
+
+
+class CourseSerializerTest(DatasetMixin, TestCase):
+
+    def test_serialize(self):
+        """CourseモデルをJSONへ変換"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        serializer = CourseSerializer(course)
+        expected_json = {
+            'pk': course.pk,
+            'name': course.name,
+            'year': course.year.year,
+            'users': []
+        }
+        self.assertEqual(expected_json, serializer.data)
+
+    def test_serialize_with_user(self):
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        user = User.objects.create_user(**self.user_data_set[0])
+        course.join(user, course_data['pin_code'])
+        serializer = CourseSerializer(course)
+        expected_json = {
+            'pk': course.pk,
+            'name': course.name,
+            'year': course.year.year,
+            'users': [
+                {
+                    'pk': user.pk,
+                    'username': user.username,
+                }
+            ]
+        }
+        self.assertEqual(expected_json, serializer.data)
+        """ユーザ情報を含めてCourseモデルをJSONへ変換"""
+
+    def test_deserialize(self):
+        """JSONからCourseモデルへ変換"""
+        course_data = self.course_data_set[0]
+        serializer = CourseSerializer(data=course_data)
+        serializer.is_valid()
+        serializer.save()
+        course = Course.objects.first()
+        self.assertEqual(1, Course.objects.count())
+        self.assertEqual(course_data['name'], course.name)
+        self.assertEqual(course_data['year'], course.year.year)
