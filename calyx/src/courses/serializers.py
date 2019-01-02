@@ -1,9 +1,17 @@
-from django.contrib.auth import get_user_model
+import functools
+from django.core import exceptions
+from django.contrib.auth import get_user_model, password_validation
+from django.conf import settings
 from rest_framework import serializers
 from .models import Course, Year
 
 
 User = get_user_model()
+
+
+@functools.lru_cache(maxsize=None)
+def get_pin_code_validators():
+    return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -26,9 +34,11 @@ class CourseSerializer(serializers.ModelSerializer):
         validated_data['year'] = validated_data['year']['year']
         return Course.objects.create_course(**validated_data)
 
-    def validate_year(self, data):
-        if type(data) is not int:
-            raise serializers.ValidationError({'year': 'Year must be integer'})
+    def validate_pin_code(self, data):
+        try:
+            password_validation.validate_password(data, password_validators=get_pin_code_validators())
+        except exceptions.ValidationError as e:
+            raise serializers.ValidationError(str(e))
         return data
 
     def get_users(self, obj):
