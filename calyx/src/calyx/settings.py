@@ -10,7 +10,7 @@ import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-env_file = os.path.join(BASE_DIR, '.env.dev')
+env_file = os.path.join(BASE_DIR, '.env.dev.local')
 
 if os.path.exists(env_file):
     dotenv.load_dotenv(env_file)
@@ -139,6 +139,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+PIN_CODE_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 4,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
 ]
 
