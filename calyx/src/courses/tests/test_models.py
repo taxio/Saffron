@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from users.models import User
 from courses.models import Course, Year
+from courses.errors import NotJoinedError, AlreadyJoinedError
 from .base import DatasetMixin
 
 
@@ -59,6 +60,16 @@ class CourseTest(DatasetMixin, TestCase):
         # course = Course.objects.get(course.pk)
         self.assertEqual(len(self.user_data_set), len(course.users.all()))
 
+    def test_add_joined_user(self):
+        """参加済みの課程にユーザをジョインさせる"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        user = User.objects.create_user(**self.user_data_set[0])
+        self.assertTrue(course.join(user, pin_code))
+        with self.assertRaises(AlreadyJoinedError):
+            course.join(user, pin_code)
+
     def test_leave_user(self):
         """課程からユーザが抜ける"""
         course = Course.objects.create_course(**self.course_data_set[0])
@@ -68,3 +79,36 @@ class CourseTest(DatasetMixin, TestCase):
         for user in users:
             self.assertEqual(None, course.leave(user))
         self.assertEqual(0, len(course.users.all()))
+
+    def test_leave_not_joined_user(self):
+        """どの課程にも所属していないユーザが抜ける"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        user = User.objects.create_user(**self.user_data_set[0])
+        with self.assertRaises(NotJoinedError):
+            course.leave(user)
+
+    def test_update_pin_code(self):
+        """課程のpin_codeを更新する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        old_pin_code = self.course_data_set[0]['pin_code']
+        new_pin_code = "abcd"
+        course.set_password(new_pin_code)
+        course.save()
+        user = User.objects.create_user(**self.user_data_set[0])
+        # 古いpin_codeでは参加できない
+        self.assertFalse(course.join(user, old_pin_code))
+        # 新しいpin_codeでは参加できる
+        self.assertTrue(course.join(user, new_pin_code))
+
+    def test_delete_course(self):
+        """課程を消去する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        users = [User.objects.create_user(**user_data) for user_data in self.user_data_set]
+        for user in users:
+            self.assertTrue(course.join(user, self.course_data_set[0]['pin_code']))
+        course.delete()
+        self.assertEqual(0, Course.objects.count())
+        self.assertEqual(1, Year.objects.count())
+        for user in users:
+            courses = user.courses.all()
+            self.assertEqual(0, len(courses))
