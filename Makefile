@@ -18,8 +18,8 @@ SRCS := $(shell find $(FRONT_SRC_DIR)/src -type f \( -name '*.css' -o -name '*.t
 PUBLIC_SRCS := $(shell find $(FRONT_SRC_DIR)/public -type f \( -name '*.json' -o -name '*.ico' -o -name '*.html' -o -name '*.js' \) -print)
 
 # Bulb container image
-DEV_DB_CONTAINER := $(NAME)-db-dev
-DB_DIR := ./bulb
+DEV_DB_CONTAINER := $(NAME)-db-dev-local
+DB_DIR := $(PWD)/bulb
 DB_DATA_DIR := $(DB_DIR)/data
 DB_IMAGE := $(ORG)/mysql-utf8mb4
 DB_IMAGE_VERSION := latest
@@ -29,7 +29,7 @@ DB_USER := develop
 DB_PASSWORD := password
 DB_ROOT_PASSWORD := root
 DB_NAME := dev_db
-DB_PORT := 3306
+DB_PORT := 33060
 
 $(FRONT_SRC_DIR)/build/index.html: $(SRCS) $(PUBLIC_SRCS)
 	cd $(FRONT_SRC_DIR) && yarn build
@@ -73,7 +73,8 @@ db:
 			-e MYSQL_USER=$(DB_USER) \
 			-e MYSQL_PASSWORD=$(DB_PASSWORD) \
 			-e MYSQL_DATABASE=$(DB_NAME) \
-			-p $(DB_PORT):$(DB_PORT) \
+			-p $(DB_PORT):3306 \
+			-v $(DB_DATA_DIR):/var/lib/mysql \
 			$(DB_IMAGE):$(DB_IMAGE_VERSION) > /dev/null; \
 	fi
 	@echo "You can connect this DB on '127.0.0.1:$(DB_PORT)'"
