@@ -1,7 +1,8 @@
 from datetime import datetime
+from django.db import IntegrityError
 from django.test import TestCase
 from users.models import User
-from .models import Course, Year
+from courses.models import Course, Year
 
 
 class CourseTest(TestCase):
@@ -51,7 +52,15 @@ class CourseTest(TestCase):
 
     def test_create_duplicate_course(self):
         """同じ名前の課程を作成する"""
-        pass
+        # 同じ年度
+        Course.objects.create_course(**self.course_data[0])
+        with self.assertRaises(IntegrityError):
+            Course.objects.create_course(**self.course_data[0])
+        # 別の年度
+        y = 1999
+        Course.objects.create_course(**self.course_data[1], year=y)
+        Course.objects.create_course(**self.course_data[1])
+        self.assertEqual(3, len(Year.objects.all()))
 
     def test_authenticate(self):
         """課程へ設定されているPINコードで認証する"""
@@ -76,8 +85,8 @@ class CourseTest(TestCase):
         """課程からユーザが抜ける"""
         course = Course.objects.create_course(**self.course_data[0])
         users = [User.objects.create_user(**user_data) for user_data in self.user_data]
-        for i, user in enumerate(users):
+        for user in users:
             self.assertTrue(course.join(user, self.course_data[0]['pin_code']))
-        for user in User.objects.all():
+        for user in users:
             self.assertEqual(None, course.leave(user))
         self.assertEqual(0, len(course.users.all()))

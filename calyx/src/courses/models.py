@@ -1,7 +1,7 @@
 import unicodedata
 
 from typing import TYPE_CHECKING
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -42,14 +42,15 @@ class CourseManager(models.Manager):
         :param year: 値を渡さなければ現在の年をデフォルトで使用する
         :return: Course
         """
-        model = self.model  # type: Course
-        name = model.normalize_name(name)
-        if year is None:
-            year = timezone.now().year
-        year_obj, _ = Year.objects.get_or_create(year=year)
-        course = model(name=name, year=year_obj)
-        course.set_password(pin_code)
-        course.save()
+        with transaction.atomic():
+            model = self.model  # type: Course
+            name = model.normalize_name(name)
+            if year is None:
+                year = timezone.now().year
+            year_obj, _ = Year.objects.get_or_create(year=year)
+            course = model(name=name, year=year_obj)
+            course.set_password(pin_code)
+            course.save()
         return course
 
 
