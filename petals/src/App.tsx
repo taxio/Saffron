@@ -3,6 +3,7 @@ import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import theme from './lib/theme';
 
+import Activation from './components/Auth/Activation';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -19,6 +20,7 @@ const App = () => (
         <Switch>
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
+          <Route exact={true} path="/activate" component={Activation} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>

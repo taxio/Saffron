@@ -34,3 +34,33 @@ export const createUser = async (username: string, password: string): Promise<bo
       return false;
     });
 };
+
+interface ActivateRequest {
+  uid: string;
+  token: string;
+}
+
+interface ActivateResponse {}
+
+const activate = async (data: ActivateRequest): Promise<ActivateResponse> => {
+  const res = await util.sendRequest(util.Methods.Post, '/users/activate/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  if (res.status === 204) {
+    return {};
+  }
+
+  return await res.json();
+};
+
+export const activateUser = async (uid: string, token: string): Promise<boolean> => {
+  const req: ActivateRequest = { uid, token };
+  return activate(req)
+    .then(res => {
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
+};
