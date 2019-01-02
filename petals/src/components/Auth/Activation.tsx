@@ -13,20 +13,41 @@ interface ActivationProps extends RouteComponentProps<ActivationMatchParams> {}
 interface ActivationState {
   isLoading: boolean;
   isActivated: boolean;
+  params: ActivationMatchParams;
 }
 
 class Activation extends React.Component<ActivationProps, ActivationState> {
   constructor(props: ActivationProps) {
     super(props);
+
+    let params: ActivationMatchParams = { uid: '', token: '' };
+    try {
+      params = this.parseHashData(this.props.location.hash);
+    } catch (e) {
+      this.props.history.push('/');
+    }
+
     this.state = {
       isLoading: true,
       isActivated: false,
+      params,
+    };
+  }
+
+  public parseHashData(hashStr: string): ActivationMatchParams {
+    const splited = hashStr.split('/');
+    if (splited.length !== 3) {
+      throw new Error('not correct location.hash');
+    }
+
+    return {
+      uid: splited[1],
+      token: splited[2],
     };
   }
 
   public componentDidMount() {
-    const params = this.props.match.params;
-    activateUser(params.uid, params.token).then(success => {
+    activateUser(this.state.params.uid, this.state.params.token).then(success => {
       this.setState({ isLoading: false, isActivated: success });
     });
   }

@@ -20,7 +20,7 @@ const App = () => (
         <Switch>
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
-          <Route exact={true} path="/activate/:uid/:token" component={Activation} />
+          <Route exact={true} path="/activate" component={Activation} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>
