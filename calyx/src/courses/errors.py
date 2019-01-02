@@ -1,8 +1,7 @@
 class AlreadyJoinedError(Exception):
 
-    def __init__(self, user, course):
+    def __init__(self, course):
         super(AlreadyJoinedError, self).__init__()
-        self.user = user
         self.course = course
 
     def err_dict(self) -> dict:
@@ -11,14 +10,14 @@ class AlreadyJoinedError(Exception):
         }
 
     def __str__(self) -> str:
-        return f"{self.user.username} has already been joined {self.course.name}"
+        return f"既に{self.course.name}へ参加しています．"
 
 
 class NotJoinedError(Exception):
 
-    def __init__(self, user):
+    def __init__(self, course):
         super(NotJoinedError, self).__init__()
-        self.user = user
+        self.course = course
 
     def err_dict(self) -> dict:
         return {
@@ -26,4 +25,4 @@ class NotJoinedError(Exception):
         }
 
     def __str__(self):
-        return f"{self.user.username} has not been joined any course."
+        return f"{self.course.name}へ参加していません．"

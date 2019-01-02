@@ -111,7 +111,7 @@ class Course(models.Model):
         :return: bool
         """
         if user.joined:
-            raise AlreadyJoinedError(course=self, user=user)
+            raise AlreadyJoinedError(self)
         if self.check_password(password):
             self.users.add(user)
             self.save()
@@ -131,4 +131,4 @@ class Course(models.Model):
             user.joined = False
             user.save()
             return None
-        raise NotJoinedError(user)
+        raise NotJoinedError(self)

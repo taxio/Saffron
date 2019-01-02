@@ -17,7 +17,7 @@ def get_pin_code_validators():
 class CourseSerializer(serializers.ModelSerializer):
     """
     課程のシリアライザ．年度はリレーション先から年度の数字のみを取得して返す．
-    所属するユーザはそのプライマリキーのみを返す．
+    所属するユーザはそのプライマリキーと学生IDのみを返す．
     """
 
     users = serializers.SerializerMethodField()
