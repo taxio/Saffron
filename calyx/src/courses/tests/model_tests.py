@@ -1,8 +1,10 @@
+from copy import deepcopy
 from datetime import datetime
 from django.db import IntegrityError
 from django.test import TestCase
 from users.models import User
 from courses.models import Course, Year
+from .base import user_data_set, course_data_set
 
 
 class CourseTest(TestCase):
@@ -10,25 +12,8 @@ class CourseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super(CourseTest, cls).setUpClass()
-        cls.course_data = [{
-            "name": "Course A",
-            "year": 2018,
-            "pin_code": "0123"
-        }, {
-            "name": "Course B",
-            "pin_code": "aaabbbcccddd"
-        }, {
-            "name": "ﾎｹﾞ",
-            "year": 2018,
-            "pin_code": "1234"
-        }]
-        cls.user_data = [{
-            "username": "b0000000",
-            "password": "password"
-        }, {
-            "username": "m0000000",
-            "password": "password"
-        }]
+        cls.course_data = deepcopy(course_data_set)
+        cls.user_data = deepcopy(user_data_set)
 
     def test_create_course(self):
         """課程を作成する"""
