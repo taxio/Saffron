@@ -1,5 +1,6 @@
 import functools
 from django.core import exceptions
+from django.db import IntegrityError
 from django.contrib.auth import get_user_model, password_validation
 from django.conf import settings
 from rest_framework import serializers
@@ -32,7 +33,11 @@ class CourseSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['year'] = validated_data['year']['year']
-        return Course.objects.create_course(**validated_data)
+        try:
+            return Course.objects.create_course(**validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({'name': f'{validated_data["name"]}は既に存在しています．'})
+
 
     def validate_pin_code(self, data):
         try:
