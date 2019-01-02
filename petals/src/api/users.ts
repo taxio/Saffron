@@ -47,6 +47,10 @@ const activate = async (data: ActivateRequest): Promise<ActivateResponse> => {
   if (res.status >= 400) {
     throw await res.json();
   }
+  if (res.status === 204) {
+    return {};
+  }
+
   return await res.json();
 };
 

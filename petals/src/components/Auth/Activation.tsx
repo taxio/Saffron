@@ -47,6 +47,10 @@ class Activation extends React.Component<ActivationProps, ActivationState> {
   }
 
   public componentDidMount() {
+    if (!this.state.isLoading) {
+      return;
+    }
+
     activateUser(this.state.params.uid, this.state.params.token).then(success => {
       this.setState({ isLoading: false, isActivated: success });
     });
