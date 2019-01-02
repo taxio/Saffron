@@ -32,12 +32,29 @@ class CourseSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        # yearは{'year': {'year': 20xx}}という辞書になっている
         validated_data['year'] = validated_data['year']['year']
         try:
             return Course.objects.create_course(**validated_data)
         except IntegrityError:
             raise serializers.ValidationError({'name': f'{validated_data["name"]}は既に存在しています．'})
 
+    def update(self, instance, validated_data):
+        try:
+            pin_code = validated_data.pop('pin_code')
+            instance.set_password(pin_code)
+        except KeyError:
+            pass
+        # yearは{'year': {'year': 20xx}}という辞書になっている
+        year = validated_data.get('year', instance.year.year)
+        if isinstance(year, dict):
+            year = year.get('year')
+        validated_data['year'], _ = Year.objects.get_or_create(year=year)
+
+        for key, val in validated_data.items():
+            setattr(instance, key, val)
+        instance.save()
+        return instance
 
     def validate_pin_code(self, data):
         try:
