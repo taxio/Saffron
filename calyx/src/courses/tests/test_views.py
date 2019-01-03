@@ -27,18 +27,13 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
         """GET /course/"""
         course = Course.objects.create_course(**self.course_data_set[0])
         course.join(self.user, self.course_data_set[0]['pin_code'])
-        expected_json = [{
-            "pk": course.pk,
-            "name": course.name,
-            "year": course.year.year,
-            "users": [
-                {
-                    "pk": self.user.pk,
-                    "username": self.user.username,
-                    'is_admin': False
-                }
-            ]
-        }]
+        expected_json = [
+            {
+                "pk": course.pk,
+                "name": course.name,
+                "year": course.year.year,
+            }
+        ]
         resp = self.client.get('/courses/', data={}, format='json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
@@ -76,12 +71,23 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
         """GET /course/<pk>/"""
         course_data = self.course_data_set[0]
         course = Course.objects.create_course(**course_data)
+        # 参加していないユーザは詳細を閲覧できない
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # 参加しているユーザは閲覧できる
+        course.join(self.user, course_data['pin_code'])
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
         expected_json = {
             'pk': course.pk,
             'name': course.name,
             'year': course.year.year,
-            'users': []
+            'users': [
+                {
+                    'pk': self.user.pk,
+                    'username': self.user.username,
+                    'is_admin': False
+                }
+            ]
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
@@ -90,8 +96,27 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
         """PATCH /courses/<pk>/"""
         course_data = self.course_data_set[0]
         course = Course.objects.create_course(**course_data)
+        course.join(self.user, course_data['pin_code'])
         updated_name = 'updated'
         course_data['name'] = updated_name
+        # 標準メンバーは更新できない
         resp = self.client.patch(f'/courses/{course.pk}/', data=course_data, format='json')
+        self.assertEqual(403, resp.status_code)
+        # 管理者は更新できる
+        course.register_as_admin(self.user)
+        self._set_credentials(self.user)
+        resp = self.client.patch(f'/courses/{course.pk}/', data=course_data, format='json')
+        expected_json = {
+            'pk': course.pk,
+            'name': updated_name,
+            'year': course.year.year,
+            'users': [
+                {
+                    'pk': self.user.pk,
+                    'username': self.user.username,
+                    'is_admin': True
+                }
+            ]
+        }
         self.assertEqual(200, resp.status_code)
-        self.assertEqual(updated_name, resp.data['name'])
+        self.assertEqual(expected_json, self.to_dict(resp.data))

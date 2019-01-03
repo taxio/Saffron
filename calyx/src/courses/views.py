@@ -1,6 +1,11 @@
+from django.db.models import Prefetch
+from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions
 from .models import Course
-from .serializers import CourseSerializer
+from .serializers import CourseSerializer, CourseWithoutUserSerializer
+from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
+
+User = get_user_model()
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -15,11 +20,30 @@ class CourseViewSet(viewsets.ModelViewSet):
         新しい課程を作成する
     destroy:
         指定した課程を削除する
+    update:
+        指定した課程の情報を更新する
+    partial_update:
+        指定した課程のパラメータ（全てでなくて良い）を指定して更新する
     """
 
-    queryset = Course.objects.prefetch_related('users').select_related('year').all()
+    queryset = Course.objects.prefetch_related(
+        Prefetch('users', User.objects.prefetch_related('groups').filter(joined=True).all())
+    ).select_related('year').all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'create':
+            self.permission_classes = [permissions.AllowAny]
+        elif self.action == 'retrieve':
+            self.permission_classes = [IsCourseMember | IsAdmin]
+        else:
+            self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
+        return super(CourseViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CourseWithoutUserSerializer
+        return super(CourseViewSet, self).get_serializer_class()
 
     def perform_create(self, serializer):
         course = serializer.save()

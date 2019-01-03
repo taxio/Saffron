@@ -155,6 +155,7 @@ class Course(models.Model):
             raise NotJoinedError(self)
         if not user.groups.filter(name=self.admin_group_name).exists():
             user.groups.add(self.admin_user_group)
+            user.save()
 
     def unregister_from_admin(self, user: 'AppUser') -> None:
         """
@@ -165,6 +166,7 @@ class Course(models.Model):
         if not user.groups.filter(name=self.admin_group_name).exists():
             raise NotAdminError(self, user)
         user.groups.remove(self.admin_user_group)
+        user.save()
 
     @property
     def admin_group_name(self) -> str:
