@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
+from django.dispatch import receiver
 from django.utils import timezone
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 
@@ -170,4 +171,21 @@ class Course(models.Model):
         """管理ユーザグループの名称"""
         return create_group_name(self.year.year, self.name)
 
-# TODO: signalを使って課程名が変更されたときに自動でGroupの名称も変える
+
+@receiver(models.signals.post_save, sender=Course)
+def change_admin_group_name(sender, instance: 'Course', **kwargs):
+    """
+    課程の名称が変わったときに自動でグループの名称を変える
+    :param sender: Modelクラス
+    :param instance: そのインスタンス
+    :param kwargs:
+    :return:
+    """
+    if instance.admin_user_group is None:
+        return
+    if instance.admin_user_group.name == instance.admin_group_name:
+        return
+    group = Group.objects.get(pk=instance.admin_user_group.pk)
+    group.name = instance.admin_group_name
+    group.save()
+    return

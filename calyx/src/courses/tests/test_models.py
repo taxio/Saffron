@@ -137,3 +137,12 @@ class CourseTest(DatasetMixin, TestCase):
         for user in users:
             courses = user.courses.all()
             self.assertEqual(0, len(courses))
+
+    def test_change_group_name(self):
+        """課程名を変更したときに自動でグループ名を変更する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        course.name = "updated"
+        course.save()
+        # グループの変更を再取得
+        course = Course.objects.get(pk=course.pk)
+        self.assertEqual(course.admin_group_name, course.admin_user_group.name)
