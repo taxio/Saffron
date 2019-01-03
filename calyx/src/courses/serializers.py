@@ -35,7 +35,10 @@ class CourseSerializer(serializers.ModelSerializer):
         # yearは{'year': {'year': 20xx}}という辞書になっている
         validated_data['year'] = validated_data['year']['year']
         try:
-            return Course.objects.create_course(**validated_data)
+            course = Course.objects.create_course(**validated_data)
+            if 'request' in self.context.keys():
+                course.join(self.context['request'].user, validated_data['pin_code'])
+            return course
         except IntegrityError:
             raise serializers.ValidationError({'name': f'{validated_data["name"]}は既に存在しています．'})
 

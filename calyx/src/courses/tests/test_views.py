@@ -50,7 +50,12 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
         expected_json = {
             'name': course_data['name'],
             'year': course_data.get('year'),
-            'users': []
+            'users': [
+                {
+                    "pk": self.user.pk,
+                    "username": self.user.username
+                }
+            ]
         }
         self.assertEqual(201, resp.status_code)
         actual = self.to_dict(resp.data)
