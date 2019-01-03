@@ -34,7 +34,8 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
             "users": [
                 {
                     "pk": self.user.pk,
-                    "username": self.user.username
+                    "username": self.user.username,
+                    'is_admin': False
                 }
             ]
         }]
@@ -53,7 +54,8 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
             'users': [
                 {
                     "pk": self.user.pk,
-                    "username": self.user.username
+                    "username": self.user.username,
+                    "is_admin": True
                 }
             ]
         }

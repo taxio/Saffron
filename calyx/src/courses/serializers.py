@@ -21,7 +21,7 @@ class CourseSerializer(serializers.ModelSerializer):
     所属するユーザはそのプライマリキーと学生IDのみを返す．
     """
 
-    users = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField(read_only=True)
     year = serializers.IntegerField(source='year.year')
 
     class Meta:
@@ -67,9 +67,14 @@ class CourseSerializer(serializers.ModelSerializer):
         return data
 
     def get_users(self, obj):
-        users = obj.users.all()
+        users = obj.users.prefetch_related('groups').all()
+        group_name = obj.admin_group_name
         return [
-            {'username': user.username, 'pk': user.pk} for user in users
+            {
+                'username': user.username,
+                'pk': user.pk,
+                'is_admin': user.groups.filter(name=group_name).exists()
+            } for user in users
         ]
 
 
