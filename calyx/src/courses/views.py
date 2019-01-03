@@ -33,7 +33,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'create':
-            self.permission_classes = [permissions.AllowAny]
+            self.permission_classes = [permissions.IsAuthenticated]
         elif self.action == 'retrieve':
             self.permission_classes = [IsCourseMember | IsAdmin]
         else:
