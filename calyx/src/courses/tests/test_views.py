@@ -120,3 +120,46 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
+
+
+class YearViewSetsTest(DatasetMixin, APITestCase):
+
+    def _set_credentials(self, user=None):
+        if not user:
+            user = self.user
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
+
+    def setUp(self):
+        super(YearViewSetsTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self._set_credentials()
+
+    def test_list(self):
+        courses = list()
+        for course_data in self.course_data_set:
+            course_data.setdefault('year', 2018)
+            courses.append(Course.objects.create_course(**course_data))
+        resp = self.client.get('/years/', format='json')
+        expected_json = [
+            {
+                "pk": courses[0].year.pk,
+                "year": 2018,
+                "courses": [
+                    {
+                        "pk": course.pk,
+                        "name": course.name,
+                        "year": 2018
+                    } for course in courses
+                ]
+            }
+        ]
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected_json, self.to_dict(resp.data))
+        # ログインしていなければ見れない
+        self.client.credentials(HTTP_AUTHORIZATION="")
+        resp = self.client.get('/years/', format='json')
+        self.assertEqual(401, resp.status_code)

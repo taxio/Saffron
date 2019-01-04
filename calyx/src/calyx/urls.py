@@ -26,5 +26,5 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('swagger/', get_swagger_view(title='Calyx API Document')),
     path('accounts/', include(accounts_urls)),
-    path('courses/', include(course_urls)),
+    path('', include(course_urls)),
 ]

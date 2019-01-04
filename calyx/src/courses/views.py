@@ -1,8 +1,8 @@
 from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, permissions
-from .models import Course
-from .serializers import CourseSerializer, CourseWithoutUserSerializer
+from rest_framework import viewsets, permissions, mixins
+from .models import Course, Year
+from .serializers import CourseSerializer, CourseWithoutUserSerializer, YearSerializer
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
 
 User = get_user_model()
@@ -48,3 +48,16 @@ class CourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         course = serializer.save()
         course.register_as_admin(self.request.user)
+
+
+class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    年度の情報を取得するAPIビュー
+
+    list:
+        年度の一覧を取得する
+    """
+
+    queryset = Year.objects.prefetch_related('courses').all()
+    serializer_class = YearSerializer
+    permission_classes = [permissions.IsAuthenticated]
