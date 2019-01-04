@@ -2,10 +2,12 @@ import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, In
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 
+import { resetPassword } from '../api/password';
+
 interface PasswordResetProps extends RouteComponentProps<any> {}
 
 interface PasswordResetState {
-  username: string;
+  email: string;
   passwordResetErrMsg: string;
 }
 
@@ -13,7 +15,7 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   constructor(props: PasswordResetProps) {
     super(props);
     this.state = {
-      username: '',
+      email: '',
       passwordResetErrMsg: '',
     };
 
@@ -22,11 +24,17 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ username: e.target.value });
+    this.setState({ email: e.target.value });
   }
 
   public handleClickPasswordReset() {
-    this.props.history.push('/auth/sentmail');
+    resetPassword(this.state.email).then(success => {
+      if (!success) {
+        this.setState({ passwordResetErrMsg: 'メール送信に失敗しました' });
+        return;
+      }
+      this.props.history.push('/auth/sentmail');
+    });
   }
 
   public render(): React.ReactNode {
@@ -39,10 +47,10 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
             <CardContent style={{ textAlign: 'center' }}>
               <form>
                 <FormControl fullWidth={true} error={Boolean(this.state.passwordResetErrMsg)}>
-                  <InputLabel htmlFor="username">ユーザー名</InputLabel>
-                  <Input id="username" value={this.state.username} onChange={this.handleChangeUsername} />
+                  <InputLabel htmlFor="email">メールアドレス</InputLabel>
+                  <Input id="email" value={this.state.email} onChange={this.handleChangeUsername} />
                   {this.state.passwordResetErrMsg ? (
-                    <FormHelperText>bまたはm,dで始まる8文字の大学ユーザー名を入力してください</FormHelperText>
+                    <FormHelperText>メールアドレスを入力してください</FormHelperText>
                   ) : null}
                 </FormControl>
 

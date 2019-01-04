@@ -1,7 +1,16 @@
 import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
+import { RouteComponentProps } from 'react-router';
 
-interface PasswordResetProps {}
+import { PasswordValidationError, validatePassword } from '../../api/auth';
+import { confirmNewPassword } from '../../api/password';
+
+interface PasswordResetMatchParams {
+  uid: string;
+  token: string;
+}
+
+interface PasswordResetProps extends RouteComponentProps<PasswordResetMatchParams> {}
 
 interface PasswordResetState {
   newPassword: string;
@@ -9,17 +18,27 @@ interface PasswordResetState {
   confirmNewPassword: string;
   confirmNewPasswordErrMsg: string;
   passwordResetErrMsg: string;
+  params: PasswordResetMatchParams;
 }
 
 class PasswordResetActivation extends React.Component<PasswordResetProps, PasswordResetState> {
   constructor(props: PasswordResetProps) {
     super(props);
+
+    let params: PasswordResetMatchParams = { uid: '', token: '' };
+    try {
+      params = this.parseHashData(this.props.location.hash);
+    } catch (e) {
+      this.props.history.push('/');
+    }
+
     this.state = {
       newPassword: '',
       newPasswordErrMsg: '',
       confirmNewPassword: '',
       confirmNewPasswordErrMsg: '',
       passwordResetErrMsg: '',
+      params,
     };
 
     this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
@@ -27,16 +46,57 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
     this.handleSendPasswordReset = this.handleSendPasswordReset.bind(this);
   }
 
+  public parseHashData(hashStr: string): PasswordResetMatchParams {
+    const splited = hashStr.split('/');
+    if (splited.length !== 3) {
+      throw new Error('not correct location.hash');
+    }
+
+    return {
+      uid: splited[1],
+      token: splited[2],
+    };
+  }
+
   public handleChangeNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ newPassword: e.target.value });
+    const newPassword = e.target.value;
+    let newPasswordErrMsg = '';
+
+    const ret = validatePassword(newPassword);
+    switch (ret) {
+      case PasswordValidationError.NONE:
+        break;
+      case PasswordValidationError.LENGTH:
+        newPasswordErrMsg = 'パスワードは8文字以上にしてください';
+        break;
+      case PasswordValidationError.UNAVAILABLE:
+        newPasswordErrMsg = '使用不可能な文字が含まれています';
+        break;
+    }
+
+    this.setState({ newPassword, newPasswordErrMsg });
   }
 
   public handleChangeConfirmNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ confirmNewPassword: e.target.value });
+    const _confirmNewPassword = e.target.value;
+    let confirmNewPasswordErrMsg = '';
+
+    if (_confirmNewPassword !== this.state.newPassword) {
+      confirmNewPasswordErrMsg = 'パスワードが一致しません';
+    }
+
+    this.setState({ confirmNewPassword: _confirmNewPassword, confirmNewPasswordErrMsg });
   }
 
   public handleSendPasswordReset() {
-    console.log('password reset');
+    confirmNewPassword(this.state.params.uid, this.state.params.token, this.state.newPassword).then(success => {
+      if (!success) {
+        this.setState({ passwordResetErrMsg: 'パスワード再設定に失敗しました' });
+        return;
+      }
+      alert('パスワードを再設定しました');
+      this.props.history.push('/');
+    });
   }
 
   public render(): React.ReactNode {

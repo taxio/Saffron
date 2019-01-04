@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import theme from './lib/theme';
 
 import Activation from './components/Auth/Activation';
+import PasswordResetActivation from './components/Auth/PasswordResetActivation';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -22,6 +23,7 @@ const App = () => (
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
           <Route exact={true} path="/activate" component={Activation} />
+          <Route exact={true} path="/password/reset/confirm" component={PasswordResetActivation} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>
