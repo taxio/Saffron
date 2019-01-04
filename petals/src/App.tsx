@@ -8,6 +8,7 @@ import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
 import NotFound from './components/NotFound';
+import PasswordReset from './components/PasswordReset';
 import SentMail from './components/SendMail';
 import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
@@ -33,6 +34,7 @@ const AuthRouter = () => (
     <Route exact={true} path={`/auth/signup`} component={Signup} />
     <Route exact={true} path={`/auth/termsofservice`} component={TermsOfService} />
     <Route exact={true} path={`/auth/sentmail`} component={SentMail} />
+    <Route exact={true} path={`/auth/passwordreset`} component={PasswordReset} />
     <Route exact={true} component={NotFound} />
   </Switch>
 );

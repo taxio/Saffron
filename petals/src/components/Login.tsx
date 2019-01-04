@@ -1,7 +1,7 @@
 import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
 import * as auth from '../api/auth';
@@ -79,7 +79,10 @@ class Login extends React.Component<LoginProps, LoginState> {
 
                 <FormControl fullWidth={true} style={formControlStyle} error={this.state.loginErr}>
                   {this.state.loginErr ? (
-                    <FormHelperText id="login-error-text">ユーザー名かパスワードが間違っています</FormHelperText>
+                    <FormHelperText id="login-error-text">
+                      ユーザー名かパスワードが間違っています． パスワードをお忘れの方は
+                      <Link to={'/auth/passwordreset'}>こちら</Link>
+                    </FormHelperText>
                   ) : null}
                   <Button
                     style={{
