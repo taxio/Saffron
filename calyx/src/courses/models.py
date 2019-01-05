@@ -122,13 +122,11 @@ class Course(models.Model):
         :param password: 課程ごとに設定されているPINコード
         :return: bool
         """
-        if user.joined:
+        if user.courses.filter(pk=self.pk).exists():
             raise AlreadyJoinedError(self)
         if self.check_password(password):
             self.users.add(user)
             self.save()
-            user.joined = True
-            user.save()
             return True
         return False
 
@@ -137,13 +135,11 @@ class Course(models.Model):
         課程から脱退する．参加している課程が無い場合はNotJoinedErrorをraiseする．
         :return:
         """
-        if user.joined and self.users.filter(pk=user.pk).exists():
-            self.users.remove(user)
-            self.save()
-            user.joined = False
-            user.save()
-            return None
-        raise NotJoinedError(self)
+        if not self.users.filter(pk=user.pk).exists():
+            raise NotJoinedError(self)
+        self.users.remove(user)
+        self.save()
+        return None
 
     def register_as_admin(self, user: 'AppUser') -> None:
         """
