@@ -13,6 +13,6 @@ course_nested_router.register('join', JoinAPIView, basename='join')
 
 app_name = 'course'
 urlpatterns = [
-    path('', include(router.urls)),
-    path('', include(course_nested_router.urls)),
+    path('', include(router.get_urls())),
+    path('', include(course_nested_router.get_urls())),
 ]

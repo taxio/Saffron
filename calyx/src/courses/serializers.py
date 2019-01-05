@@ -113,6 +113,8 @@ class PINCodeSerializer(serializers.Serializer):
     PINコードを取得する
     """
 
+    pin_code = serializers.CharField(required=True, write_only=True)
+
     class Meta:
         fields = ("pin_code",)
 

@@ -61,6 +61,11 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         """GET /course/<pk>/"""
         course_data = self.course_data_set[0]
         course = Course.objects.create_course(**course_data)
+        # ログインしていなければ詳細を閲覧できない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
         # 参加していないユーザは詳細を閲覧できない
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
         self.assertEqual(403, resp.status_code)
@@ -188,3 +193,13 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # 存在しない課程に対してジョイン
         resp = self.client.post('/courses/9999/join/', data=payload, format='json')
         self.assertEqual(404, resp.status_code)
+
+    def test_join_permission(self):
+        """POST /courses/<pk>/join/"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        payload = {'pin_code': course_data['pin_code']}
+        # ログインしていなければ参加できない
+        self._unset_credentials()
+        resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
+        self.assertEqual(401, resp.status_code)

@@ -54,3 +54,6 @@ class JWTAuthMixin(object):
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
         self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
+
+    def _unset_credentials(self):
+        self.client.credentials(HTTP_AUTHORIZATION="")

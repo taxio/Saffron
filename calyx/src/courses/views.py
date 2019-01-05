@@ -77,18 +77,10 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = Course.objects.prefetch_related(
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('admin_user_group', 'year').all()
-    serializer_class = CourseSerializer
-    permission_classes = [IsCourseMember | IsAdmin]
+    serializer_class = PINCodeSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, course_pk=None, *args, **kwargs):
-        """
-        POSTされたら送ったユーザを課程に参加させる
-        :param request: リクエストオブジェクト
-        :param course_pk: Course APIにネストされているため，そのプライマリキーを取得できる
-        :param args:
-        :param kwargs:
-        :return:
-        """
         if not isinstance(course_pk, int):
             course_pk = int(course_pk)
         try:
@@ -96,7 +88,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         except Course.DoesNotExist:
             raise exceptions.NotFound({'non_field_errors': 'この課程は存在しません．'})
         # PINコードをパース
-        pin_code_serializer = PINCodeSerializer(data=request.data)
+        pin_code_serializer = self.get_serializer(data=request.data)
         pin_code_serializer.is_valid(raise_exception=True)
         pin_code = pin_code_serializer.validated_data['pin_code']
         try:
@@ -106,6 +98,6 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
         except AlreadyJoinedError:
             raise serializers.ValidationError({'non_field_errors': 'このユーザは既に参加しています．'})
-        course_serializer = CourseSerializer(course)
+        course_serializer = CourseSerializer(course, context=self.get_serializer_context())
         headers = self.get_success_headers(course_serializer.data)
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
