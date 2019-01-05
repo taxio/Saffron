@@ -108,3 +108,13 @@ class YearSerializer(serializers.ModelSerializer):
         fields = ("pk", "year", "courses")
 
 
+class PINCodeSerializer(serializers.Serializer):
+    """
+    PINコードを取得する
+    """
+
+    class Meta:
+        fields = ("pin_code",)
+
+    def to_internal_value(self, data):
+        return {'pin_code': data['pin_code']}

@@ -1,6 +1,7 @@
 import json
 from copy import deepcopy
 from collections import OrderedDict
+from rest_framework_jwt.settings import api_settings
 
 
 years = [2017, 2018, 2019]
@@ -41,3 +42,15 @@ class DatasetMixin(object):
     def to_dict(self, data: OrderedDict) -> dict:
         """OrderedDictを標準のdictに変換する"""
         return json.loads(json.dumps(data, ensure_ascii=False))
+
+
+class JWTAuthMixin(object):
+
+    def _set_credentials(self, user=None):
+        if not user:
+            user = self.user
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
