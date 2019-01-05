@@ -129,3 +129,25 @@ class PINCodeSerializer(serializers.Serializer):
 
     def to_internal_value(self, data):
         return {'pin_code': data['pin_code']}
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    ユーザオブジェクトのシリアライザ
+    """
+
+    # NestedViewMixinで使用される親要素のフィルタリング．
+    # dirty hackっぽいが，Course一覧からプライマリキーでフィルタをかけて1つに絞り，参加するユーザ一覧を取得する
+    # `course_pk`がURLパラメータのキー，`pk`が絞り込みに使用するキー
+    parent_lookup_kwargs = {
+        'course_pk': 'pk'
+    }
+
+    class Meta:
+        model = User
+        fields = ("pk", "username", "email", "screen_name")
+        extra_kwargs = {
+            "username": {"read_only": True},
+            "email": {"read_only": True},
+            "screen_name": {"read_only": True},
+        }
