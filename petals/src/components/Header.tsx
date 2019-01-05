@@ -64,7 +64,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     const open = Boolean(this.state.anchorEl);
 
     return (
-      <AppBar position="static">
+      <AppBar position="static" style={{ boxShadow: 'none' }}>
         <Toolbar>
           <Typography
             variant="h6"
