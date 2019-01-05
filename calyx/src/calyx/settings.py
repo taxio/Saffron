@@ -106,6 +106,7 @@ DJOSER = {
     'ACTIVATION_URL': 'activate/#/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'SERIALIZERS': {
         'user': 'users.serializers.UserSerializer',
         'user_create': 'users.serializers.UserSerializer',
@@ -113,7 +114,9 @@ DJOSER = {
         'current_user': 'users.serializers.UserSerializer'
     },
     'EMAIL': {
-        'activation': 'users.email.SaffronActivationEmail'
+        'activation': 'users.email.SaffronActivationEmail',
+        'confirmation': 'users.email.SaffronConfirmationEmail',
+        'password_reset': 'users.email.SaffronPasswordResetEmail',
     }
 }
 

@@ -1,5 +1,5 @@
 from django.conf import settings
-from djoser.email import ActivationEmail, ConfirmationEmail
+from djoser.email import ActivationEmail, ConfirmationEmail, PasswordResetEmail
 
 
 def set_saffron_info(context):
@@ -40,4 +40,19 @@ class SaffronConfirmationEmail(ConfirmationEmail, object):
         :return: context
         """
         context = super(SaffronConfirmationEmail, self).get_context_data(**kwargs)
+        return set_saffron_info(context)
+
+
+class SaffronPasswordResetEmail(PasswordResetEmail, object):
+    """
+    パスワードリセットの確認メール本文作成クラス
+    """
+
+    def get_context_data(self, **kwargs):
+        """
+        パスワードに埋め込む変数をオーバーライド
+        :param kwargs:
+        :return: context
+        """
+        context = super(SaffronPasswordResetEmail, self).get_context_data()
         return set_saffron_info(context)
