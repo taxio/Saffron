@@ -4,10 +4,12 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import theme from './lib/theme';
 
 import Activation from './components/Auth/Activation';
+import PasswordResetActivation from './components/Auth/PasswordResetActivation';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
 import NotFound from './components/NotFound';
+import PasswordReset from './components/PasswordReset';
 import SentMail from './components/SendMail';
 import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
@@ -21,6 +23,7 @@ const App = () => (
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
           <Route exact={true} path="/activate" component={Activation} />
+          <Route exact={true} path="/password/reset/confirm" component={PasswordResetActivation} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>
@@ -33,6 +36,7 @@ const AuthRouter = () => (
     <Route exact={true} path={`/auth/signup`} component={Signup} />
     <Route exact={true} path={`/auth/termsofservice`} component={TermsOfService} />
     <Route exact={true} path={`/auth/sentmail`} component={SentMail} />
+    <Route exact={true} path={`/auth/passwordreset`} component={PasswordReset} />
     <Route exact={true} component={NotFound} />
   </Switch>
 );
