@@ -89,6 +89,15 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
   }
 
   public handleSendPasswordReset() {
+    if (
+      this.state.newPasswordErrMsg ||
+      this.state.confirmNewPasswordErrMsg ||
+      !this.state.newPassword ||
+      !this.state.confirmNewPassword
+    ) {
+      return;
+    }
+
     confirmNewPassword(this.state.params.uid, this.state.params.token, this.state.newPassword).then(success => {
       if (!success) {
         this.setState({ passwordResetErrMsg: 'パスワード再設定に失敗しました' });
