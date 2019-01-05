@@ -52,7 +52,8 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
                     "username": self.user.username,
                     "is_admin": True
                 }
-            ]
+            ],
+            'is_admin': True
         }
         self.assertEqual(201, resp.status_code)
         actual = self.to_dict(resp.data)
@@ -87,7 +88,8 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
                     'username': self.user.username,
                     'is_admin': False
                 }
-            ]
+            ],
+            'is_admin': False
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
@@ -116,7 +118,8 @@ class CourseViewSetsTest(DatasetMixin, APITestCase):
                     'username': self.user.username,
                     'is_admin': True
                 }
-            ]
+            ],
+            'is_admin': True
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
