@@ -26,7 +26,8 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
             'screen_name': 'testuser',
             'gpa': None,
             'is_admin': False,
-            'joined': False
+            'joined': False,
+            'courses': []
         }
         self.user_data = {'username': 'b0000000', 'password': 'testpass', 'screen_name': 'testuser'}
         self.user_email = self.user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN
@@ -48,7 +49,6 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         users = User.objects.all()
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0].is_active, False)
-        self.assertEqual(users[0].is_admin, False)
         self.assertEqual(users[0].email, self.user_email)
         # メールの内容をチェック
         self.assertEqual(mail.outbox[0].subject, self.expected_mail_subject)
@@ -99,10 +99,11 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         self._set_credentials(user)
         resp = self.client.delete('/users/me/', data=self.user_data)
         self.assertEqual(204, resp.status_code)
-        self.assertEqual(True, User.all_objects.get(pk=user.pk).is_deleted)
+        with self.assertRaises(User.DoesNotExist):
+            User.objects.get(pk=user.pk)
         # 削除したユーザを再度作成
         self.client.credentials(HTTP_AUTHORIZATION="")
         before_del_id = user.pk
         resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
         self.assertEqual(201, resp.status_code)
-        self.assertEqual(before_del_id, resp.data['pk'])
+        self.assertNotEqual(before_del_id, resp.data['pk'])

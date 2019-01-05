@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins
@@ -27,7 +28,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Course.objects.prefetch_related(
-        Prefetch('users', User.objects.prefetch_related('groups').filter(joined=True).all())
+        Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('year').all()
     serializer_class = CourseSerializer
 
@@ -46,8 +47,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         return super(CourseViewSet, self).get_serializer_class()
 
     def perform_create(self, serializer):
-        course = serializer.save()
-        course.register_as_admin(self.request.user)
+        with transaction.atomic():
+            course = serializer.save()
+            course.register_as_admin(self.request.user)
 
 
 class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

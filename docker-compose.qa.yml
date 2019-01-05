@@ -29,6 +29,7 @@ services:
       - ./calyx/src/.env.qa
     volumes:
       - ./calyx/conf/calyx.qa.conf:/etc/nginx/conf.d/default.conf
+      - ./calyx/src/static:/usr/share/www/html/static
     depends_on:
       - calyx
     links:
