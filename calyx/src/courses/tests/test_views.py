@@ -206,3 +206,108 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self._unset_credentials()
         resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
         self.assertEqual(401, resp.status_code)
+
+
+class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
+
+    def setUp(self):
+        super(CourseAdminViewTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self._set_credentials()
+
+    def test_register_admin_put(self):
+        """PUT /course/<course_pk>/admins/<pk>/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        course.join(self.user, pin_code)
+        course.register_as_admin(self.user)
+        new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
+        course.join(new_user, pin_code)
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        expected = {
+            "pk": new_user.pk,
+            "username": new_user.username,
+            "email": new_user.email,
+            "screen_name": new_user.screen_name
+        }
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+        # 登録済みのユーザを再度登録
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # メンバーで無いユーザを登録
+        resp = self.client.put(f'/courses/{course.pk}/admins/{self.user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # 存在しないユーザを登録
+        resp = self.client.put(f'/courses/{course.pk}/admins/9999/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+        # 存在しない課程に対して実行
+        resp = self.client.put(f'/courses/9999/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_register_admin_patch(self):
+        """PATCH /course/<course_pk>/admins/<pk>/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        course.join(self.user, pin_code)
+        course.register_as_admin(self.user)
+        new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
+        course.join(new_user, pin_code)
+        resp = self.client.patch(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        expected = {
+            "pk": new_user.pk,
+            "username": new_user.username,
+            "email": new_user.email,
+            "screen_name": new_user.screen_name
+        }
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+        # 登録済みのユーザを再度登録
+        resp = self.client.patch(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # メンバーで無いユーザを登録
+        resp = self.client.patch(f'/courses/{course.pk}/admins/{self.user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # 存在しないユーザを登録
+        resp = self.client.patch(f'/courses/{course.pk}/admins/9999/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+        # 存在しない課程に対して実行
+        resp = self.client.patch(f'/courses/9999/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_register_admin_get_permission(self):
+        """GET /courses/<course_pk>/admins/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        # ログインしていなければ見れない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{course.pk}/admins/', data={}, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでなければ見れない
+        resp = self.client.get(f'/courses/{course.pk}/admins/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # メンバーになると閲覧可
+        course.join(self.user, pin_code)
+        resp = self.client.get(f'/courses/{course.pk}/admins/', data={}, format='json')
+        expected = []
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+
+    def test_register_admin_update_permission(self):
+        """PUT /courses/<course_pk>/admins/<pk>/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        # メンバーでも管理者でもない
+        new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
+        course.join(new_user, pin_code)
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # メンバーだが管理者ではない
+        course.join(self.user, pin_code)
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
