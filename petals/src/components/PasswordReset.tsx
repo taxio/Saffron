@@ -24,6 +24,7 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
+    e.preventDefault();
     this.setState({ email: e.target.value });
   }
 
@@ -37,6 +38,12 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
     });
   }
 
+  public handleKeyPress(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.which === 13) {
+      e.preventDefault();
+    }
+  }
+
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
 
@@ -48,9 +55,14 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
               <form>
                 <FormControl fullWidth={true} error={Boolean(this.state.passwordResetErrMsg)}>
                   <InputLabel htmlFor="email">メールアドレス</InputLabel>
-                  <Input id="email" value={this.state.email} onChange={this.handleChangeUsername} />
+                  <Input
+                    id="email"
+                    value={this.state.email}
+                    onChange={this.handleChangeUsername}
+                    onKeyPress={this.handleKeyPress}
+                  />
                   {this.state.passwordResetErrMsg ? (
-                    <FormHelperText>メールアドレスを入力してください</FormHelperText>
+                    <FormHelperText>大学のメールアドレスを入力してください</FormHelperText>
                   ) : null}
                 </FormControl>
 
