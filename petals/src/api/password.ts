@@ -31,7 +31,7 @@ export const resetPassword = async (email: string): Promise<boolean> => {
 interface ResetConfirmRequest {
   uid: string;
   token: string;
-  newPassword: string;
+  new_password: string;
 }
 
 interface ResetConfirmResponse {}
@@ -41,11 +41,14 @@ const resetConfirm = async (data: ResetConfirmRequest): Promise<ResetConfirmResp
   if (res.status >= 400) {
     throw await res.json();
   }
+  if (res.status === 204) {
+    return {};
+  }
   return await res.json();
 };
 
 export const confirmNewPassword = async (uid: string, token: string, newPassword: string): Promise<boolean> => {
-  const req: ResetConfirmRequest = { uid, token, newPassword };
+  const req: ResetConfirmRequest = { uid, token, new_password: newPassword };
   return resetConfirm(req)
     .then(res => {
       return true;
