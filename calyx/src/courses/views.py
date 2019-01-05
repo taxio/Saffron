@@ -123,17 +123,21 @@ class CourseAdminView(NestedViewSetMixin, mixins.UpdateModelMixin, mixins.ListMo
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('admin_user_group', 'year').all()
     serializer_class = UserSerializer
-    permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
     schema = CourseAdminSchema()
 
-    def partial_update(self, request, *args, **kwargs):
-        return super(CourseAdminView, self).partial_update(request, *args, **kwargs)
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = [IsCourseMember]
+        else:
+            self.permission_classes = [IsCourseMember & IsCourseAdmin]
+        return super(CourseAdminView, self).get_permissions()
 
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop('pk')
         course = self.get_queryset().first()
         if course is None:
             raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(self.request, course)
         try:
             user = course.users.get(pk=pk)
         except User.DoesNotExist:
@@ -151,6 +155,7 @@ class CourseAdminView(NestedViewSetMixin, mixins.UpdateModelMixin, mixins.ListMo
         course = self.get_queryset().first()
         if course is None:
             raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(self.request, course)
         admins = course.users.filter(groups__name=course.admin_group_name).all()
         serializer = self.get_serializer(admins, many=True)
         return Response(serializer.data)
