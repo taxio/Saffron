@@ -1,16 +1,24 @@
 import unicodedata
 
 from typing import TYPE_CHECKING
+from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
+from django.dispatch import receiver
 from django.utils import timezone
-from .errors import AlreadyJoinedError, NotJoinedError
+from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 
 if TYPE_CHECKING:
     from typing import Optional
+    from users.models import User as AppUser
 
-User = get_user_model()
+User = get_user_model()  # type: AppUser
+
+
+def create_group_name(year: int, course_name: str) -> str:
+    """管理グループの名称を返す"""
+    return f'{year}_{course_name}'
 
 
 class Year(models.Model):
@@ -47,8 +55,10 @@ class CourseManager(models.Manager):
             name = model.normalize_name(name)
             if year is None:
                 year = timezone.now().year
+            group_name = create_group_name(year, name)
+            admin_user_group, _ = Group.objects.get_or_create(name=group_name)
             year_obj, _ = Year.objects.get_or_create(year=year)
-            course = model(name=name, year=year_obj)
+            course = model(name=name, year=year_obj, admin_user_group=admin_user_group)
             course.set_password(pin_code)
             course.save()
         return course
@@ -63,6 +73,8 @@ class Course(models.Model):
     pin_code = models.CharField('PINコード', max_length=255)
     year = models.ForeignKey(Year, on_delete=models.CASCADE, related_name='courses')
     users = models.ManyToManyField(User, verbose_name="所属学生", blank=True, related_name='courses')
+    admin_user_group = models.OneToOneField(Group, on_delete=models.CASCADE, blank=True, null=True,
+                                            related_name='course', unique=True)
 
     _pin_code = None
 
@@ -132,3 +144,50 @@ class Course(models.Model):
             user.save()
             return None
         raise NotJoinedError(self)
+
+    def register_as_admin(self, user: 'AppUser') -> None:
+        """
+        指定されたユーザをこの課程の管理者として登録する．この課程に参加していない場合，NotJoinedErrorをraiseする．
+        :param user: 管理者として登録したいユーザ
+        :return:
+        """
+        if not self.users.filter(id=user.pk).exists():
+            raise NotJoinedError(self)
+        if not user.groups.filter(name=self.admin_group_name).exists():
+            user.groups.add(self.admin_user_group)
+            user.save()
+
+    def unregister_from_admin(self, user: 'AppUser') -> None:
+        """
+        指定されたユーザを管理者から外す．そのユーザが管理者でなかった場合，NotAdminErrorをraiseする．
+        :param user: 管理者から外したいユーザ
+        :return:
+        """
+        if not user.groups.filter(name=self.admin_group_name).exists():
+            raise NotAdminError(self, user)
+        user.groups.remove(self.admin_user_group)
+        user.save()
+
+    @property
+    def admin_group_name(self) -> str:
+        """管理ユーザグループの名称"""
+        return create_group_name(self.year.year, self.name)
+
+
+@receiver(models.signals.post_save, sender=Course)
+def change_admin_group_name(sender, instance: 'Course', **kwargs):
+    """
+    課程の名称が変わったときに自動でグループの名称を変える
+    :param sender: Modelクラス
+    :param instance: そのインスタンス
+    :param kwargs:
+    :return:
+    """
+    if instance.admin_user_group is None:
+        return
+    if instance.admin_user_group.name == instance.admin_group_name:
+        return
+    group = Group.objects.get(pk=instance.admin_user_group.pk)
+    group.name = instance.admin_group_name
+    group.save()
+    return

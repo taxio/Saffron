@@ -1,4 +1,6 @@
+import json
 from copy import deepcopy
+from collections import OrderedDict
 
 
 years = [2017, 2018, 2019]
@@ -35,3 +37,7 @@ class DatasetMixin(object):
         self.course_data_set = deepcopy(course_data_set)
         self.user_data_set = deepcopy(user_data_set)
         self.years = deepcopy(years)
+
+    def to_dict(self, data: OrderedDict) -> dict:
+        """OrderedDictを標準のdictに変換する"""
+        return json.loads(json.dumps(data, ensure_ascii=False))

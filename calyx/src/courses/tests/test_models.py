@@ -3,7 +3,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from users.models import User
 from courses.models import Course, Year
-from courses.errors import NotJoinedError, AlreadyJoinedError
+from courses.errors import NotJoinedError, AlreadyJoinedError, NotAdminError
 from .base import DatasetMixin
 
 
@@ -70,6 +70,31 @@ class CourseTest(DatasetMixin, TestCase):
         with self.assertRaises(AlreadyJoinedError):
             course.join(user, pin_code)
 
+    def test_register_as_admin(self):
+        """ユーザを管理者として登録する"""
+        course_data = self.course_data_set[0]
+        raw_pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        users = [User.objects.create_user(**user_data) for user_data in self.user_data_set]
+        for user in users:
+            with self.assertRaises(NotJoinedError):
+                course.register_as_admin(user)
+            self.assertTrue(course.join(user, raw_pin_code))
+            self.assertEqual(None, course.register_as_admin(user))
+
+    def test_unregister_from_admin(self):
+        """ユーザを管理者から外す"""
+        course_data = self.course_data_set[0]
+        raw_pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        users = [User.objects.create_user(**user_data) for user_data in self.user_data_set]
+        for user in users:
+            self.assertTrue(course.join(user, raw_pin_code))
+            self.assertEqual(None, course.register_as_admin(user))
+            self.assertEqual(None, course.unregister_from_admin(user))
+            with self.assertRaises(NotAdminError):
+                course.unregister_from_admin(user)
+
     def test_leave_user(self):
         """課程からユーザが抜ける"""
         course = Course.objects.create_course(**self.course_data_set[0])
@@ -112,3 +137,12 @@ class CourseTest(DatasetMixin, TestCase):
         for user in users:
             courses = user.courses.all()
             self.assertEqual(0, len(courses))
+
+    def test_change_group_name(self):
+        """課程名を変更したときに自動でグループ名を変更する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        course.name = "updated"
+        course.save()
+        # グループの変更を再取得
+        course = Course.objects.get(pk=course.pk)
+        self.assertEqual(course.admin_group_name, course.admin_user_group.name)

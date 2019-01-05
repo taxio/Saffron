@@ -18,6 +18,7 @@ from django.urls import path, include
 from rest_framework_swagger.views import get_swagger_view
 
 from users import urls as accounts_urls
+from courses import urls as course_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('swagger/', get_swagger_view(title='Calyx API Document')),
     path('accounts/', include(accounts_urls)),
+    path('', include(course_urls)),
 ]

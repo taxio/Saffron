@@ -95,6 +95,7 @@ class CourseSerializerTest(DatasetMixin, TestCase):
                 {
                     'pk': user.pk,
                     'username': user.username,
+                    'is_admin': False
                 }
             ]
         }
