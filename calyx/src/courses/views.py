@@ -147,7 +147,7 @@ class CourseAdminView(NestedViewSetMixin, mixins.UpdateModelMixin, mixins.ListMo
                 raise serializers.ValidationError({'non_field_errors': 'このユーザは既に管理者として登録されています．'})
             course.register_as_admin(user)
         except NotJoinedError:
-            raise serializers.ValidationError({'pk': 'このユーザはこの課程のメンバーではありません'})
+            raise serializers.ValidationError({'non_field_errors': 'このユーザはこの課程のメンバーではありません'})
         serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
