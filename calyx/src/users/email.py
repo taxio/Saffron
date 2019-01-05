@@ -50,7 +50,7 @@ class SaffronPasswordResetEmail(PasswordResetEmail, object):
 
     def get_context_data(self, **kwargs):
         """
-        パスワードに埋め込む変数をオーバーライド
+        テンプレートに埋め込む変数をオーバーライド
         :param kwargs:
         :return: context
         """
