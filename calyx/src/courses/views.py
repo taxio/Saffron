@@ -10,6 +10,7 @@ from .serializers import (
 )
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
 from .errors import AlreadyJoinedError, NotJoinedError
+from .schemas import CourseJoinSchema, CourseAdminSchema
 
 User = get_user_model()
 
@@ -82,6 +83,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ).select_related('admin_user_group', 'year').all()
     serializer_class = PINCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
+    schema = CourseJoinSchema()
 
     def create(self, request, course_pk=None, *args, **kwargs):
         if not isinstance(course_pk, int):
@@ -122,6 +124,7 @@ class CourseAdminView(NestedViewSetMixin, mixins.UpdateModelMixin, mixins.ListMo
     ).select_related('admin_user_group', 'year').all()
     serializer_class = UserSerializer
     permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
+    schema = CourseAdminSchema()
 
     def partial_update(self, request, *args, **kwargs):
         return super(CourseAdminView, self).partial_update(request, *args, **kwargs)
