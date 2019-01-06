@@ -251,6 +251,15 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(LabViewSet, self).get_permissions()
 
+    def list(self, request, *args, **kwargs):
+        course_pk = kwargs.pop('course_pk')
+        try:
+            course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(request, course)
+        return super(LabViewSet, self).list(request, *args, **kwargs)
+
     def get_object(self):
         pk = self.kwargs.pop('pk')
         try:

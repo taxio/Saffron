@@ -515,3 +515,46 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.assertEqual(204, resp.status_code)
         with self.assertRaises(Lab.DoesNotExist):
             Lab.objects.get(pk=lab.pk)
+
+    def test_get_lab_permission(self):
+        course = self.course
+        Lab.objects.create(**self.lab_data_set[0], course=course)
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
+        self.assertEqual(403, resp.status_code)
+
+    def test_create_lab_permission(self):
+        course = self.course
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
+        self.assertEqual(403, resp.status_code)
+        # 管理者で無い
+        course.join(self.user, self.pin_code)
+        resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
+        self.assertEqual(403, resp.status_code)
+
+    def test_update_lab_permission(self):
+        course = self.course
+        lab = Lab.objects.create(**self.lab_data_set[0], course=course)
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
+        self.assertEqual(403, resp.status_code)
+        # 管理者で無い
+        course.join(self.user, self.pin_code)
+        resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
+        self.assertEqual(403, resp.status_code)
