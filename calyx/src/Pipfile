@@ -13,6 +13,7 @@ python-dotenv = "*"
 uwsgi = "*"
 mysqlclient = "*"
 django-cors-headers = "*"
+drf-nested-routers = "*"
 
 [dev-packages]
 

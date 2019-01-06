@@ -1,10 +1,12 @@
 from django.db import transaction
 from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
+from rest_framework.response import Response
 from .models import Course, Year
-from .serializers import CourseSerializer, CourseWithoutUserSerializer, YearSerializer
+from .serializers import CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
+from .errors import AlreadyJoinedError
 
 User = get_user_model()
 
@@ -63,3 +65,39 @@ class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Year.objects.prefetch_related('courses').all()
     serializer_class = YearSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """
+    課程に参加するAPIビュー
+
+    create:
+        課程に参加する
+    """
+    queryset = Course.objects.prefetch_related(
+        Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
+    ).select_related('admin_user_group', 'year').all()
+    serializer_class = PINCodeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, course_pk=None, *args, **kwargs):
+        if not isinstance(course_pk, int):
+            course_pk = int(course_pk)
+        try:
+            course = self.get_queryset().get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound({'non_field_errors': 'この課程は存在しません．'})
+        # PINコードをパース
+        pin_code_serializer = self.get_serializer(data=request.data)
+        pin_code_serializer.is_valid(raise_exception=True)
+        pin_code = pin_code_serializer.validated_data['pin_code']
+        try:
+            # 参加に成功すればTrue，失敗すればFalse
+            joined = course.join(request.user, pin_code)
+            if not joined:
+                raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
+        except AlreadyJoinedError:
+            raise serializers.ValidationError({'non_field_errors': 'このユーザは既に参加しています．'})
+        course_serializer = CourseSerializer(course, context=self.get_serializer_context())
+        headers = self.get_success_headers(course_serializer.data)
+        return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)

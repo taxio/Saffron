@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsAdmin(permissions.IsAdminUser):
+class IsAdmin(permissions.BasePermission):
     """
     スーパーユーザならばTrue
     """
@@ -15,9 +15,6 @@ class IsCourseMember(permissions.BasePermission):
     課程に所属するメンバーならばTrue
     """
 
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
-
     def has_object_permission(self, request, view, obj):
         user = request.user
         if obj.users.filter(pk=user.pk).exists():
@@ -29,9 +26,6 @@ class IsCourseAdmin(permissions.BasePermission):
     """
     課程の管理グループに所属するメンバーならばTrue
     """
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         user = request.user
