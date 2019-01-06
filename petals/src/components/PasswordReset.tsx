@@ -3,12 +3,14 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 
 import { resetPassword } from '../api/password';
+import PopUp from './PopUp';
 
 interface PasswordResetProps extends RouteComponentProps<any> {}
 
 interface PasswordResetState {
   email: string;
   passwordResetErrMsg: string;
+  showPopUp: boolean;
 }
 
 class PasswordReset extends React.Component<PasswordResetProps, PasswordResetState> {
@@ -17,10 +19,12 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
     this.state = {
       email: '',
       passwordResetErrMsg: '',
+      showPopUp: false,
     };
 
     this.handleChangeUsername = this.handleChangeUsername.bind(this);
     this.handleClickPasswordReset = this.handleClickPasswordReset.bind(this);
+    this.handleClosePopUp = this.handleClosePopUp.bind(this);
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
@@ -34,7 +38,7 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
         this.setState({ passwordResetErrMsg: 'メール送信に失敗しました' });
         return;
       }
-      this.props.history.push('/auth/sentmail');
+      this.setState({ showPopUp: true });
     });
   }
 
@@ -44,8 +48,13 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
     }
   }
 
+  public handleClosePopUp() {
+    this.props.history.push('/');
+  }
+
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
+    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -80,10 +89,13 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
                     color="primary"
                     onClick={this.handleClickPasswordReset}
                   >
-                    パスワードリセットのメールを送る
+                    パスワードリセット用メールを送信する
                   </Button>
                 </FormControl>
               </form>
+              {this.state.showPopUp && rootEl ? (
+                <PopUp onClose={this.handleClosePopUp} rootEl={rootEl} msg={'メールを送信しました'} />
+              ) : null}
             </CardContent>
           </Card>
         </Grid>

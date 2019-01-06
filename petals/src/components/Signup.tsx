@@ -15,6 +15,7 @@ import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PasswordValidationError, validatePassword, validateUsername } from '../api/auth';
 import { createUser } from '../api/users';
+import PopUp from './PopUp';
 
 interface SignupProps extends RouteComponentProps {}
 
@@ -28,6 +29,7 @@ interface SignupState {
   agreedWithTermsOfService: boolean;
   agreedWithTermsOfServiceErr: boolean;
   signupErrMsg: string;
+  showPopUp: boolean;
 }
 
 class Signup extends React.Component<SignupProps, SignupState> {
@@ -43,12 +45,14 @@ class Signup extends React.Component<SignupProps, SignupState> {
       agreedWithTermsOfService: false,
       agreedWithTermsOfServiceErr: false,
       signupErrMsg: '',
+      showPopUp: false,
     };
 
     this.handleChangeUsername = this.handleChangeUsername.bind(this);
     this.handleChangePassword = this.handleChangePassword.bind(this);
     this.handleChangeConfirmPassword = this.handleChangeConfirmPassword.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
+    this.handleClosePopUp = this.handleClosePopUp.bind(this);
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
@@ -108,12 +112,17 @@ class Signup extends React.Component<SignupProps, SignupState> {
         this.setState({ signupErrMsg: 'アカウント作成に失敗しました' });
         return;
       }
-      this.props.history.push('/auth/sentmail');
+      this.setState({ showPopUp: true });
     });
+  }
+
+  public handleClosePopUp() {
+    this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
+    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -201,6 +210,9 @@ class Signup extends React.Component<SignupProps, SignupState> {
                   </Button>
                 </FormControl>
               </form>
+              {this.state.showPopUp && rootEl ? (
+                <PopUp onClose={this.handleClosePopUp} msg={'メールを送信しました'} rootEl={rootEl} />
+              ) : null}
             </CardContent>
           </Card>
         </Grid>
