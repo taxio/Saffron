@@ -8,9 +8,13 @@ import { createStore, Store } from 'redux';
 import auth from './reducers/auth';
 
 import { isLogin } from './api/auth';
+import { bodyTheme } from './lib/theme';
 import { Auth } from './store/AuthState';
 
 const store: Store<Auth> = createStore(auth, { isLogin: isLogin() });
+
+document.body.style.backgroundColor = bodyTheme.backgroundColor;
+document.body.style.margin = bodyTheme.margin;
 
 ReactDOM.render(
   <Provider store={store}>

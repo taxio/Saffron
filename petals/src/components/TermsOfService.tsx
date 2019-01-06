@@ -1,9 +1,9 @@
 import * as React from 'react';
 
-class TermsOfService extends React.Component {
-  public render(): React.ReactNode {
-    return <React.Fragment>TODO: 利用規約</React.Fragment>;
-  }
-}
+const TermsOfService: React.SFC = () => (
+  <React.Fragment>
+    <p>TODO: 利用規約</p>
+  </React.Fragment>
+);
 
 export default TermsOfService;

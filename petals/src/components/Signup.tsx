@@ -185,7 +185,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
                     }
                     label={
                       <React.Fragment>
-                        <Link to="/auth/termsofservice">利用規約</Link>に同意する
+                        <Link to="/termsofservice">利用規約</Link>に同意する
                       </React.Fragment>
                     }
                   />

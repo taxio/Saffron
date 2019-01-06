@@ -1,6 +1,6 @@
 import { createMuiTheme } from '@material-ui/core';
 
-const theme = createMuiTheme({
+export const muiTheme = createMuiTheme({
   typography: {
     useNextVariants: true,
   },
@@ -18,4 +18,8 @@ const theme = createMuiTheme({
   },
 });
 
-export default theme;
+// @ts-ignore
+export const bodyTheme: CSSStyleDeclaration = {
+  margin: '0px',
+  backgroundColor: '#FCF7E4',
+};
