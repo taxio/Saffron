@@ -1,6 +1,5 @@
 import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
 import * as React from 'react';
-import { createPortal } from 'react-dom';
 import { RouteComponentProps } from 'react-router';
 
 import { resetPassword } from '../api/password';
@@ -50,8 +49,7 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   }
 
   public handleClosePopUp() {
-    console.log('popup close');
-    this.props.history.push('/auth/sentmail');
+    this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
@@ -91,11 +89,13 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
                     color="primary"
                     onClick={this.handleClickPasswordReset}
                   >
-                    パスワードリセットのメールを送る
+                    パスワードリセット用メールを送信する
                   </Button>
                 </FormControl>
               </form>
-              {this.state.showPopUp && rootEl ? createPortal(<PopUp onClose={this.handleClosePopUp} />, rootEl) : null}
+              {this.state.showPopUp && rootEl ? (
+                <PopUp onClose={this.handleClosePopUp} rootEl={rootEl} msg={'メールを送信しました'} />
+              ) : null}
             </CardContent>
           </Card>
         </Grid>
