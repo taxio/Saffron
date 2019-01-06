@@ -20,6 +20,7 @@ interface ProfileState {
   username: string;
   email: string;
   screenName: string;
+  beforeName: string;
   gpa: number | null;
 }
 
@@ -31,6 +32,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
       username: '',
       email: '',
       screenName: '',
+      beforeName: '',
       gpa: null,
     };
 
@@ -45,6 +47,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
         username: res.username,
         email: res.email,
         screenName: res.screen_name,
+        beforeName: res.screen_name,
         gpa: res.gpa,
       });
     });
@@ -55,6 +58,11 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
   }
 
   public handleClickSave() {
+    if (this.state.beforeName === this.state.screenName) {
+      this.props.history.push('/profile');
+      return;
+    }
+
     editMeInfo(this.state.screenName, this.state.gpa).then(success => {
       if (!success) {
         return;
