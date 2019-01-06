@@ -1,7 +1,10 @@
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_nested.routers import NestedDefaultRouter
-from .views import CourseViewSet, YearViewSet, JoinAPIView, CourseAdminView, CourseConfigViewSet, LabViewSet
+from .views import (
+    CourseViewSet, YearViewSet, JoinAPIView, CourseAdminView,
+    CourseConfigViewSet, LabViewSet, RankPerLabViewSet, RankCreateViewSet
+)
 
 router = routers.DefaultRouter()
 
@@ -13,9 +16,14 @@ course_nested_router.register('join', JoinAPIView, basename='join')
 course_nested_router.register('admins', CourseAdminView, basename='admin')
 course_nested_router.register('config', CourseConfigViewSet, basename='config')
 course_nested_router.register('labs', LabViewSet, basename='lab')
+course_nested_router.register('ranks', RankCreateViewSet, basename='rank')
+
+lab_nested_router = NestedDefaultRouter(course_nested_router, r'labs', lookup='lab')
+lab_nested_router.register('ranks', RankPerLabViewSet, basename='rank')
 
 app_name = 'course'
 urlpatterns = [
     path('', include(router.get_urls())),
     path('', include(course_nested_router.get_urls())),
+    path('', include(lab_nested_router.get_urls())),
 ]

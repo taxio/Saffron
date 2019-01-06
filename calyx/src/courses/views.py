@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
-from .models import Course, Year, Config, Lab
+from .models import Course, Year, Config, Lab, Rank
 from .serializers import (
-    CourseSerializer, CourseWithoutUserSerializer, YearSerializer,
-    PINCodeSerializer, UserSerializer, ConfigSerializer, LabSerializer
+    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
+    UserSerializer, ConfigSerializer, LabSerializer, RankPerLabSerializer, RankCreateSerializer, LabAbstractSerializer
 )
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
@@ -241,8 +241,12 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
 
     queryset = Lab.objects.select_related('course').all()
-    serializer_class = LabSerializer
     schema = LabSchema()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return LabAbstractSerializer
+        return LabSerializer
 
     def get_permissions(self):
         if self.action == "list" or self.action == "retrieve":
@@ -254,10 +258,10 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         course_pk = kwargs.pop('course_pk')
         try:
-            course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
+            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
         except Course.DoesNotExist:
             raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, course)
+        self.check_object_permissions(request, self.course)
         return super(LabViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
@@ -267,19 +271,76 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         except Lab.DoesNotExist:
             raise exceptions.NotFound('見つかりませんでした．')
         self.check_object_permissions(self.request, obj.course)
+        self.course = obj.course
         return obj
+
+    def get_serializer_context(self):
+        context = super(LabViewSet, self).get_serializer_context()
+        context['course'] = self.course
+        return context
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         course_pk = kwargs.pop('course_pk')
         try:
-            course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
+            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
         except Course.DoesNotExist:
             raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, course)
+        self.check_object_permissions(request, self.course)
         data['course'] = course_pk
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class RankCreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """
+    自分自身の希望順位を提出する
+    create:
+        希望する順に並べた研究室のプライマリキーを送信して希望順位を提出する
+    """
+
+    permission_classes = [IsCourseMember]
+    serializer_class = RankCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        course_pk = kwargs.get('course_pk')
+        try:
+            course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(request, course)
+        context = self.get_serializer_context()
+        context['course'] = course
+        serializer = self.serializer_class(data=request.data, many=True, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class RankPerLabViewSet(NestedViewSetMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    研究室ごとの希望順位を返すビュー
+    list:
+        配属希望順位ごとにユーザのリストを返す
+    """
+
+    queryset = Rank.objects.select_related('course', 'user', 'lab').all()
+    permission_classes = [IsCourseMember | IsAdmin]
+    serializer_class = RankPerLabSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        course_pk = kwargs.get('course_pk')
+        try:
+            course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(request, course)
+        context = self.get_serializer_context()
+        context['course'] = course
+        serializer = self.serializer_class(queryset, many=True, context=context)
+        return Response(serializer.data)

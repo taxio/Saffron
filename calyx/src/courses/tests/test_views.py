@@ -379,12 +379,8 @@ class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course = Course.objects.create_course(**course_data)
         course.join(self.user, pin_code)
         resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
-        expected = {
-            'show_gpa': False,
-            'show_username': False
-        }
         self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        self.assertEqual(self.default_config, self.to_dict(resp.data))
 
     def test_update_config(self):
         """POST /courses/<course_pk>/config/"""
@@ -393,13 +389,10 @@ class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course = Course.objects.create_course(**course_data)
         course.join(self.user, pin_code)
         course.register_as_admin(self.user)
-        expected = {
-            'show_gpa': True,
-            'show_username': False
-        }
-        resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
+        self.default_config['show_gpa'] = True
+        resp = self.client.post(f'/courses/{course.pk}/config/', data=self.default_config, format='json')
         self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        self.assertEqual(self.default_config, self.to_dict(resp.data))
 
     def test_get_config_permission(self):
         """GET /courses/<course_pk>/config/"""
@@ -475,7 +468,8 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         expected = {
             "pk": lab.pk,
             "name": lab.name,
-            "capacity": lab.capacity
+            "capacity": lab.capacity,
+            'rank_set': [[], [], []]
         }
         resp = self.client.get(f'/courses/{course.pk}/labs/{lab.pk}/', format='json')
         self.assertEqual(200, resp.status_code)
@@ -490,6 +484,7 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.assertEqual(201, resp.status_code)
         data = self.to_dict(resp.data)
         data.pop('pk')
+        self.lab_data_set[0]['rank_set'] = [[], [], []]
         self.assertEqual(self.lab_data_set[0], data)
 
     def test_update_lab(self):
@@ -501,6 +496,7 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.put(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
         self.assertEqual(200, resp.status_code)
         self.lab_data_set[1]['pk'] = lab.pk
+        self.lab_data_set[1]['rank_set'] = [[], [], []]
         self.assertEqual(self.lab_data_set[1], self.to_dict(resp.data))
         resp = self.client.put(f'/courses/{course.pk}/labs/9999/', data=self.lab_data_set[1], format='json')
         self.assertEqual(404, resp.status_code)

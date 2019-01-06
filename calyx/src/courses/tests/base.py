@@ -8,7 +8,8 @@ years = [2017, 2018, 2019]
 
 default_config = {
     'show_gpa': False,
-    'show_username': False
+    'show_username': False,
+    'rank_limit': 3
 }
 
 lab_data_set = [
