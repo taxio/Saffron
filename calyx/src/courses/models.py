@@ -189,6 +189,23 @@ class Config(models.Model):
         return f'{self.course.name}の表示設定'
 
 
+class Lab(models.Model):
+    """研究室のモデル"""
+
+    name = models.CharField("研究室名", max_length=255)
+    capacity = models.IntegerField("許容人数", default=0)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='labs')
+
+    class Meta:
+        verbose_name = "研究室"
+        verbose_name_plural = "研究室"
+        # ある課程について同名の研究室は許容しない
+        unique_together = ["name", "course"]
+
+    def __str__(self):
+        return f'{self.course} - {self.name}'
+
+
 @receiver(models.signals.post_save, sender=Course)
 def change_admin_group_name(sender, instance: 'Course', **kwargs):
     """

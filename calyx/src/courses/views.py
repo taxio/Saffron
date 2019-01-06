@@ -4,13 +4,14 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
-from .models import Course, Year, Config
+from .models import Course, Year, Config, Lab
 from .serializers import (
-    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer, UserSerializer, ConfigSerializer
+    CourseSerializer, CourseWithoutUserSerializer, YearSerializer,
+    PINCodeSerializer, UserSerializer, ConfigSerializer, LabSerializer
 )
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
-from .schemas import CourseJoinSchema, CourseAdminSchema
+from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 
 User = get_user_model()
 
@@ -232,3 +233,44 @@ class CourseConfigViewSet(NestedViewSetMixin,
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
+    研究室を操作するView．
+    """
+
+    queryset = Lab.objects.select_related('course').all()
+    serializer_class = LabSerializer
+    schema = LabSchema()
+
+    def get_permissions(self):
+        if self.action == "list" or self.action == "retrieve":
+            self.permission_classes = [IsCourseMember | IsAdmin]
+        else:
+            self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
+        return super(LabViewSet, self).get_permissions()
+
+    def get_object(self):
+        pk = self.kwargs.pop('pk')
+        try:
+            obj = self.get_queryset().get(pk=pk)
+        except Lab.DoesNotExist:
+            raise exceptions.NotFound('見つかりませんでした．')
+        self.check_object_permissions(self.request, obj.course)
+        return obj
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        course_pk = kwargs.pop('course_pk')
+        try:
+            course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(request, course)
+        data['course'] = course_pk
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
