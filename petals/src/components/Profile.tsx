@@ -1,8 +1,9 @@
 import { Button, Grid, Paper, Table, TableBody, TableCell, TableRow, Typography } from '@material-ui/core';
 import * as React from 'react';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { getMeInfo } from '../api/users';
 
-interface ProfileProps {}
+interface ProfileProps extends RouteComponentProps {}
 
 interface ProfileState {
   username: string;
@@ -21,6 +22,8 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       screenName: '',
       isJoinedCourse: false,
     };
+
+    this.handleClickEdit = this.handleClickEdit.bind(this);
   }
 
   public componentDidMount() {
@@ -37,6 +40,10 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       .catch(err => {
         console.log(err);
       });
+  }
+
+  public handleClickEdit() {
+    this.props.history.push('/profile/edit');
   }
 
   public render(): React.ReactNode {
@@ -57,7 +64,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                 <Typography variant="h6">{this.state.username}</Typography>
               </Grid>
               <Grid item={true} xs={5}>
-                <Button variant="contained" color="primary">
+                <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
                   編集
                 </Button>
               </Grid>
@@ -87,4 +94,4 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
   }
 }
 
-export default Profile;
+export default withRouter(Profile);

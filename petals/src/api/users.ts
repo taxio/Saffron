@@ -70,7 +70,7 @@ interface GetMeResponse {
   username: string;
   email: string;
   screen_name: string;
-  gpa: string | null;
+  gpa: number | null;
   is_admin: boolean;
   joined: boolean;
 }
@@ -87,4 +87,28 @@ export const getMeInfo = async (): Promise<GetMeResponse> => {
   return getMe().then(res => {
     return res;
   });
+};
+
+interface PatchMeRequest {
+  screen_name: string;
+  gpa: number | null;
+}
+
+const patchMe = async (data: PatchMeRequest): Promise<GetMeResponse> => {
+  const res = await util.sendRequest(util.Methods.Patch, '/users/me/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  return await res.json();
+};
+
+export const editMeInfo = async (screenName: string, gpa: number | null): Promise<boolean> => {
+  const req: PatchMeRequest = { screen_name: screenName, gpa };
+  return patchMe(req)
+    .then(res => {
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
 };

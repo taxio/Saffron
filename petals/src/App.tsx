@@ -12,6 +12,7 @@ import Login from './components/Login';
 import NotFound from './components/NotFound';
 import PasswordReset from './components/PasswordReset';
 import Profile from './components/Profile';
+import ProfileEdit from './components/ProfileEdit';
 import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
 
@@ -46,6 +47,7 @@ const AuthRouter = () => (
 const ProfileRouter = () => (
   <Switch>
     <Route exact={true} path={`/profile`} component={Profile} />
+    <Route exact={true} path={`/profile/edit`} component={ProfileEdit} />
   </Switch>
 );
 

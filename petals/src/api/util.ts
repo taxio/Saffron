@@ -1,6 +1,7 @@
 export enum Methods {
   Get,
   Post,
+  Patch,
 }
 
 const convertMethodName = (method: Methods): string => {
@@ -9,6 +10,8 @@ const convertMethodName = (method: Methods): string => {
       return 'GET';
     case Methods.Post:
       return 'POST';
+    case Methods.Patch:
+      return 'PATCH';
   }
   throw new Error(`${method} not found`);
 };
@@ -33,6 +36,7 @@ export const sendRequest = async (
 
   let url: string = process.env.REACT_APP_API_ENDPOINT + path;
   switch (method) {
+    case Methods.Patch:
     case Methods.Post:
       options = { ...options, body: JSON.stringify(data) };
       break;
