@@ -319,28 +319,3 @@ class RankCreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-class RankPerLabViewSet(NestedViewSetMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
-    """
-    研究室ごとの希望順位を返すビュー
-    list:
-        配属希望順位ごとにユーザのリストを返す
-    """
-
-    queryset = Rank.objects.select_related('course', 'user', 'lab').all()
-    permission_classes = [IsCourseMember | IsAdmin]
-    serializer_class = RankPerLabSerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        course_pk = kwargs.get('course_pk')
-        try:
-            course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, course)
-        context = self.get_serializer_context()
-        context['course'] = course
-        serializer = self.serializer_class(queryset, many=True, context=context)
-        return Response(serializer.data)
