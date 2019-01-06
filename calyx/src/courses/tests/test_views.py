@@ -177,7 +177,8 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     "username": self.user.username,
                     "is_admin": False
                 }
-            ]
+            ],
+            'is_admin': False
         }
         self.assertEqual(201, resp.status_code)
         self.assertEqual(expected, self.to_dict(resp.data))
