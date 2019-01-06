@@ -2,6 +2,7 @@ import { Button, Grid, Paper, Table, TableBody, TableCell, TableRow, Typography 
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { getMeInfo } from '../api/users';
+import CourseSelectPopUp from './CourseSelectPopUp';
 
 interface ProfileProps extends RouteComponentProps {}
 
@@ -11,6 +12,7 @@ interface ProfileState {
   screenName: string;
   isJoinedCourse: boolean;
   cource: any;
+  showSelectPopUp: boolean;
 }
 
 class Profile extends React.Component<ProfileProps, ProfileState> {
@@ -23,9 +25,12 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       screenName: '',
       isJoinedCourse: false,
       cource: {},
+      showSelectPopUp: false,
     };
 
     this.handleClickEdit = this.handleClickEdit.bind(this);
+    this.handleClickSelectCourse = this.handleClickSelectCourse.bind(this);
+    this.handleCloseSelectCourse = this.handleCloseSelectCourse.bind(this);
   }
 
   public componentDidMount() {
@@ -42,6 +47,14 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
 
   public handleClickEdit() {
     this.props.history.push('/profile/edit');
+  }
+
+  public handleClickSelectCourse() {
+    this.setState({ showSelectPopUp: true });
+  }
+
+  public handleCloseSelectCourse() {
+    this.setState({ showSelectPopUp: false });
   }
 
   public render(): React.ReactNode {
@@ -102,11 +115,12 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                 <Typography>TODO : 研究室志望状況</Typography>
               </div>
             ) : (
-              <Button variant="contained" color="primary" style={{ margin: 20 }}>
+              <Button variant="contained" color="primary" style={{ margin: 20 }} onClick={this.handleClickSelectCourse}>
                 課程を登録する
               </Button>
             )}
           </Paper>
+          {this.state.showSelectPopUp ? <CourseSelectPopUp onClose={this.handleCloseSelectCourse} /> : null}
         </Grid>
       </Grid>
     );
