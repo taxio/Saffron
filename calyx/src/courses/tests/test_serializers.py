@@ -77,6 +77,7 @@ class CourseSerializerTest(DatasetMixin, TestCase):
             'name': course.name,
             'year': course.year.year,
             'users': [],
+            'config': self.default_config,
             'is_admin': False
         }
         self.assertEqual(expected_json, serializer.data)
@@ -99,6 +100,7 @@ class CourseSerializerTest(DatasetMixin, TestCase):
                     'is_admin': False
                 }
             ],
+            'config': self.default_config,
             'is_admin': False
         }
         self.assertEqual(expected_json, serializer.data)

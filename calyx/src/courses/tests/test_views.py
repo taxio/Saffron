@@ -43,6 +43,7 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     "is_admin": True
                 }
             ],
+            'config': self.default_config,
             'is_admin': True
         }
         self.assertEqual(201, resp.status_code)
@@ -84,6 +85,7 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     'is_admin': False
                 }
             ],
+            'config': self.default_config,
             'is_admin': False
         }
         self.assertEqual(200, resp.status_code)
@@ -95,14 +97,8 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course = Course.objects.create_course(**course_data)
         course.join(self.user, course_data['pin_code'])
         updated_name = 'updated'
-        course_data['name'] = updated_name
-        # 標準メンバーは更新できない
-        resp = self.client.patch(f'/courses/{course.pk}/', data=course_data, format='json')
-        self.assertEqual(403, resp.status_code)
-        # 管理者は更新できる
-        course.register_as_admin(self.user)
-        self._set_credentials(self.user)
-        resp = self.client.patch(f'/courses/{course.pk}/', data=course_data, format='json')
+        new_config = self.default_config
+        new_config['show_gpa'] = True
         expected_json = {
             'pk': course.pk,
             'name': updated_name,
@@ -114,8 +110,16 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     'is_admin': True
                 }
             ],
+            'config': new_config,
             'is_admin': True
         }
+        # 標準メンバーは更新できない
+        resp = self.client.patch(f'/courses/{course.pk}/', data=expected_json, format='json')
+        self.assertEqual(403, resp.status_code)
+        # 管理者は更新できる
+        course.register_as_admin(self.user)
+        self._set_credentials(self.user)
+        resp = self.client.patch(f'/courses/{course.pk}/', data=expected_json, format='json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
 
@@ -178,6 +182,7 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     "is_admin": False
                 }
             ],
+            'config': self.default_config,
             'is_admin': False
         }
         self.assertEqual(201, resp.status_code)
@@ -357,4 +362,76 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # メンバーだが管理者ではない
         course.join(self.user, pin_code)
         resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+
+
+class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
+
+    def setUp(self):
+        super(ConfigViewTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self._set_credentials()
+
+    def test_get_config(self):
+        """GET /courses/<course_pk>/config/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        course.join(self.user, pin_code)
+        resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
+        expected = {
+            'show_gpa': False,
+            'show_username': False
+        }
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+
+    def test_update_config(self):
+        """POST /courses/<course_pk>/config/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        course.join(self.user, pin_code)
+        course.register_as_admin(self.user)
+        expected = {
+            'show_gpa': True,
+            'show_username': False
+        }
+        resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+
+    def test_get_config_permission(self):
+        """GET /courses/<course_pk>/config/"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーで無い
+        resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+
+    def test_update_config_permission(self):
+        """POST /courses/<course_pk>/config/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        expected = {
+            'show_gpa': True,
+            'show_username': False
+        }
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
+        self.assertEqual(403, resp.status_code)
+        # メンバーだが管理者で無い
+        course.join(self.user, pin_code)
+        resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
         self.assertEqual(403, resp.status_code)
