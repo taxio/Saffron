@@ -65,6 +65,12 @@ export const activateUser = async (uid: string, token: string): Promise<boolean>
     });
 };
 
+interface Course {
+  pk: number;
+  name: string;
+  year: number;
+}
+
 interface GetMeResponse {
   pk: number;
   username: string;
@@ -73,6 +79,7 @@ interface GetMeResponse {
   gpa: number | null;
   is_admin: boolean;
   joined: boolean;
+  courses: Course[];
 }
 
 const getMe = async (): Promise<GetMeResponse> => {

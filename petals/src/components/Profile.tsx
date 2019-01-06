@@ -10,6 +10,7 @@ interface ProfileState {
   email: string;
   screenName: string;
   isJoinedCourse: boolean;
+  cource: any;
 }
 
 class Profile extends React.Component<ProfileProps, ProfileState> {
@@ -21,6 +22,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       email: '',
       screenName: '',
       isJoinedCourse: false,
+      cource: {},
     };
 
     this.handleClickEdit = this.handleClickEdit.bind(this);
@@ -33,6 +35,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
         email: res.email,
         screenName: res.screen_name,
         isJoinedCourse: res.joined,
+        cource: res.courses[0],
       });
     });
   }
@@ -77,7 +80,28 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                 </TableRow>
               </TableBody>
             </Table>
-            {this.state.isJoinedCourse ? null : (
+            {this.state.isJoinedCourse ? (
+              <div style={{ marginTop: 20 }}>
+                <Grid
+                  container={true}
+                  spacing={24}
+                  justify="center"
+                  alignItems="center"
+                  direction="row"
+                  style={{ padding: '10px 0' }}
+                >
+                  <Grid item={true} xs={7}>
+                    <Typography variant="h6">{this.state.cource.name}</Typography>
+                  </Grid>
+                  <Grid item={true} xs={5}>
+                    <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
+                      志望状況変更
+                    </Button>
+                  </Grid>
+                </Grid>
+                <Typography>TODO : 研究室志望状況</Typography>
+              </div>
+            ) : (
               <Button variant="contained" color="primary" style={{ margin: 20 }}>
                 課程を登録する
               </Button>
