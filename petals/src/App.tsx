@@ -5,6 +5,7 @@ import { muiTheme } from './lib/theme';
 
 import About from './components/About';
 import Activation from './components/Auth/Activation';
+import ChangePassword from './components/Auth/ChangePassword';
 import PasswordResetActivation from './components/Auth/PasswordResetActivation';
 import Header from './components/Header';
 import Home from './components/Home';
@@ -40,6 +41,7 @@ const AuthRouter = () => (
     <Route exact={true} path={`/auth/login`} component={Login} />
     <Route exact={true} path={`/auth/signup`} component={Signup} />
     <Route exact={true} path={`/auth/passwordreset`} component={PasswordReset} />
+    <Route exact={true} path={`/auth/password/change`} component={ChangePassword} />
     <Route exact={true} component={NotFound} />
   </Switch>
 );

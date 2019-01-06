@@ -27,19 +27,14 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
   }
 
   public componentDidMount() {
-    getMeInfo()
-      .then(res => {
-        console.log(res);
-        this.setState({
-          username: res.username,
-          email: res.email,
-          screenName: res.screen_name,
-          isJoinedCourse: res.joined,
-        });
-      })
-      .catch(err => {
-        console.log(err);
+    getMeInfo().then(res => {
+      this.setState({
+        username: res.username,
+        email: res.email,
+        screenName: res.screen_name,
+        isJoinedCourse: res.joined,
       });
+    });
   }
 
   public handleClickEdit() {

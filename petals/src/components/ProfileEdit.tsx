@@ -36,6 +36,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
 
     this.handleChangeScreenName = this.handleChangeScreenName.bind(this);
     this.handleClickSave = this.handleClickSave.bind(this);
+    this.handleToChangePassword = this.handleToChangePassword.bind(this);
   }
 
   public componentDidMount() {
@@ -66,6 +67,10 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
     if (e.which === 13) {
       e.preventDefault();
     }
+  }
+
+  public handleToChangePassword() {
+    this.props.history.push('/auth/password/change');
   }
 
   public render(): React.ReactNode {
@@ -115,7 +120,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
                   </TableRow>
                 </TableBody>
               </Table>
-              <Button variant="contained" color="primary" style={{ margin: 20 }}>
+              <Button variant="contained" color="primary" style={{ margin: 20 }} onClick={this.handleToChangePassword}>
                 パスワードを変更する
               </Button>
             </form>

@@ -1,5 +1,32 @@
 import * as util from './util';
 
+interface ChangeRequest {
+  current_password: string;
+  new_password: string;
+}
+
+const change = async (data: ChangeRequest): Promise<object> => {
+  const res = await util.sendRequest(util.Methods.Post, '/password/', data);
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  if (res.status === 204) {
+    return {};
+  }
+  return await res.json();
+};
+
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const req: ChangeRequest = { current_password: currentPassword, new_password: newPassword };
+  return change(req)
+    .then(res => {
+      return true;
+    })
+    .catch(errJson => {
+      return false;
+    });
+};
+
 interface ResetRequest {
   email: string;
 }
