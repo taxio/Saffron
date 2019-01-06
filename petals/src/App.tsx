@@ -1,7 +1,7 @@
 import { MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import theme from './lib/theme';
+import { muiTheme } from './lib/theme';
 
 import About from './components/About';
 import Activation from './components/Auth/Activation';
@@ -15,7 +15,7 @@ import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
 
 const App = () => (
-  <MuiThemeProvider theme={theme}>
+  <MuiThemeProvider theme={muiTheme}>
     <BrowserRouter>
       <React.Fragment>
         <Header />
