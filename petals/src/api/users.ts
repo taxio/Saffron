@@ -65,7 +65,15 @@ export const activateUser = async (uid: string, token: string): Promise<boolean>
     });
 };
 
-interface GetMeResponse {}
+interface GetMeResponse {
+  pk: number;
+  username: string;
+  email: string;
+  screen_name: string;
+  gpa: string | null;
+  is_admin: boolean;
+  joined: boolean;
+}
 
 const getMe = async (): Promise<GetMeResponse> => {
   const res = await util.sendRequest(util.Methods.Get, '/users/me/', {});
