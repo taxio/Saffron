@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.contrib.auth import get_user_model, password_validation
 from django.conf import settings
 from rest_framework import serializers
-from .models import Course, Year, Config
+from .models import Course, Year, Config, Lab
 
 
 User = get_user_model()
@@ -13,6 +13,27 @@ User = get_user_model()
 @functools.lru_cache(maxsize=None)
 def get_pin_code_validators():
     return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
+
+
+class LabSerializer(serializers.ModelSerializer):
+    """
+    研究室のシリアライザ
+    """
+
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), write_only=True, required=False)
+
+    parent_lookup_kwargs = {
+        'course_pk': 'course_id'
+    }
+
+    class Meta:
+        model = Lab
+        fields = ("pk", "name", "capacity", "course")
+
+    def validate_capacity(self, obj):
+        if obj < 0:
+            raise serializers.ValidationError({"capacity": "許容人数は0人以上である必要があります．"})
+        return obj
 
 
 class ConfigSerializer(serializers.ModelSerializer):
