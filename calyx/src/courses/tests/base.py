@@ -6,18 +6,26 @@ from rest_framework_jwt.settings import api_settings
 
 years = [2017, 2018, 2019]
 
+default_config = {
+    'show_gpa': False,
+    'show_username': False
+}
+
 course_data_set = [
     {
         "name": "Course A",
         "year": 2018,
-        "pin_code": "3012"
+        "pin_code": "3012",
+        "config": deepcopy(default_config)
     }, {
         "name": "Course B",
-        "pin_code": "aaabbbcccddd"
+        "pin_code": "aaabbbcccddd",
+        "config": deepcopy(default_config)
     }, {
         "name": "ﾎｹﾞ",
         "year": 2018,
-        "pin_code": "4123"
+        "pin_code": "4123",
+        "config": deepcopy(default_config)
     }
 ]
 
@@ -38,6 +46,7 @@ class DatasetMixin(object):
         self.course_data_set = deepcopy(course_data_set)
         self.user_data_set = deepcopy(user_data_set)
         self.years = deepcopy(years)
+        self.default_config = deepcopy(default_config)
 
     def to_dict(self, data: OrderedDict) -> dict:
         """OrderedDictを標準のdictに変換する"""

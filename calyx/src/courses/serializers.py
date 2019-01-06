@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.contrib.auth import get_user_model, password_validation
 from django.conf import settings
 from rest_framework import serializers
-from .models import Course, Year
+from .models import Course, Year, Config
 
 
 User = get_user_model()
@@ -13,6 +13,20 @@ User = get_user_model()
 @functools.lru_cache(maxsize=None)
 def get_pin_code_validators():
     return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
+
+
+class ConfigSerializer(serializers.ModelSerializer):
+    """
+    課程ごとの表示設定のシリアライザ．
+    """
+
+    parent_lookup_kwargs = {
+        'course_pk': 'course_id'
+    }
+
+    class Meta:
+        model = Config
+        fields = ("show_gpa", "show_username")
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -24,10 +38,11 @@ class CourseSerializer(serializers.ModelSerializer):
     users = serializers.SerializerMethodField(read_only=True)
     year = serializers.IntegerField(source='year.year')
     is_admin = serializers.SerializerMethodField(read_only=True)
+    config = ConfigSerializer(required=False)
 
     class Meta:
         model = Course
-        fields = ("pk", "name", "users", "pin_code", "year", "is_admin")
+        fields = ("pk", "name", "users", "pin_code", "year", "is_admin", "config")
         extra_kwargs = {
             'pin_code': {'write_only': True}
         }
@@ -54,6 +69,11 @@ class CourseSerializer(serializers.ModelSerializer):
         if isinstance(year, dict):
             year = year.get('year')
         validated_data['year'], _ = Year.objects.get_or_create(year=year)
+        # configはOrderedDict
+        config = validated_data.get('config', instance.config)
+        if not isinstance(config, Config):
+            config, _ = Config.objects.update_or_create(course=instance, defaults=config)
+        validated_data['config'] = config
 
         for key, val in validated_data.items():
             setattr(instance, key, val)
