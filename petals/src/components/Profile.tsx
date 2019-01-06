@@ -63,7 +63,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
               </Grid>
               <Grid item={true} xs={5}>
                 <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
-                  編集
+                  プロフィール変更
                 </Button>
               </Grid>
             </Grid>

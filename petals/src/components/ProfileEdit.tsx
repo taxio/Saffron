@@ -93,7 +93,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
                 </Grid>
                 <Grid item={true} xs={5}>
                   <Button variant="contained" color="primary" onClick={this.handleClickSave}>
-                    保存
+                    変更を保存
                   </Button>
                 </Grid>
               </Grid>
