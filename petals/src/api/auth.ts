@@ -40,7 +40,7 @@ interface JwtCreateResponse {
 }
 
 const jwtCreate = async (data: JwtCreateRequest): Promise<JwtCreateResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
@@ -74,7 +74,7 @@ interface JwtRefreshResponse {
 }
 
 const jwtRefresh = async (data: JwtRefreshRequest): Promise<JwtRefreshResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
@@ -103,7 +103,7 @@ interface JwtVerifyResponse {
 }
 
 const jwtVerify = async (data: JwtVerifyRequest): Promise<JwtVerifyResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/verify/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/verify/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }

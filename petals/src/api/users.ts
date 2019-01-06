@@ -16,7 +16,7 @@ interface CreateResponse {
 }
 
 const create = async (data: CreateRequest): Promise<CreateResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/users/create/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/users/create/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
@@ -43,7 +43,7 @@ interface ActivateRequest {
 interface ActivateResponse {}
 
 const activate = async (data: ActivateRequest): Promise<ActivateResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/users/activate/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/users/activate/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
@@ -63,4 +63,20 @@ export const activateUser = async (uid: string, token: string): Promise<boolean>
     .catch(errJson => {
       return false;
     });
+};
+
+interface GetMeResponse {}
+
+const getMe = async (): Promise<GetMeResponse> => {
+  const res = await util.sendRequest(util.Methods.Get, '/users/me/', {});
+  if (res.status >= 400) {
+    throw await res.json();
+  }
+  return await res.json();
+};
+
+export const getMeInfo = async (): Promise<GetMeResponse> => {
+  return getMe().then(res => {
+    return res;
+  });
 };

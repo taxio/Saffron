@@ -13,10 +13,18 @@ const convertMethodName = (method: Methods): string => {
   throw new Error(`${method} not found`);
 };
 
-export const sendRequest = async (method: Methods, path: string, data: object): Promise<Response> => {
+export const sendRequest = async (
+  method: Methods,
+  path: string,
+  data: object,
+  auth: boolean = true
+): Promise<Response> => {
   const headers: Headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
+  if (auth) {
+    headers.append('Authorization', `JWT ${localStorage.getItem('token')}`);
+  }
 
   let options: object = {
     method: convertMethodName(method),

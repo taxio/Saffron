@@ -7,7 +7,7 @@ interface ResetRequest {
 interface ResetResponse {}
 
 const reset = async (data: ResetRequest): Promise<ResetResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/password/reset/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/password/reset/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
@@ -37,7 +37,7 @@ interface ResetConfirmRequest {
 interface ResetConfirmResponse {}
 
 const resetConfirm = async (data: ResetConfirmRequest): Promise<ResetConfirmResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/password/reset/confirm/', data);
+  const res = await util.sendRequest(util.Methods.Post, '/password/reset/confirm/', data, false);
   if (res.status >= 400) {
     throw await res.json();
   }
