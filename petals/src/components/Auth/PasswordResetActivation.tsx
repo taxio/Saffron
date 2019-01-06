@@ -4,6 +4,7 @@ import { RouteComponentProps } from 'react-router';
 
 import { PasswordValidationError, validatePassword } from '../../api/auth';
 import { confirmNewPassword } from '../../api/password';
+import PopUp from '../PopUp';
 
 interface PasswordResetMatchParams {
   uid: string;
@@ -19,6 +20,7 @@ interface PasswordResetState {
   confirmNewPasswordErrMsg: string;
   passwordResetErrMsg: string;
   params: PasswordResetMatchParams;
+  showPopUp: boolean;
 }
 
 class PasswordResetActivation extends React.Component<PasswordResetProps, PasswordResetState> {
@@ -39,11 +41,13 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
       confirmNewPasswordErrMsg: '',
       passwordResetErrMsg: '',
       params,
+      showPopUp: false,
     };
 
     this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
     this.handleChangeConfirmNewPassword = this.handleChangeConfirmNewPassword.bind(this);
     this.handleSendPasswordReset = this.handleSendPasswordReset.bind(this);
+    this.handleClosePopUp = this.handleClosePopUp.bind(this);
   }
 
   public parseHashData(hashStr: string): PasswordResetMatchParams {
@@ -103,13 +107,18 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
         this.setState({ passwordResetErrMsg: 'パスワード再設定に失敗しました' });
         return;
       }
-      alert('パスワードを再設定しました');
-      this.props.history.push('/');
+      this.setState({ showPopUp: true });
     });
+  }
+
+  public handleClosePopUp() {
+    this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
+    const rootEl = document.getElementById('root');
+
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
@@ -168,6 +177,9 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
                   </Button>
                 </FormControl>
               </form>
+              {this.state.showPopUp && rootEl ? (
+                <PopUp onClose={this.handleClosePopUp} msg={'パスワードを再設定しました'} rootEl={rootEl} />
+              ) : null}
             </CardContent>
           </Card>
         </Grid>
