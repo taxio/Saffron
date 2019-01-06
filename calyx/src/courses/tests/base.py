@@ -11,6 +11,16 @@ default_config = {
     'show_username': False
 }
 
+lab_data_set = [
+    {
+        "name": "Lab A",
+        "capacity": 2
+    }, {
+        "name": "Lab B",
+        "capacity": 4
+    }
+]
+
 course_data_set = [
     {
         "name": "Course A",
@@ -47,6 +57,7 @@ class DatasetMixin(object):
         self.user_data_set = deepcopy(user_data_set)
         self.years = deepcopy(years)
         self.default_config = deepcopy(default_config)
+        self.lab_data_set = deepcopy(lab_data_set)
 
     def to_dict(self, data: OrderedDict) -> dict:
         """OrderedDictを標準のdictに変換する"""
