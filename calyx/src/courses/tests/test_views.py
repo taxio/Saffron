@@ -278,6 +278,31 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.patch(f'/courses/9999/admins/{new_user.pk}/', data={}, format='json')
         self.assertEqual(404, resp.status_code)
 
+    def test_unregister_admin(self):
+        """DELETE /courses/<course_pk>/admins/<pk>/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
+        for u in [new_user, self.user]:
+            course.join(u, pin_code)
+            course.register_as_admin(u)
+        resp = self.client.delete(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(204, resp.status_code)
+        self.assertEqual(False, course.admin_user_group.user_set.filter(pk=new_user.pk).exists())
+        # 管理者で無いユーザを指定
+        resp = self.client.delete(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # 自分自身を指定
+        resp = self.client.delete(f'/courses/{course.pk}/admins/{self.user.pk}/', data={}, format='json')
+        self.assertEqual(400, resp.status_code)
+        # 存在しないユーザを指定
+        resp = self.client.delete(f'/courses/{course.pk}/admins/9999/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+        # 存在しない課程に対して実行
+        resp = self.client.delete(f'/courses/9999/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(404, resp.status_code)
+
     def test_register_admin_get_permission(self):
         """GET /courses/<course_pk>/admins/"""
         course_data = self.course_data_set[0]
@@ -306,6 +331,27 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # メンバーでも管理者でもない
         new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
         course.join(new_user, pin_code)
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # メンバーだが管理者ではない
+        course.join(self.user, pin_code)
+        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+
+    def test_unregister_admin_permission(self):
+        """DELETE /courses/<course_pk>/admins/<pk>/"""
+        course_data = self.course_data_set[0]
+        pin_code = course_data['pin_code']
+        course = Course.objects.create_course(**course_data)
+        new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
+        course.join(new_user, pin_code)
+        course.register_as_admin(new_user)
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.delete(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでも管理者でもない
         resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
         self.assertEqual(403, resp.status_code)
         # メンバーだが管理者ではない
