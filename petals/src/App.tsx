@@ -3,6 +3,7 @@ import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import theme from './lib/theme';
 
+import About from './components/About';
 import Activation from './components/Auth/Activation';
 import PasswordResetActivation from './components/Auth/PasswordResetActivation';
 import Header from './components/Header';
@@ -21,6 +22,8 @@ const App = () => (
         <Switch>
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
+          <Route exact={true} path="/about" component={About} />
+          <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
           <Route exact={true} path="/activate" component={Activation} />
           <Route exact={true} path="/password/reset/confirm" component={PasswordResetActivation} />
         </Switch>
@@ -33,7 +36,6 @@ const AuthRouter = () => (
   <Switch>
     <Route exact={true} path={`/auth/login`} component={Login} />
     <Route exact={true} path={`/auth/signup`} component={Signup} />
-    <Route exact={true} path={`/auth/termsofservice`} component={TermsOfService} />
     <Route exact={true} path={`/auth/passwordreset`} component={PasswordReset} />
     <Route exact={true} component={NotFound} />
   </Switch>
