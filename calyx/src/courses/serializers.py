@@ -23,10 +23,11 @@ class CourseSerializer(serializers.ModelSerializer):
 
     users = serializers.SerializerMethodField(read_only=True)
     year = serializers.IntegerField(source='year.year')
+    is_admin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
-        fields = ("pk", "name", "users", "pin_code", "year")
+        fields = ("pk", "name", "users", "pin_code", "year", "is_admin")
         extra_kwargs = {
             'pin_code': {'write_only': True}
         }
@@ -76,6 +77,14 @@ class CourseSerializer(serializers.ModelSerializer):
                 'is_admin': user.groups.filter(name=group_name).exists()
             } for user in users
         ]
+
+    def get_is_admin(self, obj):
+        try:
+            user = self.context['request'].user
+        except KeyError:
+            return False
+        group_name = obj.admin_group_name
+        return user.groups.filter(name=group_name).exists()
 
 
 class CourseWithoutUserSerializer(serializers.ModelSerializer):
