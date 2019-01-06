@@ -3,10 +3,14 @@ from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
+from rest_framework_nested.viewsets import NestedViewSetMixin
 from .models import Course, Year
-from .serializers import CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer
+from .serializers import (
+    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer, UserSerializer
+)
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
-from .errors import AlreadyJoinedError
+from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
+from .schemas import CourseJoinSchema, CourseAdminSchema
 
 User = get_user_model()
 
@@ -79,6 +83,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ).select_related('admin_user_group', 'year').all()
     serializer_class = PINCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
+    schema = CourseJoinSchema()
 
     def create(self, request, course_pk=None, *args, **kwargs):
         if not isinstance(course_pk, int):
@@ -86,7 +91,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         try:
             course = self.get_queryset().get(pk=course_pk)
         except Course.DoesNotExist:
-            raise exceptions.NotFound({'non_field_errors': 'この課程は存在しません．'})
+            raise exceptions.NotFound('この課程は存在しません．')
         # PINコードをパース
         pin_code_serializer = self.get_serializer(data=request.data)
         pin_code_serializer.is_valid(raise_exception=True)
@@ -101,3 +106,84 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         course_serializer = CourseSerializer(course, context=self.get_serializer_context())
         headers = self.get_success_headers(course_serializer.data)
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class CourseAdminView(NestedViewSetMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    """
+    各課程の管理者に関するView
+    update:
+        IDを指定して管理者でないユーザを管理者に昇格する
+    partial_update:
+        IDを指定して管理者でないユーザを管理者に昇格する
+    list:
+        管理者一覧を表示する
+    destroy:
+        IDを指定して管理者から外す
+    """
+
+    queryset = Course.objects.prefetch_related(
+        Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
+    ).select_related('admin_user_group', 'year').all()
+    serializer_class = UserSerializer
+    schema = CourseAdminSchema()
+
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = [IsCourseMember]
+        else:
+            self.permission_classes = [IsCourseMember & IsCourseAdmin]
+        return super(CourseAdminView, self).get_permissions()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        if not isinstance(pk, int):
+            pk = int(pk)
+        course = self.get_queryset().first()
+        if course is None:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(self.request, course)
+        try:
+            user = course.users.get(pk=pk)
+        except User.DoesNotExist:
+            raise exceptions.NotFound('指定されたユーザはこの課程に参加していないか，存在しません．')
+        try:
+            if user.groups.filter(name=course.admin_group_name).exists():
+                raise serializers.ValidationError({'non_field_errors': 'このユーザは既に管理者として登録されています．'})
+            course.register_as_admin(user)
+        except NotJoinedError:
+            raise serializers.ValidationError({'non_field_errors': 'このユーザはこの課程のメンバーではありません'})
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        if not isinstance(pk, int):
+            pk = int(pk)
+        course = self.get_queryset().first()
+        if course is None:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(self.request, course)
+        if request.user.pk == pk:
+            raise serializers.ValidationError({'non_field_errors': '自分自身を管理者から外すことは出来ません．'})
+        try:
+            user = course.users.get(pk=pk)
+        except User.DoesNotExist:
+            raise exceptions.NotFound('指定されたユーザはこの課程に参加していないか，存在しません．')
+        try:
+            course.unregister_from_admin(user)
+        except NotAdminError:
+            raise serializers.ValidationError({'non_field_errors': 'このユーザは管理者として登録されていません．'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, *args, **kwargs):
+        course = self.get_queryset().first()
+        if course is None:
+            raise exceptions.NotFound('この課程は存在しません．')
+        self.check_object_permissions(self.request, course)
+        admins = course.users.filter(groups__name=course.admin_group_name).all()
+        serializer = self.get_serializer(admins, many=True)
+        return Response(serializer.data)
