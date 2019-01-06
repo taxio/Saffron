@@ -42,12 +42,14 @@ class CourseManager(models.Manager):
     課程を操作するマネージャ
     """
 
-    def create_course(self, name: str, pin_code: str, year: 'Optional[int]' = None) -> 'Course':
+    def create_course(self, name: str, pin_code: str, year: 'Optional[int]' = None,
+                      config: 'Optional[dict]'=None) -> 'Course':
         """
         新しい課程を作成する．
         :param name: 課程の名前
         :param pin_code: 課程に設定するPINコード
         :param year: 値を渡さなければ現在の年をデフォルトで使用する
+        :param config: 設定のディクショナリ
         :return: Course
         """
         with transaction.atomic():
@@ -58,7 +60,9 @@ class CourseManager(models.Manager):
             group_name = create_group_name(year, name)
             admin_user_group, _ = Group.objects.get_or_create(name=group_name)
             year_obj, _ = Year.objects.get_or_create(year=year)
-            course = model(name=name, year=year_obj, admin_user_group=admin_user_group)
+            if config is not None:
+                config = Config(**config)
+            course = model(name=name, year=year_obj, admin_user_group=admin_user_group, config=config)
             course.set_password(pin_code)
             course.save()
         return course
@@ -170,6 +174,21 @@ class Course(models.Model):
         return create_group_name(self.year.year, self.name)
 
 
+class Config(models.Model):
+    """希望調査の表示設定"""
+
+    show_gpa = models.BooleanField('GAPを表示する', default=False)
+    show_username = models.BooleanField('ユーザ名を表示する', default=False)
+    course = models.OneToOneField(Course, verbose_name="課程", related_name="config", on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "表示設定"
+        verbose_name_plural = "表示設定"
+
+    def __str__(self):
+        return f'{self.course.name}の表示設定'
+
+
 @receiver(models.signals.post_save, sender=Course)
 def change_admin_group_name(sender, instance: 'Course', **kwargs):
     """
@@ -179,6 +198,8 @@ def change_admin_group_name(sender, instance: 'Course', **kwargs):
     :param kwargs:
     :return:
     """
+    if not Config.objects.filter(course=instance).exists():
+        Config.objects.create(course=instance)
     if instance.admin_user_group is None:
         return
     if instance.admin_user_group.name == instance.admin_group_name:
