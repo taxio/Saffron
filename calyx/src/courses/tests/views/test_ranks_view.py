@@ -53,11 +53,47 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
         self.assertEqual(403, resp.status_code)
 
+    def test_get_ranks(self):
+        """GET /courses/<course_pk>/ranks/"""
+        self.course.join(self.user, self.pin_code)
+        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual([], self.to_dict(resp.data))
+        ranks = [
+            Rank.objects.create(
+                course=self.course, user=self.user, lab=lab, order=i+1
+            ) for i, lab in enumerate(self.labs)
+        ]
+        expected = [
+            {
+                "pk": rank.lab.pk,
+                "name": rank.lab.name,
+                "capacity": rank.lab.capacity
+            } for rank in ranks
+        ]
+        expected_user_data = {
+            "pk": self.user.pk,
+            "username": self.user.username,
+            "email": self.user.email,
+            "screen_name": self.user.screen_name
+        }
+        for i in range(len(ranks)):
+            expected[i]['rank_set'] = [[], [], []]
+            expected[i]['rank_set'][i].append(expected_user_data)
+        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))
+        # 存在しない課程
+        resp = self.client.get(f'/courses/9999/ranks/')
+        self.assertEqual(404, resp.status_code)
 
-
-
-
-
-
-
-
+    def test_get_rank_permission(self):
+        """GET /courses/<course_pk>/ranks/"""
+        # ログインしていない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+        self.assertEqual(403, resp.status_code)
