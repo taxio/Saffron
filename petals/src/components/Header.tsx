@@ -1,4 +1,4 @@
-import { AppBar, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
 import { AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -33,13 +33,16 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.handleClose = this.handleClose.bind(this);
     this.handleClickLogin = this.handleClickLogin.bind(this);
     this.handleClickSignup = this.handleClickSignup.bind(this);
+    this.handleToProfile = this.handleToProfile.bind(this);
   }
 
   public handleLogout() {
     if (window.confirm('ログアウトしてもよろしいですか？')) {
       logout();
       this.props.setLoginState(false);
+      this.props.history.push('/');
     }
+    this.setState({ anchorEl: null });
   }
 
   public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -55,7 +58,13 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.props.history.push('/auth/signup');
     this.setState({ anchorEl: null });
   }
+
   public handleClose() {
+    this.setState({ anchorEl: null });
+  }
+
+  public handleToProfile() {
+    this.props.history.push('/profile');
     this.setState({ anchorEl: null });
   }
 
@@ -76,9 +85,33 @@ class Header extends React.Component<HeaderProps, HeaderState> {
           </Typography>
 
           {this.props.isLogin ? (
-            <Button color="inherit" onClick={this.handleLogout}>
-              Logout
-            </Button>
+            <React.Fragment>
+              <IconButton
+                aria-owns={open ? 'menu-appbar' : undefined}
+                aria-haspopup="true"
+                onClick={this.handleMenu}
+                color="inherit"
+              >
+                <AccountCircle />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={open}
+                onClose={this.handleClose}
+              >
+                <MenuItem onClick={this.handleToProfile}>Profile</MenuItem>
+                <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+              </Menu>
+            </React.Fragment>
           ) : (
             <React.Fragment>
               <IconButton
