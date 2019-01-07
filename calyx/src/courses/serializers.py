@@ -37,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
-class RankListCreateSerializer(serializers.ListSerializer):
+class RankListSerializer(serializers.ListSerializer):
     """希望順位をまとめて作成/更新するシリアライザ"""
 
     def validate(self, attrs):
@@ -46,7 +46,7 @@ class RankListCreateSerializer(serializers.ListSerializer):
             raise serializers.ValidationError(
                 {'non_field_errors': f'希望順位の提出数は{config.rank_limit}個である必要があります．'}
             )
-        return super(RankListCreateSerializer, self).validate(attrs)
+        return super(RankListSerializer, self).validate(attrs)
 
     def create(self, validated_data):
         user = self.context['request'].user  # type: User
@@ -61,17 +61,18 @@ class RankListCreateSerializer(serializers.ListSerializer):
         return rank_list
 
 
-class RankCreateSerializer(serializers.ModelSerializer):
+class RankSerializer(serializers.ModelSerializer):
     """希望順位を作成するシリアライザ"""
     lab = serializers.PrimaryKeyRelatedField(
         queryset=Lab.objects.select_related('course').all(),
         error_messages={'does_not_exist': "指定された研究室は見つかりませんでした．"},
     )
+    order = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Rank
-        fields = ('lab',)
-        list_serializer_class = RankListCreateSerializer
+        fields = ('lab', 'order')
+        list_serializer_class = RankListSerializer
 
 
 class RankPerLabListSerializer(serializers.ListSerializer):

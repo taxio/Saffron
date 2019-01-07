@@ -3,7 +3,7 @@ from rest_framework import routers
 from rest_framework_nested.routers import NestedDefaultRouter
 from .views import (
     CourseViewSet, YearViewSet, JoinAPIView, CourseAdminView,
-    CourseConfigViewSet, LabViewSet, RankCreateViewSet
+    CourseConfigViewSet, LabViewSet, RankViewSet
 )
 
 router = routers.DefaultRouter()
@@ -16,7 +16,7 @@ course_nested_router.register('join', JoinAPIView, basename='join')
 course_nested_router.register('admins', CourseAdminView, basename='admin')
 course_nested_router.register('config', CourseConfigViewSet, basename='config')
 course_nested_router.register('labs', LabViewSet, basename='lab')
-course_nested_router.register('ranks', RankCreateViewSet, basename='rank')
+course_nested_router.register('ranks', RankViewSet, basename='rank')
 
 app_name = 'course'
 urlpatterns = [
