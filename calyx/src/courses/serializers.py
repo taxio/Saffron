@@ -67,11 +67,10 @@ class RankSerializer(serializers.ModelSerializer):
         queryset=Lab.objects.select_related('course').all(),
         error_messages={'does_not_exist': "指定された研究室は見つかりませんでした．"},
     )
-    order = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Rank
-        fields = ('lab', 'order')
+        fields = ('lab',)
         list_serializer_class = RankListSerializer
 
 
