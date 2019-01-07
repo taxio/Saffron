@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsAdmin(permissions.BasePermission):
+class IsAdmin(permissions.IsAuthenticated):
     """
     スーパーユーザならばTrue
     """
@@ -10,7 +10,7 @@ class IsAdmin(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 
-class IsCourseMember(permissions.BasePermission):
+class IsCourseMember(permissions.IsAuthenticated):
     """
     課程に所属するメンバーならばTrue
     """
@@ -22,7 +22,7 @@ class IsCourseMember(permissions.BasePermission):
         return False
 
 
-class IsCourseAdmin(permissions.BasePermission):
+class IsCourseAdmin(permissions.IsAuthenticated):
     """
     課程の管理グループに所属するメンバーならばTrue
     """
