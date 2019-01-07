@@ -19,6 +19,9 @@ lab_data_set = [
     }, {
         "name": "Lab B",
         "capacity": 4
+    }, {
+        "name": "Lab C",
+        "capacity": 6
     }
 ]
 
