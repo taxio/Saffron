@@ -44,7 +44,7 @@ class Login extends React.Component<LoginProps, LoginState> {
       }
 
       this.props.setLoginState(true);
-      this.props.history.push('/');
+      this.props.history.push('/profile');
     });
   }
 
