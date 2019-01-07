@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
-from .models import Course, Year, Config, Lab, Rank
+from .models import Course, Year, Config, Lab
 from .serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
-    UserSerializer, ConfigSerializer, LabSerializer, RankPerLabSerializer, RankCreateSerializer, LabAbstractSerializer
+    UserSerializer, ConfigSerializer, LabSerializer, RankCreateSerializer, LabAbstractSerializer
 )
 from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
@@ -276,7 +276,8 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super(LabViewSet, self).get_serializer_context()
-        context['course'] = self.course
+        if hasattr(self, 'course'):
+            context['course'] = self.course
         return context
 
     def create(self, request, *args, **kwargs):

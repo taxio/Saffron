@@ -64,7 +64,8 @@ class RankListCreateSerializer(serializers.ListSerializer):
 class RankCreateSerializer(serializers.ModelSerializer):
     """希望順位を作成するシリアライザ"""
     lab = serializers.PrimaryKeyRelatedField(
-        queryset=Lab.objects.select_related('course').all(), required=False
+        queryset=Lab.objects.select_related('course').all(),
+        error_messages={'does_not_exist': "指定された研究室は見つかりませんでした．"},
     )
 
     class Meta:
