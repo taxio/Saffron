@@ -1,10 +1,10 @@
 import functools
 from django.core import exceptions
-from django.db import IntegrityError
+from django.db import IntegrityError, models, transaction
 from django.contrib.auth import get_user_model, password_validation
 from django.conf import settings
 from rest_framework import serializers
-from .models import Course, Year, Config, Lab
+from .models import Course, Year, Config, Lab, Rank
 
 
 User = get_user_model()
@@ -15,12 +15,113 @@ def get_pin_code_validators():
     return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
 
 
-class LabSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """
-    研究室のシリアライザ
+    ユーザオブジェクトのシリアライザ
     """
 
-    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), write_only=True, required=False)
+    # NestedViewMixinで使用される親要素のフィルタリング．
+    # dirty hackっぽいが，Course一覧からプライマリキーでフィルタをかけて1つに絞り，参加するユーザ一覧を取得する
+    # `course_pk`がURLパラメータのキー，`pk`が絞り込みに使用するキー
+    parent_lookup_kwargs = {
+        'course_pk': 'pk'
+    }
+
+    class Meta:
+        model = User
+        fields = ("pk", "username", "email", "screen_name")
+        extra_kwargs = {
+            "username": {"read_only": True},
+            "email": {"read_only": True},
+            "screen_name": {"read_only": True},
+        }
+
+
+class RankListSerializer(serializers.ListSerializer):
+    """希望順位をまとめて作成/更新するシリアライザ"""
+
+    def validate(self, attrs):
+        config = self.context['course'].config  # type: Config
+        if len(attrs) != config.rank_limit:
+            raise serializers.ValidationError(
+                {'non_field_errors': f'希望順位の提出数は{config.rank_limit}個である必要があります．'}
+            )
+        return super(RankListSerializer, self).validate(attrs)
+
+    def create(self, validated_data):
+        user = self.context['request'].user  # type: User
+        course = self.context['course']  # type: Course
+        rank_list = []
+        with transaction.atomic():
+            for i, data in enumerate(validated_data):
+                rank, _ = Rank.objects.update_or_create(
+                    user=user, course=course, order=i+1, defaults={'lab': data['lab']}
+                )
+                rank_list.append(rank)
+        return rank_list
+
+
+class RankSerializer(serializers.ModelSerializer):
+    """希望順位を作成するシリアライザ"""
+    lab = serializers.PrimaryKeyRelatedField(
+        queryset=Lab.objects.select_related('course').all(),
+        error_messages={'does_not_exist': "指定された研究室は見つかりませんでした．"},
+    )
+
+    class Meta:
+        model = Rank
+        fields = ('lab',)
+        list_serializer_class = RankListSerializer
+
+
+class RankPerLabListSerializer(serializers.ListSerializer):
+    """研究室ごとの希望順位を表示するシリアライザ"""
+
+    def to_representation(self, data):
+        """
+        [[第1志望のユーザのリスト],[第2志望のユーザのリスト],...]
+        :param data:
+        :return:
+        """
+        config = self.context['course'].config  # type: Config
+        iterable = data.all() if isinstance(data, models.Manager) else data
+        rank_per_order = list()
+        for order in range(1, config.rank_limit+1):
+            rank_per_order.append(
+                [self.child.to_representation(rank) for rank in iterable.filter(order=order).all()]
+            )
+        return rank_per_order
+
+
+class RankPerLabSerializer(serializers.ModelSerializer):
+    """
+    希望順位のシリアライザ
+    """
+
+    user = UserSerializer(read_only=True)
+
+    parent_lookup_kwargs = {
+        'lab_pk': 'lab_id'
+    }
+
+    class Meta:
+        model = Rank
+        fields = ('user',)
+        list_serializer_class = RankPerLabListSerializer
+
+    def to_representation(self, instance):
+        """ユーザ情報のみを返却する"""
+        data = super(RankPerLabSerializer, self).to_representation(instance)
+        return data['user']
+
+
+class LabAbstractSerializer(serializers.ModelSerializer):
+    """
+    希望順位を含まない研究室のシリアライザ
+    """
+
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.select_related('year').all(),
+                                                write_only=True, required=False)
 
     parent_lookup_kwargs = {
         'course_pk': 'course_id'
@@ -29,6 +130,18 @@ class LabSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lab
         fields = ("pk", "name", "capacity", "course")
+
+
+class LabSerializer(LabAbstractSerializer):
+    """
+    研究室のシリアライザ
+    """
+
+    rank_set = RankPerLabSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lab
+        fields = ("pk", "name", "capacity", "course", "rank_set")
 
     def validate_capacity(self, obj):
         if obj < 0:
@@ -47,7 +160,7 @@ class ConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Config
-        fields = ("show_gpa", "show_username")
+        fields = ("show_gpa", "show_username", "rank_limit")
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -170,25 +283,3 @@ class PINCodeSerializer(serializers.Serializer):
 
     def to_internal_value(self, data):
         return {'pin_code': data['pin_code']}
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """
-    ユーザオブジェクトのシリアライザ
-    """
-
-    # NestedViewMixinで使用される親要素のフィルタリング．
-    # dirty hackっぽいが，Course一覧からプライマリキーでフィルタをかけて1つに絞り，参加するユーザ一覧を取得する
-    # `course_pk`がURLパラメータのキー，`pk`が絞り込みに使用するキー
-    parent_lookup_kwargs = {
-        'course_pk': 'pk'
-    }
-
-    class Meta:
-        model = User
-        fields = ("pk", "username", "email", "screen_name")
-        extra_kwargs = {
-            "username": {"read_only": True},
-            "email": {"read_only": True},
-            "screen_name": {"read_only": True},
-        }

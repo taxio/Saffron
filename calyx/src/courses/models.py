@@ -179,6 +179,7 @@ class Config(models.Model):
 
     show_gpa = models.BooleanField('GAPを表示する', default=False)
     show_username = models.BooleanField('ユーザ名を表示する', default=False)
+    rank_limit = models.IntegerField('表示する志望順位の数', default=3)
     course = models.OneToOneField(Course, verbose_name="課程", related_name="config", on_delete=models.CASCADE)
 
     class Meta:
@@ -204,6 +205,23 @@ class Lab(models.Model):
 
     def __str__(self):
         return f'{self.course} - {self.name}'
+
+
+class Rank(models.Model):
+    """研究室志望順位のモデル"""
+
+    lab = models.ForeignKey(Lab, verbose_name='研究室', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, verbose_name='ユーザ', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course,verbose_name='課程', on_delete=models.CASCADE)
+    order = models.IntegerField("志望順位")
+
+    class Meta:
+        verbose_name = "志望順位"
+        verbose_name_plural = "志望順位"
+        unique_together = ["user", "order", "course"]
+
+    def __str__(self):
+        return f'{self.user}-{self.order}-{self.lab}'
 
 
 @receiver(models.signals.post_save, sender=Course)
