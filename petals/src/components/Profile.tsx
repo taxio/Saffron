@@ -1,18 +1,45 @@
-import { Button, Grid, Paper, Table, TableBody, TableCell, TableRow, Typography } from '@material-ui/core';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  Typography,
+} from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { Link } from 'react-router-dom';
+import { joinCourse } from '../api/courses';
 import { getMeInfo } from '../api/users';
-import CourseSelectPopUp from './CourseSelectPopUp';
+import { getYearCouseList } from '../api/years';
 
 interface ProfileProps extends RouteComponentProps {}
 
 interface ProfileState {
+  isLoading: boolean;
   username: string;
   email: string;
   screenName: string;
   isJoinedCourse: boolean;
-  cource: any;
+  course: any;
   showSelectPopUp: boolean;
+  selectedCourse: number;
+  yearCourseList: any[];
+  selectedYear: number;
+  pinCode: string;
+  joinErrMsg: string;
 }
 
 class Profile extends React.Component<ProfileProps, ProfileState> {
@@ -20,28 +47,47 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     super(props);
 
     this.state = {
+      isLoading: true,
       username: '',
       email: '',
       screenName: '',
       isJoinedCourse: false,
-      cource: {},
+      course: {},
       showSelectPopUp: false,
+      selectedCourse: 0,
+      yearCourseList: [],
+      selectedYear: 0,
+      pinCode: '',
+      joinErrMsg: '',
     };
 
     this.handleClickEdit = this.handleClickEdit.bind(this);
     this.handleClickSelectCourse = this.handleClickSelectCourse.bind(this);
     this.handleCloseSelectCourse = this.handleCloseSelectCourse.bind(this);
+    this.handleChangeCourseSelect = this.handleChangeCourseSelect.bind(this);
+    this.handleChangeYearSelect = this.handleChangeYearSelect.bind(this);
+    this.handleChangePinCode = this.handleChangePinCode.bind(this);
+    this.handleJoinCourse = this.handleJoinCourse.bind(this);
   }
 
   public componentDidMount() {
+    if (!this.state.isLoading) {
+      return;
+    }
+
     getMeInfo().then(res => {
       this.setState({
+        isLoading: false,
         username: res.username,
         email: res.email,
         screenName: res.screen_name,
         isJoinedCourse: res.joined,
-        cource: res.courses[0],
+        course: res.joined ? res.courses[0] : [],
       });
+    });
+
+    getYearCouseList().then(res => {
+      this.setState({ yearCourseList: res });
     });
   }
 
@@ -57,7 +103,41 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     this.setState({ showSelectPopUp: false });
   }
 
+  public handleChangeCourseSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    this.setState({ selectedCourse: parseInt(e.target.value, 10) });
+  }
+
+  public handleChangeYearSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const selectedYear = parseInt(e.target.value, 10);
+    if (this.state.selectedYear !== selectedYear) {
+      this.setState({ selectedYear, selectedCourse: 0 });
+    }
+  }
+
+  public handleChangePinCode(e: React.ChangeEvent<HTMLInputElement>) {
+    this.setState({ pinCode: e.target.value });
+  }
+
+  public handleJoinCourse() {
+    joinCourse(this.state.selectedCourse, this.state.pinCode)
+      .then(res => {
+        this.props.history.push('/');
+      })
+      .catch(errJson => {
+        for (const key in errJson) {
+          if (!errJson[key]) {
+            continue;
+          }
+          this.setState({ joinErrMsg: errJson[key] });
+        }
+      });
+  }
+
   public render(): React.ReactNode {
+    const yearCourse: any = this.state.yearCourseList.filter(e => {
+      return e.year === this.state.selectedYear;
+    })[0];
+
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={12} sm={8} md={7} lg={6} xl={5}>
@@ -104,7 +184,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                   style={{ padding: '10px 0' }}
                 >
                   <Grid item={true} xs={7}>
-                    <Typography variant="h6">{this.state.cource.name}</Typography>
+                    <Typography variant="h6">{this.state.course.name}</Typography>
                   </Grid>
                   <Grid item={true} xs={5}>
                     <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
@@ -120,7 +200,85 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
               </Button>
             )}
           </Paper>
-          {this.state.showSelectPopUp ? <CourseSelectPopUp onClose={this.handleCloseSelectCourse} /> : null}
+          <Dialog
+            fullWidth={true}
+            maxWidth="xs"
+            open={this.state.showSelectPopUp}
+            onClose={this.handleCloseSelectCourse}
+          >
+            <DialogTitle>課程選択</DialogTitle>
+            <DialogContent>
+              <form>
+                <FormControl fullWidth={true}>
+                  <InputLabel htmlFor="year-select">年度</InputLabel>
+                  <Select
+                    value={this.state.selectedYear}
+                    onChange={this.handleChangeYearSelect}
+                    inputProps={{
+                      name: 'year',
+                      id: 'year-select',
+                    }}
+                  >
+                    <MenuItem key={0} value={0}>
+                      <em>-</em>
+                    </MenuItem>
+                    {this.state.yearCourseList.map((v: any) => (
+                      <MenuItem key={v.pk} value={v.year}>
+                        {v.year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth={true} style={{ marginTop: 20 }}>
+                  <InputLabel htmlFor="course-select">課程</InputLabel>
+                  <Select
+                    value={this.state.selectedCourse}
+                    onChange={this.handleChangeCourseSelect}
+                    inputProps={{
+                      name: 'course',
+                      id: 'course-select',
+                    }}
+                  >
+                    <MenuItem key={0} value={0}>
+                      <em>-</em>
+                    </MenuItem>
+                    {yearCourse
+                      ? yearCourse.courses.map((v: any) => (
+                          <MenuItem key={v.pk} value={v.pk}>
+                            {v.name}
+                          </MenuItem>
+                        ))
+                      : null}
+                  </Select>
+                </FormControl>
+                <Typography variant="caption">
+                  新規作成は<Link to="/">こちら</Link>
+                </Typography>
+                <FormControl fullWidth={true} style={{ marginTop: 20 }}>
+                  <InputLabel htmlFor="pin-password">PINコード入力</InputLabel>
+                  <Input
+                    id="pin-password"
+                    type="password"
+                    autoComplete="off"
+                    value={this.state.pinCode}
+                    onChange={this.handleChangePinCode}
+                  />
+                </FormControl>
+                {this.state.joinErrMsg ? (
+                  <FormControl fullWidth={true} style={{ marginTop: 10 }} error={true}>
+                    <FormHelperText>{this.state.joinErrMsg}</FormHelperText>
+                  </FormControl>
+                ) : null}
+              </form>
+            </DialogContent>
+            <DialogActions>
+              <Button color="secondary" onClick={this.handleJoinCourse}>
+                登録
+              </Button>
+              <Button onClick={this.handleCloseSelectCourse}>閉じる</Button>
+            </DialogActions>
+          </Dialog>
         </Grid>
       </Grid>
     );
