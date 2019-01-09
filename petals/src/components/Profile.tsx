@@ -141,7 +141,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={12} sm={8} md={7} lg={6} xl={5}>
-          <Paper style={{ marginTop: 20, textAlign: 'center' }}>
+          <Paper style={{ marginTop: 20 }}>
             <Grid
               container={true}
               spacing={24}
@@ -253,7 +253,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                   </Select>
                 </FormControl>
                 <Typography variant="caption">
-                  新規作成は<Link to="/">こちら</Link>
+                  新規作成は<Link to={`/course/admin`}>こちら</Link>
                 </Typography>
                 <FormControl fullWidth={true} style={{ marginTop: 20 }}>
                   <InputLabel htmlFor="pin-password">PINコード入力</InputLabel>
