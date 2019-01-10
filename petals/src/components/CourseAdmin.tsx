@@ -22,6 +22,7 @@ import {
 import { Add, Delete, Visibility, VisibilityOff } from '@material-ui/icons';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { addLab, createCourse } from '../api/courses';
 import { isIntStr } from '../lib/util';
 
 interface LabRowProps {
@@ -84,6 +85,7 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
     this.handleAppendLab = this.handleAppendLab.bind(this);
     this.handleDeleteLab = this.handleDeleteLab.bind(this);
     this.handleChangeLabCapacity = this.handleChangeLabCapacity.bind(this);
+    this.handleSave = this.handleSave.bind(this);
   }
 
   public handleChangeCourseName(e: React.ChangeEvent<HTMLInputElement>) {
@@ -115,13 +117,34 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
 
     const labs = this.state.labs;
     labs.push({ labName: this.state.labName, capacity: parseInt(this.state.labCapacity, 10) });
-    this.setState({ labs });
+    this.setState({ labs, labName: '', labCapacity: '0' });
   }
 
   public handleDeleteLab(key: number) {
     const labs = this.state.labs;
     labs.splice(key, 1);
     this.setState({ labs });
+  }
+
+  public handleSave() {
+    createCourse(
+      this.state.courseName,
+      this.state.pinCode,
+      this.state.courseYear,
+      this.state.useGpa,
+      this.state.useName
+    )
+      .then(res => {
+        console.log(res);
+        this.state.labs.forEach(lab => {
+          addLab(res.pk, lab.labName, lab.capacity).catch(errJson => {
+            console.log(errJson);
+          });
+        });
+      })
+      .catch(errJson => {
+        console.log(errJson);
+      });
   }
 
   public render(): React.ReactNode {
@@ -256,7 +279,7 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
               </Paper>
 
               <FormControl fullWidth={true} style={{ margin: '30px 0 10px 0' }}>
-                <Button variant="contained" color="primary" onClick={e => console.log('save')}>
+                <Button variant="contained" color="primary" onClick={this.handleSave}>
                   保存する
                 </Button>
               </FormControl>
