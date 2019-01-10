@@ -1,6 +1,9 @@
 import {
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -62,6 +65,8 @@ interface CourseAdminState {
   labCapacity: string;
   labCapacityErr: boolean;
   labs: Lab[];
+  saveErr: boolean;
+  showDialog: boolean;
 }
 
 class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
@@ -79,6 +84,8 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
       labCapacity: '0',
       labCapacityErr: false,
       labs: [],
+      saveErr: false,
+      showDialog: false,
     };
 
     this.handleChangeCourseName = this.handleChangeCourseName.bind(this);
@@ -135,15 +142,24 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
       this.state.useName
     )
       .then(res => {
-        console.log(res);
+        const promises: Array<Promise<{}>> = [];
         this.state.labs.forEach(lab => {
-          addLab(res.pk, lab.labName, lab.capacity).catch(errJson => {
-            console.log(errJson);
-          });
+          promises.push(
+            addLab(res.pk, lab.labName, lab.capacity).catch(errJson => {
+              throw errJson;
+            })
+          );
         });
+        Promise.all(promises)
+          .then(() => {
+            this.setState({ showDialog: true });
+          })
+          .catch(e => {
+            this.setState({ saveErr: true });
+          });
       })
       .catch(errJson => {
-        console.log(errJson);
+        this.setState({ saveErr: true });
       });
   }
 
@@ -278,12 +294,28 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
                 </Table>
               </Paper>
 
-              <FormControl fullWidth={true} style={{ margin: '30px 0 10px 0' }}>
+              <FormControl fullWidth={true} style={{ margin: '30px 0 10px 0' }} error={this.state.saveErr}>
+                {this.state.saveErr ? (
+                  <FormHelperText style={{ marginBottom: 10 }}>作成に失敗しました</FormHelperText>
+                ) : null}
                 <Button variant="contained" color="primary" onClick={this.handleSave}>
                   保存する
                 </Button>
               </FormControl>
             </form>
+
+            <Dialog
+              fullWidth={true}
+              maxWidth="xs"
+              open={this.state.showDialog}
+              onClose={() => this.setState({ showDialog: false })}
+            >
+              <DialogTitle>課程を作成しました</DialogTitle>
+              <DialogActions>
+                <Button color="secondary">志望登録へ</Button>
+                <Button>閉じる</Button>
+              </DialogActions>
+            </Dialog>
           </Paper>
         </Grid>
       </Grid>
