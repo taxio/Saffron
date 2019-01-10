@@ -7,9 +7,9 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { AuthAction, setLoginState } from '../actions/auth';
-import { Auth } from '../store/AuthState';
 
 import { logout } from '../api/auth';
+import { PetalsStore } from '../store';
 
 interface HeaderProps extends RouteComponentProps<any> {
   isLogin: boolean;
@@ -155,9 +155,9 @@ interface DispatchFromProps {
   setLoginState: (isLogin: boolean) => void;
 }
 
-function mapStateToProps(state: Auth): StateFromProps {
+function mapStateToProps(state: PetalsStore): StateFromProps {
   return {
-    isLogin: state.isLogin,
+    isLogin: state.auth.isLogin,
   };
 }
 
