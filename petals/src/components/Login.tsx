@@ -5,7 +5,7 @@ import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { AuthAction, setLoginState } from '../actions/auth';
 import * as auth from '../api/auth';
-import { Auth } from '../store/AuthState';
+import { PetalsStore } from '../store';
 
 interface LoginProps extends RouteComponentProps<any> {
   setLoginState: (isLogin: boolean) => void;
@@ -114,9 +114,9 @@ interface DispatchFromProps {
   setLoginState: (isLogin: boolean) => void;
 }
 
-function mapStateToProps(state: Auth): StateFromProps {
+function mapStateToProps(state: PetalsStore): StateFromProps {
   return {
-    isLogin: state.isLogin,
+    isLogin: state.auth.isLogin,
   };
 }
 

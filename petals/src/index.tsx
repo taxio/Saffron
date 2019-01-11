@@ -1,17 +1,13 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import App from './App';
-import registerServiceWorker from './registerServiceWorker';
-
 import { Provider } from 'react-redux';
-import { createStore, Store } from 'redux';
-import auth from './reducers/auth';
-
-import { isLogin } from './api/auth';
+import { Store } from 'redux';
+import App from './App';
 import { bodyTheme } from './lib/theme';
-import { Auth } from './store/AuthState';
+import registerServiceWorker from './registerServiceWorker';
+import { configureStore, PetalsStore } from './store';
 
-const store: Store<Auth> = createStore(auth, { isLogin: isLogin() });
+const store: Store<PetalsStore> = configureStore();
 
 document.body.style.backgroundColor = bodyTheme.backgroundColor;
 document.body.style.margin = bodyTheme.margin;

@@ -7,6 +7,7 @@ import About from './components/About';
 import Activation from './components/Auth/Activation';
 import ChangePassword from './components/Auth/ChangePassword';
 import PasswordResetActivation from './components/Auth/PasswordResetActivation';
+import CourseAdmin from './components/CourseAdmin';
 import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -26,6 +27,7 @@ const App = () => (
           <Route exact={true} path="/" component={Home} />
           <Route path="/auth" component={AuthRouter} />
           <Route path="/profile" component={ProfileRouter} />
+          <Route path="/course" component={CourseRouter} />
           <Route exact={true} path="/about" component={About} />
           <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
           <Route exact={true} path="/activate" component={Activation} />
@@ -50,6 +52,12 @@ const ProfileRouter = () => (
   <Switch>
     <Route exact={true} path={`/profile`} component={Profile} />
     <Route exact={true} path={`/profile/edit`} component={ProfileEdit} />
+  </Switch>
+);
+
+const CourseRouter = () => (
+  <Switch>
+    <Route exact={true} path={`/course/admin`} component={CourseAdmin} />
   </Switch>
 );
 
