@@ -4,7 +4,7 @@ from django.test import TestCase
 from users.models import User
 from courses.models import Course, Year
 from courses.errors import NotJoinedError, AlreadyJoinedError, NotAdminError
-from .base import DatasetMixin
+from courses.tests.base import DatasetMixin
 
 
 class CourseTest(DatasetMixin, TestCase):
