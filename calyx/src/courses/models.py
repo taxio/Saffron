@@ -60,11 +60,14 @@ class CourseManager(models.Manager):
             group_name = create_group_name(year, name)
             admin_user_group, _ = Group.objects.get_or_create(name=group_name)
             year_obj, _ = Year.objects.get_or_create(year=year)
-            if config is not None:
-                config = Config(**config)
-            course = model(name=name, year=year_obj, admin_user_group=admin_user_group, config=config)
+            course = model(name=name, year=year_obj, admin_user_group=admin_user_group)
             course.set_password(pin_code)
             course.save()
+            # Configが一緒にPOSTされた場合，デフォルトのconfigをオーバーライド
+            if config is not None:
+                for key, val in config.items():
+                    setattr(course.config, key, val)
+                course.config.save()
         return course
 
 
