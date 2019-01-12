@@ -48,7 +48,18 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         }
         self.assertEqual(201, resp.status_code)
         actual = self.to_dict(resp.data)
-        actual.pop("pk")
+        Course.objects.get(pk=actual.pop("pk")).delete()
+        self.assertEqual(expected_json, actual)
+        # configと一緒にPOSTする
+        new_config = self.default_config
+        new_config['show_gpa'] = True
+        course_with_config = course_data
+        course_with_config['config'] = new_config
+        expected_json['config'] = new_config
+        resp = self.client.post('/courses/', data=course_with_config, format='json')
+        actual = self.to_dict(resp.data)
+        actual.pop('pk')
+        self.assertEqual(201, resp.status_code)
         self.assertEqual(expected_json, actual)
         # PINコード無し
         course_data.pop('pin_code')
