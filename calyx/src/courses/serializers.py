@@ -46,6 +46,11 @@ class RankListSerializer(serializers.ListSerializer):
             raise serializers.ValidationError(
                 {'non_field_errors': f'希望順位の提出数は{config.rank_limit}個である必要があります．'}
             )
+        labs = [attr['lab'] for attr in attrs]
+        if len(labs) != len(list(set(labs))):
+            return serializers.ValidationError(
+                {'non_field_errors': '同じ研究室を複数指定することはできません．'}
+            )
         return super(RankListSerializer, self).validate(attrs)
 
     def create(self, validated_data):

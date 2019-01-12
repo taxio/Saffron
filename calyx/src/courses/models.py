@@ -2,7 +2,7 @@ import unicodedata
 
 from typing import TYPE_CHECKING
 from django.contrib.auth.models import Group
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
@@ -210,13 +210,27 @@ class Lab(models.Model):
         return f'{self.course} - {self.name}'
 
 
+class RankManager(models.Manager):
+    """研究室志望順位を操作するマネージャー"""
+
+    def create(self, lab, course, user, order):
+        if self.filter(course=course, user=user, lab=lab).exists():
+            # 既にその研究室の志望順位を登録している場合
+            raise IntegrityError
+        return super(RankManager, self).create(lab=lab, course=course, user=user, order=order)
+
+
 class Rank(models.Model):
     """研究室志望順位のモデル"""
 
-    lab = models.ForeignKey(Lab, verbose_name='研究室', on_delete=models.CASCADE)
+    # 削除時に自動で志望順位を入れ替えるため．on_deleteにはDO_NOTHINGを指定する
+    # SET_NULL等をすると入れ替えた後にNoneが代入されてしまう
+    lab = models.ForeignKey(Lab, verbose_name='研究室', on_delete=models.DO_NOTHING, blank=True, null=True)
     user = models.ForeignKey(User, verbose_name='ユーザ', on_delete=models.CASCADE)
     course = models.ForeignKey(Course,verbose_name='課程', on_delete=models.CASCADE)
     order = models.IntegerField("志望順位")
+
+    objects = RankManager()
 
     class Meta:
         verbose_name = "志望順位"
@@ -246,3 +260,26 @@ def change_admin_group_name(sender, instance: 'Course', **kwargs):
     group.name = instance.admin_group_name
     group.save()
     return
+
+
+@receiver(models.signals.pre_delete, sender=Lab)
+def move_up_ranks(sender, instance: 'Lab', **kwargs):
+    """
+    研究室が削除されたときに自動で志望順位を繰り上げる
+    :param sender: Modelクラス
+    :param instance: そのインスタンス
+    :param kwargs:
+    :return:
+    """
+    ranks = Rank.objects.filter(lab=instance).all()
+    users = [rank.user for rank in ranks]
+    for rank_to_del, user in zip(ranks, users):
+        rank_filter = {'course': rank_to_del.course, 'order__gt': rank_to_del.order, 'user': user}
+        for rank in Rank.objects.filter(**rank_filter).order_by('order').all():
+            # 消す対象より下の志望順位の研究室を順に繰り上げる
+            rank_to_del.lab_id = rank.lab_id
+            rank_to_del.save()
+            rank_to_del = rank
+        # 最後の志望の研究室はNULLにする
+        rank_to_del.lab = None
+        rank_to_del.save()
