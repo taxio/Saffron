@@ -141,10 +141,10 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={12} sm={8} md={7} lg={6} xl={5}>
-          <Paper style={{ marginTop: 20 }}>
+          <Paper style={{ marginTop: 20, textAlign: 'center' }}>
             <Grid
               container={true}
-              spacing={24}
+              // spacing={24}
               justify="center"
               alignItems="center"
               direction="row"
@@ -156,12 +156,12 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
               </Grid>
               <Grid item={true} xs={5}>
                 <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
-                  プロフィール変更
+                  編集
                 </Button>
               </Grid>
             </Grid>
 
-            <Table>
+            <Table style={{ minWidth: 300 }}>
               <TableBody>
                 <TableRow>
                   <TableCell padding="dense">メール</TableCell>
@@ -188,7 +188,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                   </Grid>
                   <Grid item={true} xs={5}>
                     <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
-                      志望状況変更
+                      志望変更
                     </Button>
                   </Grid>
                 </Grid>
