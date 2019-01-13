@@ -58,26 +58,7 @@ pull:
 deps: venv pull
 
 db:
-	$(eval RUNNING := $(shell docker ps -q -f name=$(DEV_DB_CONTAINER)))
-	$(eval STOPPING := $(shell docker ps -aq -f name=$(DEV_DB_CONTAINER)))
-	@echo "Run MySQL server named '$(DEV_DB_CONTAINER)' using docker"
-	@echo "Username: $(DB_USER)"
-	@echo "Password: $(DB_PASSWORD)"
-	@echo "Database: $(DB_NAME)"
-	@echo "Port: $(DB_PORT)"
-	@if test -n "$(RUNNING)" || test -n "$(STOPPING)"; then \
-		docker start $(DEV_DB_CONTAINER) > /dev/null;\
-	else \
-		docker run -d --name $(DEV_DB_CONTAINER) \
-			-e MYSQL_ROOT_PASSWORD=$(DB_ROOT_PASSWORD) \
-			-e MYSQL_USER=$(DB_USER) \
-			-e MYSQL_PASSWORD=$(DB_PASSWORD) \
-			-e MYSQL_DATABASE=$(DB_NAME) \
-			-p $(DB_PORT):3306 \
-			-v $(DB_DATA_DIR):/var/lib/mysql \
-			$(DB_IMAGE):$(DB_IMAGE_VERSION) > /dev/null; \
-	fi
-	@echo "You can connect this DB on '127.0.0.1:$(DB_PORT)'"
+	@docker-compose -f docker-compose.${*}.yml up saffron-db-dev
 
 guard-env-%:
 	@if [ ! -n "${*}" ]; then \
