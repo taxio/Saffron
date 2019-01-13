@@ -10,7 +10,7 @@ import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-env_file = os.path.join(BASE_DIR, '.env.dev.local')
+env_file = os.path.join(os.path.dirname(BASE_DIR), '.env.dev.local')
 
 if os.path.exists(env_file):
     dotenv.load_dotenv(env_file)
