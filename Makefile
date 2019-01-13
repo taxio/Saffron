@@ -19,17 +19,8 @@ PUBLIC_SRCS := $(shell find $(FRONT_SRC_DIR)/public -type f \( -name '*.json' -o
 
 # Bulb container image
 DEV_DB_CONTAINER := $(NAME)-db-dev-local
-DB_DIR := $(PWD)/bulb
-DB_DATA_DIR := $(DB_DIR)/data
 DB_IMAGE := $(ORG)/mysql-utf8mb4
 DB_IMAGE_VERSION := latest
-
-# DB settings
-DB_USER := develop
-DB_PASSWORD := password
-DB_ROOT_PASSWORD := root
-DB_NAME := dev_db
-DB_PORT := 33060
 
 $(FRONT_SRC_DIR)/build/index.html: $(SRCS) $(PUBLIC_SRCS)
 	cd $(FRONT_SRC_DIR) && yarn build
@@ -58,7 +49,7 @@ pull:
 deps: venv pull
 
 db:
-	@docker-compose -f docker-compose.${*}.yml up saffron-db-dev
+	@docker-compose -f docker-compose.dev.yml up -d bulb
 
 guard-env-%:
 	@if [ ! -n "${*}" ]; then \
@@ -103,9 +94,6 @@ env-%: guard-env-%
 	@make $(API_SRC_DIR)/src/.env.${*}
 	@make $(DB_DIR)/.env.${*}
 
-env:
-	@make env-dev
-	@make env-qa
-	@make env-prod
+env: env-qa env-dev env-prod
 
 .PHONY: venv image pull db deps dev dev-clean dev-stop guard-env-% start-% stop-% clean-% manage-% migrate-% prune env-% env ;
