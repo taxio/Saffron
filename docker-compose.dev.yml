@@ -32,6 +32,8 @@ services:
     volumes:
       - ./petals/conf/petals.dev.conf:/etc/nginx/conf.d/petals.conf
       - ./petals/:/opt/petals
+      - saffron-petals-dev:/opt/petals/node_modules
 
 volumes:
   saffron-db-dev:
+  saffron-petals-dev:
