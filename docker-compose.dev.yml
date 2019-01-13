@@ -27,6 +27,8 @@ services:
       target: develop
     image: studioaquatan/saffron-petals:dev-cache
     container_name: saffron-petals-dev
+    # VolumeをマウントすることでDocker Imageをビルドしてもnode_modulesが更新されないため
+    command: yarn install && yarn start
     ports:
       - '8080:3000'
     volumes:
