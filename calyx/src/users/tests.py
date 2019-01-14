@@ -24,12 +24,8 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
             'username': 'b0000000',
             'email': 'b0000000@' + settings.STUDENT_EMAIL_DOMAIN,
             'screen_name': 'testuser',
-            'gpa': None,
-            'is_admin': False,
-            'joined': False,
-            'courses': []
         }
-        self.user_data = {'username': 'b0000000', 'password': 'testpass', 'screen_name': 'testuser'}
+        self.user_data = {'username': 'b0000000', 'password': 'hogefuga', 'screen_name': 'testuser'}
         self.user_email = self.user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN
 
     def _set_credentials(self, user):
@@ -43,7 +39,6 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         """ユーザ作成プロセスのテスト"""
         resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        resp.data.pop('pk')
         self.assertEqual(resp.data, self.expect_created_result)
         # 登録されたユーザ情報を検証
         users = User.objects.all()
@@ -103,7 +98,5 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
             User.objects.get(pk=user.pk)
         # 削除したユーザを再度作成
         self.client.credentials(HTTP_AUTHORIZATION="")
-        before_del_id = user.pk
         resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
         self.assertEqual(201, resp.status_code)
-        self.assertNotEqual(before_del_id, resp.data['pk'])
