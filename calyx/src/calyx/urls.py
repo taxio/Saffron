@@ -22,9 +22,9 @@ from courses import urls as course_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('djoser.urls.base')),
+    # path('', include('djoser.urls.base')),
     path('auth/', include('djoser.urls.jwt')),
     path('swagger/', get_swagger_view(title='Calyx API Document')),
-    path('accounts/', include(accounts_urls)),
+    path('', include(accounts_urls)),
     path('', include(course_urls)),
 ]
