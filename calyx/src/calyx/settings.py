@@ -108,7 +108,6 @@ DJOSER = {
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'SERIALIZERS': {
         'user_create': 'users.serializers.UserCreateSerializer',
-        'user_delete': 'users.serializers.UserSerializer',
     },
     'EMAIL': {
         'activation': 'users.email.SaffronActivationEmail',
