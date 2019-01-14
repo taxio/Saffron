@@ -7,7 +7,7 @@ from django.urls import reverse, path, include
 from django.core import mail
 from django.conf import settings
 
-from .models import User
+from users.models import User
 
 
 class UserRegistrationTests(APITestCase, URLPatternsTestCase):
