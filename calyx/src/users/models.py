@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import ASCIIUsernameValidator
 from django.conf import settings
@@ -70,7 +71,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     modified_at = models.DateTimeField('更新日時', auto_now=True)
 
     screen_name = models.CharField(max_length=255, null=True, blank=True, verbose_name='氏名')
-    gpa = models.FloatField(verbose_name='GPA', blank=True, null=True)
+    gpa = models.FloatField(verbose_name='GPA', blank=True, null=True,
+                            validators=[MinValueValidator(0.0), MaxValueValidator(4.0)])
 
     # ユーザ名のフィールドを学生IDに設定
     USERNAME_FIELD = 'username'
