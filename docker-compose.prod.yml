@@ -4,7 +4,7 @@ services:
     image: studioaquatan/saffron-calyx:dev
     container_name: saffron-calyx-prod
     env_file:
-      - ./calyx/src/.env.prod
+      - calyx/.env.prod
     expose:
       - 8000
     depends_on:
@@ -28,7 +28,7 @@ services:
     ports:
       - '8000:80'
     env_file:
-      - ./calyx/src/.env.prod
+      - calyx/.env.prod
     depends_on:
       - calyx
     links:

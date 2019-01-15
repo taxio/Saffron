@@ -19,17 +19,8 @@ PUBLIC_SRCS := $(shell find $(FRONT_SRC_DIR)/public -type f \( -name '*.json' -o
 
 # Bulb container image
 DEV_DB_CONTAINER := $(NAME)-db-dev-local
-DB_DIR := $(PWD)/bulb
-DB_DATA_DIR := $(DB_DIR)/data
 DB_IMAGE := $(ORG)/mysql-utf8mb4
 DB_IMAGE_VERSION := latest
-
-# DB settings
-DB_USER := develop
-DB_PASSWORD := password
-DB_ROOT_PASSWORD := root
-DB_NAME := dev_db
-DB_PORT := 33060
 
 $(FRONT_SRC_DIR)/build/index.html: $(SRCS) $(PUBLIC_SRCS)
 	cd $(FRONT_SRC_DIR) && yarn build
@@ -58,26 +49,7 @@ pull:
 deps: venv pull
 
 db:
-	$(eval RUNNING := $(shell docker ps -q -f name=$(DEV_DB_CONTAINER)))
-	$(eval STOPPING := $(shell docker ps -aq -f name=$(DEV_DB_CONTAINER)))
-	@echo "Run MySQL server named '$(DEV_DB_CONTAINER)' using docker"
-	@echo "Username: $(DB_USER)"
-	@echo "Password: $(DB_PASSWORD)"
-	@echo "Database: $(DB_NAME)"
-	@echo "Port: $(DB_PORT)"
-	@if test -n "$(RUNNING)" || test -n "$(STOPPING)"; then \
-		docker start $(DEV_DB_CONTAINER) > /dev/null;\
-	else \
-		docker run -d --name $(DEV_DB_CONTAINER) \
-			-e MYSQL_ROOT_PASSWORD=$(DB_ROOT_PASSWORD) \
-			-e MYSQL_USER=$(DB_USER) \
-			-e MYSQL_PASSWORD=$(DB_PASSWORD) \
-			-e MYSQL_DATABASE=$(DB_NAME) \
-			-p $(DB_PORT):3306 \
-			-v $(DB_DATA_DIR):/var/lib/mysql \
-			$(DB_IMAGE):$(DB_IMAGE_VERSION) > /dev/null; \
-	fi
-	@echo "You can connect this DB on '127.0.0.1:$(DB_PORT)'"
+	@docker-compose -f docker-compose.dev.yml up -d bulb
 
 guard-env-%:
 	@if [ ! -n "${*}" ]; then \
@@ -101,10 +73,10 @@ clean-%: guard-env-% stop-%
 	@docker-compose -f docker-compose.${*}.yml rm
 
 migrate-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx pipenv run python manage.py migrate
+	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py migrate
 
 manage-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx pipenv run python manage.py $(args)
+	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py $(args)
 
 restart-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart
@@ -113,7 +85,7 @@ prune:
 	@docker image prune
 
 $(API_SRC_DIR)/src/.env.%: guard-env-%
-	cp $(API_SRC_DIR)/src/.env.sample $(API_SRC_DIR)/src/.env.${*}
+	cp $(API_SRC_DIR)/.env.sample $(API_SRC_DIR)/.env.${*}
 
 $(DB_DIR)/.env.%: guard-env-%
 	cp $(DB_DIR)/.env.sample $(DB_DIR)/.env.${*}
@@ -122,9 +94,6 @@ env-%: guard-env-%
 	@make $(API_SRC_DIR)/src/.env.${*}
 	@make $(DB_DIR)/.env.${*}
 
-env:
-	@make env-dev
-	@make env-qa
-	@make env-prod
+env: env-qa env-dev env-prod
 
 .PHONY: venv image pull db deps dev dev-clean dev-stop guard-env-% start-% stop-% clean-% manage-% migrate-% prune env-% env ;

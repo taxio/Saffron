@@ -20,14 +20,11 @@ RUN apk update && \
         linux-headers \
         tzdata && \
     pip3 install pipenv && \
-    PIPENV_VENV_IN_PROJECT=true pipenv install && \
-    chmod +x ${PROJECT_DIR}/.venv/bin/uwsgi && \
+    pipenv install --system && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
     apk del --purge build_dep && \
     rm -rf /var/cache/apk/*
 
 COPY src/ ${PROJECT_DIR}
-
-ENTRYPOINT ["pipenv", "run"]
 
 CMD ["uwsgi", "--ini", "uwsgi.ini"]
