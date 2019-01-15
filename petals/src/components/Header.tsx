@@ -1,4 +1,15 @@
-import { AppBar, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
+import {
+  AppBar,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from '@material-ui/core';
 import { AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -18,6 +29,7 @@ interface HeaderProps extends RouteComponentProps<any> {
 
 interface HeaderState {
   anchorEl: any;
+  showDialog: boolean;
 }
 
 class Header extends React.Component<HeaderProps, HeaderState> {
@@ -26,8 +38,11 @@ class Header extends React.Component<HeaderProps, HeaderState> {
 
     this.state = {
       anchorEl: null,
+      showDialog: false,
     };
 
+    this.handleOpenDialog = this.handleOpenDialog.bind(this);
+    this.handleCloseDialog = this.handleCloseDialog.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
     this.handleMenu = this.handleMenu.bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -36,13 +51,19 @@ class Header extends React.Component<HeaderProps, HeaderState> {
     this.handleToProfile = this.handleToProfile.bind(this);
   }
 
+  public handleOpenDialog() {
+    this.setState({ showDialog: true, anchorEl: false });
+  }
+
+  public handleCloseDialog() {
+    this.setState({ showDialog: false });
+  }
+
   public handleLogout() {
-    if (window.confirm('ログアウトしてもよろしいですか？')) {
-      logout();
-      this.props.setLoginState(false);
-      this.props.history.push('/');
-    }
-    this.setState({ anchorEl: null });
+    logout();
+    this.props.setLoginState(false);
+    this.props.history.push('/');
+    this.setState({ showDialog: false, anchorEl: null });
   }
 
   public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -109,7 +130,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                 onClose={this.handleClose}
               >
                 <MenuItem onClick={this.handleToProfile}>Profile</MenuItem>
-                <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                <MenuItem onClick={this.handleOpenDialog}>Logout</MenuItem>
               </Menu>
             </React.Fragment>
           ) : (
@@ -141,6 +162,15 @@ class Header extends React.Component<HeaderProps, HeaderState> {
               </Menu>
             </React.Fragment>
           )}
+          <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+            <DialogTitle>ログアウトしてもよろしいですか？</DialogTitle>
+            <DialogActions>
+              <Button color="secondary" onClick={this.handleLogout}>
+                はい
+              </Button>
+              <Button onClick={this.handleCloseDialog}>いいえ</Button>
+            </DialogActions>
+          </Dialog>
         </Toolbar>
       </AppBar>
     );
