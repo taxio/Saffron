@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('pk', 'username', 'email', 'screen_name', 'gpa', 'is_admin', 'joined', 'courses')
         extra_kwargs = {
-            'is_admin': {'read_only': True},
+            'username': {'read_only': True},
             'email': {'read_only': True},
         }
 

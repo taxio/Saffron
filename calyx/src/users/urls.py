@@ -50,5 +50,4 @@ urlpatterns = [
         UserDeleteView.as_view(),
         name='me-delete'
     ),
-    # TODO: パスワードを変更するme/password/を実装する
 ]

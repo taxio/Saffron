@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from courses.tests.base import DatasetMixin
 from users.models import User
-from users.serializers import UserCreateSerializer
+from users.serializers import UserCreateSerializer, UserSerializer
 
 
 class UserCreateSerializerTest(DatasetMixin, TestCase):
@@ -49,3 +49,51 @@ class UserCreateSerializerTest(DatasetMixin, TestCase):
             }
             self.assertEqual(expected, serializer.data)
 
+
+class UserSerializerTest(DatasetMixin, TestCase):
+
+    def test_deserialize_screen_name(self):
+        """screen nameの更新"""
+        user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        screen_name = '表示名'
+        serializer = UserSerializer(instance=user, data={'screen_name': screen_name}, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        self.assertEqual(screen_name, user.screen_name)
+
+    def test_deserialize_gpa(self):
+        """GPAの更新"""
+        user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        # 正しいGPAでの更新
+        valid_gpa_set = [0, 4.0]
+        for valid_gpa in valid_gpa_set:
+            serializer = UserSerializer(instance=user, data={'gpa': valid_gpa}, partial=True)
+            serializer.is_valid(raise_exception=True)
+            new_user = serializer.save()
+            self.assertEqual(valid_gpa, new_user.gpa)
+        # 正しくないGPAでの更新
+        invalid_gpa_set = [
+            -1.0,  # 負の数
+            4.5  # 4.0より大きい数
+        ]
+        for invalid_gpa in invalid_gpa_set:
+            serializer = UserSerializer(instance=user, data={'gpa': invalid_gpa}, partial=True)
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
+
+    def test_serialize(self):
+        """JSONにシリアライズ"""
+        for user_data in self.user_data_set:
+            user = User.objects.create_user(**user_data, is_active=True)
+            serializer = UserSerializer(instance=user)
+            expected = {
+                'pk': user.pk,
+                'username': user_data['username'],
+                'screen_name': user_data.get('screen_name', None),
+                'gpa': user_data.get('gpa', None),
+                'email': user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN,
+                'joined': False,
+                'is_admin': False,
+                'courses': []
+            }
+            self.assertEqual(expected, serializer.data)
