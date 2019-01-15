@@ -3,6 +3,9 @@ import {
   Card,
   CardContent,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -15,7 +18,6 @@ import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PasswordValidationError, validatePassword, validateUsername } from '../api/auth';
 import { createUser } from '../api/users';
-import PopUp from './PopUp';
 
 interface SignupProps extends RouteComponentProps {}
 
@@ -29,7 +31,7 @@ interface SignupState {
   agreedWithTermsOfService: boolean;
   agreedWithTermsOfServiceErr: boolean;
   signupErrMsg: string;
-  showPopUp: boolean;
+  showDialog: boolean;
 }
 
 class Signup extends React.Component<SignupProps, SignupState> {
@@ -45,14 +47,14 @@ class Signup extends React.Component<SignupProps, SignupState> {
       agreedWithTermsOfService: false,
       agreedWithTermsOfServiceErr: false,
       signupErrMsg: '',
-      showPopUp: false,
+      showDialog: false,
     };
 
     this.handleChangeUsername = this.handleChangeUsername.bind(this);
     this.handleChangePassword = this.handleChangePassword.bind(this);
     this.handleChangeConfirmPassword = this.handleChangeConfirmPassword.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
-    this.handleClosePopUp = this.handleClosePopUp.bind(this);
+    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
@@ -112,17 +114,16 @@ class Signup extends React.Component<SignupProps, SignupState> {
         this.setState({ signupErrMsg: 'アカウント作成に失敗しました' });
         return;
       }
-      this.setState({ showPopUp: true });
+      this.setState({ showDialog: true });
     });
   }
 
-  public handleClosePopUp() {
+  public handleCloseDialog() {
     this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
-    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -210,9 +211,12 @@ class Signup extends React.Component<SignupProps, SignupState> {
                   </Button>
                 </FormControl>
               </form>
-              {this.state.showPopUp && rootEl ? (
-                <PopUp onClose={this.handleClosePopUp} msg={'メールを送信しました'} rootEl={rootEl} />
-              ) : null}
+              <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+                <DialogTitle>メールを送信しました</DialogTitle>
+                <DialogActions>
+                  <Button onClick={this.handleCloseDialog}>閉じる</Button>
+                </DialogActions>
+              </Dialog>
             </CardContent>
           </Card>
         </Grid>

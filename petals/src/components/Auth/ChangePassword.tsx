@@ -1,9 +1,20 @@
-import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+} from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { PasswordValidationError, validatePassword } from '../../api/auth';
 import { changePassword } from '../../api/password';
-import PopUp from '../PopUp';
 
 interface ChangePasswordProps extends RouteComponentProps {}
 
@@ -14,7 +25,7 @@ interface ChangePasswordState {
   confirmNewPassword: string;
   confirmNewPasswordErrMsg: string;
   sendErrMsg: string;
-  showPopUp: boolean;
+  showDialog: boolean;
 }
 
 class ChangePassword extends React.Component<ChangePasswordProps, ChangePasswordState> {
@@ -28,14 +39,14 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
       confirmNewPassword: '',
       confirmNewPasswordErrMsg: '',
       sendErrMsg: '',
-      showPopUp: false,
+      showDialog: false,
     };
 
     this.handleChangeCurrentPassword = this.handleChangeCurrentPassword.bind(this);
     this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
     this.handleChangeConfirmNewPassword = this.handleChangeConfirmNewPassword.bind(this);
     this.handleSend = this.handleSend.bind(this);
-    this.handleClosePopUp = this.handleClosePopUp.bind(this);
+    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
   public handleChangeCurrentPassword(e: React.ChangeEvent<HTMLInputElement>) {
@@ -75,17 +86,16 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
         this.setState({ sendErrMsg: 'パスワードの変更に失敗しました' });
         return;
       }
-      this.setState({ showPopUp: true });
+      this.setState({ showDialog: true });
     });
   }
 
-  public handleClosePopUp() {
+  public handleCloseDialog() {
     this.props.history.push('/profile');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
-    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -154,9 +164,12 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
                   </Button>
                 </FormControl>
               </form>
-              {this.state.showPopUp && rootEl ? (
-                <PopUp onClose={this.handleClosePopUp} msg={'パスワードを変更しました'} rootEl={rootEl} />
-              ) : null}
+              <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+                <DialogTitle>パスワードを変更しました</DialogTitle>
+                <DialogActions>
+                  <Button onClick={this.handleCloseDialog}>閉じる</Button>
+                </DialogActions>
+              </Dialog>
             </CardContent>
           </Card>
         </Grid>
