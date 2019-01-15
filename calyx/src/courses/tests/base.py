@@ -49,7 +49,8 @@ user_data_set = [
         "password": "hogefuga"
     }, {
         "username": "m0000000",
-        "password": "piyopoyo"
+        "password": "piyopoyo",
+        "screen_name": "表示名"
     }
 ]
 

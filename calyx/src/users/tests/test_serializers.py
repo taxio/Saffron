@@ -16,6 +16,7 @@ class UserCreateSerializerTest(DatasetMixin, TestCase):
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
             self.assertEqual(user_data['username'], instance.username)
+            self.assertEqual(user_data.get('screen_name', None), instance.screen_name)
             self.assertTrue(instance.check_password(user_data['password']))
 
     def test_deserialize_with_invalid_dataset(self):
