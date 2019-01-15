@@ -1,16 +1,27 @@
-import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+} from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 
 import { resetPassword } from '../api/password';
-import PopUp from './PopUp';
 
 interface PasswordResetProps extends RouteComponentProps<any> {}
 
 interface PasswordResetState {
   email: string;
   passwordResetErrMsg: string;
-  showPopUp: boolean;
+  showDialog: boolean;
 }
 
 class PasswordReset extends React.Component<PasswordResetProps, PasswordResetState> {
@@ -19,12 +30,12 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
     this.state = {
       email: '',
       passwordResetErrMsg: '',
-      showPopUp: false,
+      showDialog: false,
     };
 
     this.handleChangeUsername = this.handleChangeUsername.bind(this);
     this.handleClickPasswordReset = this.handleClickPasswordReset.bind(this);
-    this.handleClosePopUp = this.handleClosePopUp.bind(this);
+    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
   public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
@@ -38,7 +49,7 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
         this.setState({ passwordResetErrMsg: 'メール送信に失敗しました' });
         return;
       }
-      this.setState({ showPopUp: true });
+      this.setState({ showDialog: true });
     });
   }
 
@@ -48,13 +59,12 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
     }
   }
 
-  public handleClosePopUp() {
+  public handleCloseDialog() {
     this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
-    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -93,9 +103,12 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
                   </Button>
                 </FormControl>
               </form>
-              {this.state.showPopUp && rootEl ? (
-                <PopUp onClose={this.handleClosePopUp} rootEl={rootEl} msg={'メールを送信しました'} />
-              ) : null}
+              <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+                <DialogTitle>メールを送信しました</DialogTitle>
+                <DialogActions>
+                  <Button onClick={this.handleCloseDialog}>閉じる</Button>
+                </DialogActions>
+              </Dialog>
             </CardContent>
           </Card>
         </Grid>

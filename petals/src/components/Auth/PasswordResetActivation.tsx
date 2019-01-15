@@ -1,10 +1,21 @@
-import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+} from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 
 import { PasswordValidationError, validatePassword } from '../../api/auth';
 import { confirmNewPassword } from '../../api/password';
-import PopUp from '../PopUp';
 
 interface PasswordResetMatchParams {
   uid: string;
@@ -20,7 +31,7 @@ interface PasswordResetState {
   confirmNewPasswordErrMsg: string;
   passwordResetErrMsg: string;
   params: PasswordResetMatchParams;
-  showPopUp: boolean;
+  showDialog: boolean;
 }
 
 class PasswordResetActivation extends React.Component<PasswordResetProps, PasswordResetState> {
@@ -41,13 +52,13 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
       confirmNewPasswordErrMsg: '',
       passwordResetErrMsg: '',
       params,
-      showPopUp: false,
+      showDialog: false,
     };
 
     this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
     this.handleChangeConfirmNewPassword = this.handleChangeConfirmNewPassword.bind(this);
     this.handleSendPasswordReset = this.handleSendPasswordReset.bind(this);
-    this.handleClosePopUp = this.handleClosePopUp.bind(this);
+    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
   public parseHashData(hashStr: string): PasswordResetMatchParams {
@@ -107,17 +118,16 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
         this.setState({ passwordResetErrMsg: 'パスワード再設定に失敗しました' });
         return;
       }
-      this.setState({ showPopUp: true });
+      this.setState({ showDialog: true });
     });
   }
 
-  public handleClosePopUp() {
+  public handleCloseDialog() {
     this.props.history.push('/');
   }
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
-    const rootEl = document.getElementById('root');
 
     return (
       <Grid container={true} justify="center">
@@ -177,9 +187,12 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
                   </Button>
                 </FormControl>
               </form>
-              {this.state.showPopUp && rootEl ? (
-                <PopUp onClose={this.handleClosePopUp} msg={'パスワードを再設定しました'} rootEl={rootEl} />
-              ) : null}
+              <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+                <DialogTitle>パスワードを再設定しました</DialogTitle>
+                <DialogActions>
+                  <Button onClick={this.handleCloseDialog}>閉じる</Button>
+                </DialogActions>
+              </Dialog>
             </CardContent>
           </Card>
         </Grid>
