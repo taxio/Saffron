@@ -1,13 +1,31 @@
-import { Button, Card, CardContent, FormControl, FormHelperText, Grid, Input, InputLabel } from '@material-ui/core';
+import {
+  Button,
+  Card,
+  CardContent,
+  FormControl,
+  FormHelperText,
+  Grid,
+  Input,
+  InputLabel,
+  TextField,
+} from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-import { Dispatch } from 'redux';
-import { AuthAction, setLoginState } from '../actions/auth';
+// import { connect } from 'react-redux';
+import { Link, RouteComponentProps } from 'react-router-dom';
+// import { Dispatch } from 'redux';
+import { Field, InjectedFormProps, reduxForm, WrappedFieldsProps } from 'redux-form';
+// import { AuthAction, setLoginState } from '../actions/auth';
 import * as auth from '../api/auth';
-import { PetalsStore } from '../store';
+// import { PetalsStore } from '../store';
 
-interface LoginProps extends RouteComponentProps<any> {
+const renderField = ({ label, input, meta: { touched, error }, ...custom }: WrappedFieldsProps) => (
+  <FormControl fullWidth={true}>
+    <TextField label={label} margin="normal" {...input} {...custom} />
+    {touched && error ? <FormHelperText>{error}</FormHelperText> : null}
+  </FormControl>
+);
+
+interface LoginProps extends RouteComponentProps<any>, InjectedFormProps {
   setLoginState: (isLogin: boolean) => void;
   isLogin: boolean;
 }
@@ -57,14 +75,7 @@ class Login extends React.Component<LoginProps, LoginState> {
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
               <form>
-                <FormControl fullWidth={true} style={formControlStyle}>
-                  <InputLabel htmlFor="login-username">ユーザー名</InputLabel>
-                  <Input
-                    id="login-username"
-                    value={this.state.username}
-                    onChange={e => this.setState({ username: e.target.value })}
-                  />
-                </FormControl>
+                <Field name="username" label="ユーザー名" component={renderField} />
 
                 <FormControl fullWidth={true} style={formControlStyle}>
                   <InputLabel htmlFor="login-password">パスワード</InputLabel>
@@ -106,31 +117,35 @@ class Login extends React.Component<LoginProps, LoginState> {
   }
 }
 
-interface StateFromProps {
-  isLogin: boolean;
-}
+export default reduxForm({
+  form: 'loginForm',
+})(Login);
 
-interface DispatchFromProps {
-  setLoginState: (isLogin: boolean) => void;
-}
+// interface StateFromProps {
+//   isLogin: boolean;
+// }
 
-function mapStateToProps(state: PetalsStore): StateFromProps {
-  return {
-    isLogin: state.auth.isLogin,
-  };
-}
+// interface DispatchFromProps {
+//   setLoginState: (isLogin: boolean) => void;
+// }
 
-function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
-  return {
-    setLoginState: (isLogin: boolean) => {
-      dispatch(setLoginState(isLogin));
-    },
-  };
-}
+// function mapStateToProps(state: PetalsStore): StateFromProps {
+//   return {
+//     isLogin: state.auth.isLogin,
+//   };
+// }
 
-export default withRouter(
-  connect<StateFromProps, DispatchFromProps, {}>(
-    mapStateToProps,
-    mapDispatchToProps
-  )(Login)
-);
+// function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
+//   return {
+//     setLoginState: (isLogin: boolean) => {
+//       dispatch(setLoginState(isLogin));
+//     },
+//   };
+// }
+
+// export default withRouter(
+//   connect<StateFromProps, DispatchFromProps, {}>(
+//     mapStateToProps,
+//     mapDispatchToProps
+//   )(Login)
+// );
