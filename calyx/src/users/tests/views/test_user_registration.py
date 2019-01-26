@@ -2,15 +2,15 @@ import re
 from urllib.parse import urlparse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase
-from rest_framework_jwt.settings import api_settings
 from django.urls import reverse, path, include
 from django.core import mail
 from django.conf import settings
 
 from users.models import User
+from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 
-class UserRegistrationTests(APITestCase, URLPatternsTestCase):
+class UserRegistrationTests(DatasetMixin, JWTAuthMixin, APITestCase, URLPatternsTestCase):
     """ユーザ登録周りのテスト"""
     urlpatterns = [
         path('', include('users.urls'))
@@ -20,20 +20,14 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         super(UserRegistrationTests, self).setUp()
         self.urlregex = re.compile(r'^https?://[\w/:%#$&?()~.=+\-]+$', re.MULTILINE)
         self.expected_mail_subject = 'アカウント有効化 - Saffron'
+        self.user_data = self.user_data_set[0]
+        self.user_data.setdefault('screen_name', 'test_user')
         self.expect_created_result = {
-            'username': 'b0000000',
-            'email': 'b0000000@' + settings.STUDENT_EMAIL_DOMAIN,
-            'screen_name': 'testuser',
+            'username': self.user_data['username'],
+            'email': f'{self.user_data["username"]}@{settings.STUDENT_EMAIL_DOMAIN}',
+            'screen_name': self.user_data['screen_name'],
         }
-        self.user_data = {'username': 'b0000000', 'password': 'hogefuga', 'screen_name': 'testuser'}
-        self.user_email = self.user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN
-
-    def _set_credentials(self, user):
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
+        self.user_email = self.expect_created_result['email']
 
     def test_create_user(self):
         """ユーザ作成プロセスのテスト"""
@@ -87,17 +81,3 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         extra_param_resp = self.client.post(reverse('accounts:user-create'),
                                             data=dict(**self.user_data, hoge='fuga'), format='json')
         self.assertEqual(extra_param_resp .status_code, status.HTTP_201_CREATED)
-
-    def test_delete_user(self):
-        """ユーザを論理削除するテスト"""
-        user = User.objects.create_user(**self.user_data, is_active=True)
-        self._set_credentials(user)
-        resp = self.client.post(reverse('accounts:me-delete'),
-                                data={'current_password': self.user_data['password']}, format='json')
-        self.assertEqual(204, resp.status_code)
-        with self.assertRaises(User.DoesNotExist):
-            User.objects.get(pk=user.pk)
-        # 削除したユーザを再度作成
-        self.client.credentials(HTTP_AUTHORIZATION="")
-        resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
-        self.assertEqual(201, resp.status_code)
