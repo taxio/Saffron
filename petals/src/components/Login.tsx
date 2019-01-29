@@ -1,51 +1,28 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  FormControl,
-  FormHelperText,
-  Grid,
-  Input,
-  InputLabel,
-  TextField,
-} from '@material-ui/core';
+import { Button, Card, CardContent, FormControl, FormHelperText, Grid, TextField } from '@material-ui/core';
 import * as React from 'react';
-// import { connect } from 'react-redux';
-import { Link, RouteComponentProps } from 'react-router-dom';
-// import { Dispatch } from 'redux';
-import { Field, InjectedFormProps, reduxForm, WrappedFieldsProps } from 'redux-form';
-// import { AuthAction, setLoginState } from '../actions/auth';
+import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Dispatch } from 'redux';
+import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
+import { AuthAction, setLoginState } from '../actions/auth';
 import * as auth from '../api/auth';
-// import { PetalsStore } from '../store';
+import { PetalsStore } from '../store';
 
-const renderField = ({ label, input, meta: { touched, error }, ...custom }: WrappedFieldsProps) => (
-  <FormControl fullWidth={true}>
-    <TextField label={label} margin="normal" {...input} {...custom} />
-    {touched && error ? <FormHelperText>{error}</FormHelperText> : null}
-  </FormControl>
-);
+interface FormParams {
+  username: string;
+  password: string;
+}
 
 interface LoginProps extends RouteComponentProps<any>, InjectedFormProps {
   setLoginState: (isLogin: boolean) => void;
   isLogin: boolean;
 }
 
-interface LoginState {
-  username: string;
-  password: string;
-  loginErr: boolean;
-}
+interface LoginState {}
 
 class Login extends React.Component<LoginProps, LoginState> {
   constructor(props: LoginProps) {
     super(props);
-    this.state = {
-      username: '',
-      password: '',
-      loginErr: false,
-    };
-
-    this.handleLogin = this.handleLogin.bind(this);
   }
 
   public componentWillMount() {
@@ -54,59 +31,62 @@ class Login extends React.Component<LoginProps, LoginState> {
     }
   }
 
-  public handleLogin() {
-    auth.login(this.state.username, this.state.password).then(success => {
+  public handleLogin = (values: FormParams) => {
+    let errMsg = '';
+    let usernameErrMsg = '';
+    let passwordErrMsg = '';
+    if (!values.username) {
+      usernameErrMsg = 'メールアドレスを入力してください';
+      errMsg = '未入力項目があります';
+    }
+    if (!values.password) {
+      passwordErrMsg = 'パスワードを入力してください';
+      errMsg = '未入力項目があります';
+    }
+    if (usernameErrMsg || passwordErrMsg) {
+      throw new SubmissionError({ username: usernameErrMsg, password: passwordErrMsg, _error: errMsg });
+    }
+    return auth.login(values.username, values.password).then(success => {
       if (!success) {
-        this.setState({ loginErr: true });
-        return;
+        throw new SubmissionError({ _error: 'パスワードかユーザー名が間違っています' });
       }
 
       this.props.setLoginState(true);
       this.props.history.push('/profile');
     });
-  }
+  };
+
+  public renderField = (props: WrappedFieldProps & { label: string; type: string }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
+      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
+    const { error, handleSubmit } = this.props;
 
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <form>
-                <Field name="username" label="ユーザー名" component={renderField} />
+              <form onSubmit={handleSubmit(this.handleLogin)} autoComplete="off">
+                <Field name="username" label="ユーザー名" type="text" component={this.renderField} />
 
-                <FormControl fullWidth={true} style={formControlStyle}>
-                  <InputLabel htmlFor="login-password">パスワード</InputLabel>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    autoComplete="off"
-                    value={this.state.password}
-                    onChange={e => this.setState({ password: e.target.value })}
-                  />
-                </FormControl>
+                <Field name="password" label="パスワード" type="password" component={this.renderField} />
 
-                <FormControl fullWidth={true} style={formControlStyle} error={this.state.loginErr}>
-                  {this.state.loginErr ? (
-                    <FormHelperText id="login-error-text">
-                      ユーザー名かパスワードが間違っています． パスワードをお忘れの方は
-                      <Link to={'/auth/passwordreset'}>こちら</Link>
-                    </FormHelperText>
-                  ) : null}
+                <FormControl fullWidth={true} error={Boolean(error)} style={formControlStyle}>
                   <Button
-                    style={{
-                      marginTop: 16,
-                      marginBottom: 8,
-                      boxShadow: 'none',
-                    }}
-                    variant="contained"
+                    type="submit"
                     color="primary"
-                    onClick={this.handleLogin}
+                    variant="contained"
+                    style={{ marginTop: 16, marginBotton: 8, boxShadow: 'none' }}
                   >
                     Login
                   </Button>
+                  {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
             </CardContent>
@@ -121,31 +101,33 @@ export default reduxForm({
   form: 'loginForm',
 })(Login);
 
-// interface StateFromProps {
-//   isLogin: boolean;
-// }
+interface StateFromProps {
+  isLogin: boolean;
+}
 
-// interface DispatchFromProps {
-//   setLoginState: (isLogin: boolean) => void;
-// }
+interface DispatchFromProps {
+  setLoginState: (isLogin: boolean) => void;
+}
 
-// function mapStateToProps(state: PetalsStore): StateFromProps {
-//   return {
-//     isLogin: state.auth.isLogin,
-//   };
-// }
+function mapStateToProps(state: PetalsStore): StateFromProps {
+  return {
+    isLogin: state.auth.isLogin,
+  };
+}
 
-// function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
-//   return {
-//     setLoginState: (isLogin: boolean) => {
-//       dispatch(setLoginState(isLogin));
-//     },
-//   };
-// }
+function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
+  return {
+    setLoginState: (isLogin: boolean) => {
+      dispatch(setLoginState(isLogin));
+    },
+  };
+}
 
-// export default withRouter(
-//   connect<StateFromProps, DispatchFromProps, {}>(
-//     mapStateToProps,
-//     mapDispatchToProps
-//   )(Login)
-// );
+reduxForm({
+  form: 'loginForm',
+})(
+  connect<StateFromProps, DispatchFromProps, {}>(
+    mapStateToProps,
+    mapDispatchToProps
+  )(withRouter(Login))
+);
