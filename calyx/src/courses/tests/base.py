@@ -46,10 +46,11 @@ course_data_set = [
 user_data_set = [
     {
         "username": "b0000000",
-        "password": "password"
+        "password": "hogefuga"
     }, {
         "username": "m0000000",
-        "password": "password"
+        "password": "piyopoyo",
+        "screen_name": "表示名"
     }
 ]
 

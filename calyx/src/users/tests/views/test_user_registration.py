@@ -2,48 +2,37 @@ import re
 from urllib.parse import urlparse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase
-from rest_framework_jwt.settings import api_settings
 from django.urls import reverse, path, include
 from django.core import mail
 from django.conf import settings
 
-from .models import User
+from users.models import User
+from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 
-class UserRegistrationTests(APITestCase, URLPatternsTestCase):
+class UserRegistrationTests(DatasetMixin, JWTAuthMixin, APITestCase, URLPatternsTestCase):
     """ユーザ登録周りのテスト"""
     urlpatterns = [
-        path('', include('djoser.urls.base'))
+        path('', include('users.urls'))
     ]
 
     def setUp(self):
         super(UserRegistrationTests, self).setUp()
         self.urlregex = re.compile(r'^https?://[\w/:%#$&?()~.=+\-]+$', re.MULTILINE)
         self.expected_mail_subject = 'アカウント有効化 - Saffron'
+        self.user_data = self.user_data_set[0]
+        self.user_data.setdefault('screen_name', 'test_user')
         self.expect_created_result = {
-            'username': 'b0000000',
-            'email': 'b0000000@' + settings.STUDENT_EMAIL_DOMAIN,
-            'screen_name': 'testuser',
-            'gpa': None,
-            'is_admin': False,
-            'joined': False,
-            'courses': []
+            'username': self.user_data['username'],
+            'email': f'{self.user_data["username"]}@{settings.STUDENT_EMAIL_DOMAIN}',
+            'screen_name': self.user_data['screen_name'],
         }
-        self.user_data = {'username': 'b0000000', 'password': 'testpass', 'screen_name': 'testuser'}
-        self.user_email = self.user_data['username'] + '@' + settings.STUDENT_EMAIL_DOMAIN
-
-    def _set_credentials(self, user):
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
+        self.user_email = self.expect_created_result['email']
 
     def test_create_user(self):
         """ユーザ作成プロセスのテスト"""
-        resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
+        resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        resp.data.pop('pk')
         self.assertEqual(resp.data, self.expect_created_result)
         # 登録されたユーザ情報を検証
         users = User.objects.all()
@@ -64,46 +53,31 @@ class UserRegistrationTests(APITestCase, URLPatternsTestCase):
         token = parsed_url.fragment.split('/')[-1]
         uid = parsed_url.fragment.split('/')[-2]
         # 間違った内容を送りつける
-        invalid_resp = self.client.post(reverse('user-activate'),
+        invalid_resp = self.client.post(reverse('accounts:user-activate'),
                                         data={'token': 'invalid', 'uid': 'invalid'}, format='json')
         self.assertEqual(invalid_resp.status_code, status.HTTP_400_BAD_REQUEST)
         not_activated_user = User.objects.get(username=self.user_data['username'])
         self.assertEqual(not_activated_user.is_active, False)
         # 正しいトークンとuidでアクティベート
-        post_resp = self.client.post(reverse('user-activate'), data={'token': token, 'uid': uid}, format='json')
+        post_resp = self.client.post(reverse('accounts:user-activate'), data={'token': token, 'uid': uid}, format='json')
         self.assertEqual(post_resp.status_code, status.HTTP_204_NO_CONTENT)
         activated_user = User.objects.get(username=self.user_data['username'])
         self.assertEqual(activated_user.is_active, True)
 
     def test_duplicate_create_user(self):
         """ユーザを2重で登録するテスト"""
-        first_resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
+        first_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
         self.assertEqual(first_resp.status_code, status.HTTP_201_CREATED)
-        second_resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
+        second_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
         self.assertEqual(second_resp.status_code, status.HTTP_400_BAD_REQUEST)
         users = User.objects.all()
         self.assertEqual(len(users), 1)
 
     def test_post_invalid_params(self):
         """ユーザ登録に必要ない値などを送るテスト"""
-        invalid_resp = self.client.post(reverse('user-create'), data={'hoge': 'fuga'}, format='json')
+        invalid_resp = self.client.post(reverse('accounts:user-create'), data={'hoge': 'fuga'}, format='json')
         self.assertEqual(invalid_resp .status_code, status.HTTP_400_BAD_REQUEST)
         # 無駄なパラメータを一緒にpostした場合
-        extra_param_resp = self.client.post(reverse('user-create'),
+        extra_param_resp = self.client.post(reverse('accounts:user-create'),
                                             data=dict(**self.user_data, hoge='fuga'), format='json')
         self.assertEqual(extra_param_resp .status_code, status.HTTP_201_CREATED)
-
-    def test_delete_user(self):
-        """ユーザを論理削除するテスト"""
-        user = User.objects.create_user(**self.user_data, is_active=True)
-        self._set_credentials(user)
-        resp = self.client.delete('/users/me/', data=self.user_data)
-        self.assertEqual(204, resp.status_code)
-        with self.assertRaises(User.DoesNotExist):
-            User.objects.get(pk=user.pk)
-        # 削除したユーザを再度作成
-        self.client.credentials(HTTP_AUTHORIZATION="")
-        before_del_id = user.pk
-        resp = self.client.post(reverse('user-create'), data=self.user_data, format='json')
-        self.assertEqual(201, resp.status_code)
-        self.assertNotEqual(before_del_id, resp.data['pk'])
