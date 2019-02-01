@@ -35,3 +35,10 @@ export const validatePasswordWithErrMsg = (password: string): string => {
   }
   return '';
 };
+
+const UsernameRegex = new RegExp('^[bmd]\\d{7}$');
+
+export const validateUsername = (username: string): boolean => {
+  const ret = username.match(UsernameRegex);
+  return Boolean(ret);
+};
