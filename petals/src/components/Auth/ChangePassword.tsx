@@ -8,23 +8,23 @@ import {
   FormControl,
   FormHelperText,
   Grid,
-  Input,
-  InputLabel,
+  TextField,
 } from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { PasswordValidationError, validatePassword } from '../../api/auth';
+import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import { changePassword } from '../../api/password';
+import { validatePasswordWithErrMsg } from '../../lib/validations';
 
-interface ChangePasswordProps extends RouteComponentProps {}
-
-interface ChangePasswordState {
+interface FormParams {
   currentPassword: string;
   newPassword: string;
-  newPasswordErrMsg: string;
   confirmNewPassword: string;
-  confirmNewPasswordErrMsg: string;
-  sendErrMsg: string;
+}
+
+interface ChangePasswordProps extends RouteComponentProps, InjectedFormProps {}
+
+interface ChangePasswordState {
   showDialog: boolean;
 }
 
@@ -33,137 +33,78 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
     super(props);
 
     this.state = {
-      currentPassword: '',
-      newPassword: '',
-      newPasswordErrMsg: '',
-      confirmNewPassword: '',
-      confirmNewPasswordErrMsg: '',
-      sendErrMsg: '',
       showDialog: false,
     };
-
-    this.handleChangeCurrentPassword = this.handleChangeCurrentPassword.bind(this);
-    this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
-    this.handleChangeConfirmNewPassword = this.handleChangeConfirmNewPassword.bind(this);
-    this.handleSend = this.handleSend.bind(this);
-    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
-  public handleChangeCurrentPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ currentPassword: e.target.value });
-  }
-
-  public handleChangeNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    const newPassword = e.target.value;
-    let newPasswordErrMsg = '';
-
-    switch (validatePassword(newPassword)) {
-      case PasswordValidationError.LENGTH:
-        newPasswordErrMsg = 'パスワードは8文字以上にしてください';
-        break;
-      case PasswordValidationError.UNAVAILABLE:
-        newPasswordErrMsg = '使用不可能な文字が含まれています';
-        break;
+  public handleSubmit = (values: FormParams) => {
+    const currentPasswordErrMsg = validatePasswordWithErrMsg(values.currentPassword);
+    const newPasswordErrMsg = validatePasswordWithErrMsg(values.newPassword);
+    const confirmNewPasswordErrMsg = values.newPassword === values.confirmNewPassword ? '' : 'パスワードが一致しません';
+    if (currentPasswordErrMsg || newPasswordErrMsg || confirmNewPasswordErrMsg) {
+      throw new SubmissionError({
+        currentPassword: currentPasswordErrMsg,
+        newPassword: newPasswordErrMsg,
+        confirmNewPassword: confirmNewPasswordErrMsg,
+        _error: '入力項目に誤りがあります',
+      });
     }
-
-    this.setState({ newPassword, newPasswordErrMsg });
-  }
-
-  public handleChangeConfirmNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    const confirmNewPassword = e.target.value;
-    let confirmNewPasswordErrMsg = '';
-
-    if (confirmNewPassword !== this.state.newPassword) {
-      confirmNewPasswordErrMsg = 'パスワードが一致しません';
-    }
-
-    this.setState({ confirmNewPassword, confirmNewPasswordErrMsg });
-  }
-
-  public handleSend() {
-    changePassword(this.state.currentPassword, this.state.newPassword).then(success => {
+    return changePassword(values.currentPassword, values.newPassword).then(success => {
       if (!success) {
-        this.setState({ sendErrMsg: 'パスワードの変更に失敗しました' });
-        return;
+        throw new SubmissionError({ _error: 'パスワードの変更に失敗しました' });
       }
       this.setState({ showDialog: true });
     });
-  }
+  };
 
-  public handleCloseDialog() {
+  public handleCloseDialog = () => {
     this.props.history.push('/profile');
-  }
+  };
+
+  public renderField = (props: WrappedFieldProps & { label: string; type: string }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
+      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
 
   public render(): React.ReactNode {
-    const formControlStyle = { padding: '10px 0px' };
+    const { error, handleSubmit } = this.props;
 
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <form>
-                <FormControl fullWidth={true} style={formControlStyle}>
-                  <InputLabel htmlFor="new-password">現在のパスワード</InputLabel>
-                  <Input
-                    id="current-password"
-                    type="password"
-                    value={this.state.currentPassword}
-                    onChange={this.handleChangeCurrentPassword}
-                    autoComplete="off"
-                  />
-                </FormControl>
+              <form onSubmit={handleSubmit(this.handleSubmit)} autoComplete="off">
+                <Field name="currentPassword" label="現在のパスワード" type="password" component={this.renderField} />
 
-                <FormControl fullWidth={true} error={Boolean(this.state.newPasswordErrMsg)} style={formControlStyle}>
-                  <InputLabel htmlFor="new-password">新しいパスワード</InputLabel>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={this.state.newPassword}
-                    onChange={this.handleChangeNewPassword}
-                    autoComplete="off"
-                  />
-                  {this.state.newPasswordErrMsg ? (
-                    <FormHelperText id="new-password-error-text">{this.state.newPasswordErrMsg}</FormHelperText>
-                  ) : null}
-                </FormControl>
+                <Field name="newPassword" label="新しいパスワード" type="password" component={this.renderField} />
 
-                <FormControl
-                  fullWidth={true}
-                  error={Boolean(this.state.confirmNewPasswordErrMsg)}
-                  style={formControlStyle}
-                >
-                  <InputLabel htmlFor="confirm-new-password">新しいパスワードを再入力</InputLabel>
-                  <Input
-                    id="confirm-new-password"
-                    type="password"
-                    value={this.state.confirmNewPassword}
-                    onChange={this.handleChangeConfirmNewPassword}
-                    autoComplete="off"
-                  />
-                  {this.state.confirmNewPasswordErrMsg ? (
-                    <FormHelperText id="confirm-new-password-error-text">
-                      {this.state.confirmNewPasswordErrMsg}
-                    </FormHelperText>
-                  ) : null}
-                </FormControl>
+                <Field
+                  name="confirmNewPassword"
+                  label="新しいパスワードを再入力"
+                  type="password"
+                  component={this.renderField}
+                />
 
-                <FormControl fullWidth={true} style={formControlStyle} error={Boolean(this.state.sendErrMsg)}>
-                  {this.state.sendErrMsg ? <FormHelperText>{this.state.sendErrMsg}</FormHelperText> : null}
+                <FormControl fullWidth={true} style={{ padding: '10px 0px' }} error={Boolean(error)}>
                   <Button
+                    type="submit"
+                    color="primary"
+                    variant="contained"
                     style={{
                       marginTop: 16,
                       marginBottom: 8,
                       boxShadow: 'none',
                     }}
-                    variant="contained"
-                    color="primary"
-                    onClick={this.handleSend}
                   >
                     パスワード変更
                   </Button>
+                  {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
+
               <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
                 <DialogTitle>パスワードを変更しました</DialogTitle>
                 <DialogActions>
@@ -178,4 +119,6 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
   }
 }
 
-export default withRouter(ChangePassword);
+export default reduxForm({
+  form: 'changePasswordForm',
+})(withRouter(ChangePassword));

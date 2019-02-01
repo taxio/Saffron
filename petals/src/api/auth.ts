@@ -2,6 +2,7 @@ import * as util from './util';
 
 export enum PasswordValidationError {
   NONE,
+  NO_INPUT,
   LENGTH,
   UNAVAILABLE,
 }
@@ -9,6 +10,9 @@ export enum PasswordValidationError {
 const PasswordRegex = new RegExp('[^\x21-\x7e]+');
 
 export const validatePassword = (password: string): PasswordValidationError => {
+  if (password.length === 0) {
+    return PasswordValidationError.NO_INPUT;
+  }
   if (password.length < 8) {
     return PasswordValidationError.LENGTH;
   }
