@@ -36,9 +36,31 @@ export const validatePasswordWithErrMsg = (password: string): string => {
   return '';
 };
 
+export enum UsernameValidationError {
+  NONE,
+  NO_INPUT,
+  UNAVAILABLE,
+}
+
 const UsernameRegex = new RegExp('^[bmd]\\d{7}$');
 
-export const validateUsername = (username: string): boolean => {
+export const validateUsername = (username: string | null): UsernameValidationError => {
+  if (!username || username.length === 0) {
+    return UsernameValidationError.NO_INPUT;
+  }
   const ret = username.match(UsernameRegex);
-  return Boolean(ret);
+  if (!Boolean(ret)) {
+    return UsernameValidationError.UNAVAILABLE;
+  }
+  return UsernameValidationError.NONE;
+};
+
+export const validateUsernameWithErrMsg = (username: string | null): string => {
+  switch (validateUsername(username)) {
+    case UsernameValidationError.NO_INPUT:
+      return 'ユーザー名を入力してください';
+    case UsernameValidationError.UNAVAILABLE:
+      return '大学のユーザー名を入力してください';
+  }
+  return '';
 };
