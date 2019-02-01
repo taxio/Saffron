@@ -23,6 +23,7 @@ interface LoginState {}
 class Login extends React.Component<LoginProps, LoginState> {
   constructor(props: LoginProps) {
     super(props);
+    console.log(this.props);
   }
 
   public componentWillMount() {
@@ -35,6 +36,7 @@ class Login extends React.Component<LoginProps, LoginState> {
     let errMsg = '';
     let usernameErrMsg = '';
     let passwordErrMsg = '';
+    // TODO: validation
     if (!values.username) {
       usernameErrMsg = 'メールアドレスを入力してください';
       errMsg = '未入力項目があります';
@@ -97,10 +99,6 @@ class Login extends React.Component<LoginProps, LoginState> {
   }
 }
 
-export default reduxForm({
-  form: 'loginForm',
-})(Login);
-
 interface StateFromProps {
   isLogin: boolean;
 }
@@ -123,7 +121,7 @@ function mapDispatchToProps(dispatch: Dispatch<AuthAction>): DispatchFromProps {
   };
 }
 
-reduxForm({
+export default reduxForm({
   form: 'loginForm',
 })(
   connect<StateFromProps, DispatchFromProps, {}>(
