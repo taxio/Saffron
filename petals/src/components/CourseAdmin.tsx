@@ -158,13 +158,11 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
   };
 
   public handleSubmit = (values: FormParams) => {
-    const formValues: FormParams = { ...values, pinCode: this.state.pinCode };
-    console.log(formValues);
     const courseNameErrMsg = values.courseName ? '' : '未入力です';
     if (courseNameErrMsg) {
       throw new SubmissionError({ courseName: courseNameErrMsg, _error: '入力項目に間違いがあります' });
     }
-    return createCourse(values.courseName, values.pinCode, values.courseYear, values.useGPA, values.useName)
+    return createCourse(values.courseName, this.state.pinCode, values.courseYear, values.useGPA, values.useName)
       .then(res => {
         const promises: Array<Promise<{}>> = [];
         this.state.labs.forEach(lab => {
