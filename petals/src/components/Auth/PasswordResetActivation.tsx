@@ -8,28 +8,28 @@ import {
   FormControl,
   FormHelperText,
   Grid,
-  Input,
-  InputLabel,
+  TextField,
 } from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
+import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
-import { PasswordValidationError, validatePassword } from '../../api/auth';
 import { confirmNewPassword } from '../../api/password';
+import { validatePasswordWithErrMsg } from '../../lib/validations';
+
+interface FormParams {
+  newPassword: string;
+  confirmNewPassword: string;
+}
 
 interface PasswordResetMatchParams {
   uid: string;
   token: string;
 }
 
-interface PasswordResetProps extends RouteComponentProps<PasswordResetMatchParams> {}
+interface PasswordResetProps extends RouteComponentProps<PasswordResetMatchParams>, InjectedFormProps {}
 
 interface PasswordResetState {
-  newPassword: string;
-  newPasswordErrMsg: string;
-  confirmNewPassword: string;
-  confirmNewPasswordErrMsg: string;
-  passwordResetErrMsg: string;
   params: PasswordResetMatchParams;
   showDialog: boolean;
 }
@@ -46,22 +46,12 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
     }
 
     this.state = {
-      newPassword: '',
-      newPasswordErrMsg: '',
-      confirmNewPassword: '',
-      confirmNewPasswordErrMsg: '',
-      passwordResetErrMsg: '',
       params,
       showDialog: false,
     };
-
-    this.handleChangeNewPassword = this.handleChangeNewPassword.bind(this);
-    this.handleChangeConfirmNewPassword = this.handleChangeConfirmNewPassword.bind(this);
-    this.handleSendPasswordReset = this.handleSendPasswordReset.bind(this);
-    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
-  public parseHashData(hashStr: string): PasswordResetMatchParams {
+  public parseHashData = (hashStr: string): PasswordResetMatchParams => {
     const splited = hashStr.split('/');
     if (splited.length !== 3) {
       throw new Error('not correct location.hash');
@@ -71,109 +61,58 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
       uid: splited[1],
       token: splited[2],
     };
-  }
+  };
 
-  public handleChangeNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    const newPassword = e.target.value;
-    let newPasswordErrMsg = '';
+  public handleCloseDialog = () => {
+    this.props.history.push('/');
+  };
 
-    const ret = validatePassword(newPassword);
-    switch (ret) {
-      case PasswordValidationError.NONE:
-        break;
-      case PasswordValidationError.LENGTH:
-        newPasswordErrMsg = 'パスワードは8文字以上にしてください';
-        break;
-      case PasswordValidationError.UNAVAILABLE:
-        newPasswordErrMsg = '使用不可能な文字が含まれています';
-        break;
+  public renderField = (props: WrappedFieldProps & { label: string; type: string }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
+      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
+
+  public handleSubmit = (values: FormParams) => {
+    console.log(values);
+    const newPasswordErrMsg = validatePasswordWithErrMsg(values.newPassword);
+    const confirmNewPasswordErrMsg = values.newPassword === values.confirmNewPassword ? '' : 'パスワードが一致しません';
+    if (newPasswordErrMsg || confirmNewPasswordErrMsg) {
+      throw new SubmissionError({
+        newPassword: newPasswordErrMsg,
+        confirmNewPassword: confirmNewPasswordErrMsg,
+        _error: '入力項目に誤りがあります',
+      });
     }
-
-    this.setState({ newPassword, newPasswordErrMsg });
-  }
-
-  public handleChangeConfirmNewPassword(e: React.ChangeEvent<HTMLInputElement>) {
-    const _confirmNewPassword = e.target.value;
-    let confirmNewPasswordErrMsg = '';
-
-    if (_confirmNewPassword !== this.state.newPassword) {
-      confirmNewPasswordErrMsg = 'パスワードが一致しません';
-    }
-
-    this.setState({ confirmNewPassword: _confirmNewPassword, confirmNewPasswordErrMsg });
-  }
-
-  public handleSendPasswordReset() {
-    if (
-      this.state.newPasswordErrMsg ||
-      this.state.confirmNewPasswordErrMsg ||
-      !this.state.newPassword ||
-      !this.state.confirmNewPassword
-    ) {
-      return;
-    }
-
-    confirmNewPassword(this.state.params.uid, this.state.params.token, this.state.newPassword).then(success => {
+    return confirmNewPassword(this.state.params.uid, this.state.params.token, values.newPassword).then(success => {
       if (!success) {
-        this.setState({ passwordResetErrMsg: 'パスワード再設定に失敗しました' });
-        return;
+        throw new SubmissionError({ _error: 'パスワードの再設定に失敗しました' });
       }
       this.setState({ showDialog: true });
     });
-  }
-
-  public handleCloseDialog() {
-    this.props.history.push('/');
-  }
+  };
 
   public render(): React.ReactNode {
-    const formControlStyle = { padding: '10px 0px' };
+    const { error, handleSubmit } = this.props;
 
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <form>
-                <FormControl fullWidth={true} error={Boolean(this.state.newPasswordErrMsg)} style={formControlStyle}>
-                  <InputLabel htmlFor="new-password">新しいパスワード</InputLabel>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={this.state.newPassword}
-                    onChange={this.handleChangeNewPassword}
-                    autoComplete="off"
-                  />
-                  {this.state.newPasswordErrMsg ? (
-                    <FormHelperText id="new-password-error-text">{this.state.newPasswordErrMsg}</FormHelperText>
-                  ) : null}
-                </FormControl>
+              <form onSubmit={handleSubmit(this.handleSubmit)}>
+                <Field name="newPassword" label="新しいパスワード" type="password" component={this.renderField} />
+                <Field
+                  name="confirmNewPassword"
+                  label="新しいパスワードを再入力"
+                  type="password"
+                  component={this.renderField}
+                />
 
-                <FormControl
-                  fullWidth={true}
-                  error={Boolean(this.state.confirmNewPasswordErrMsg)}
-                  style={formControlStyle}
-                >
-                  <InputLabel htmlFor="confirm-new-password">新しいパスワード再入力</InputLabel>
-                  <Input
-                    id="confirm-new-password"
-                    type="password"
-                    value={this.state.confirmNewPassword}
-                    onChange={this.handleChangeConfirmNewPassword}
-                    autoComplete="off"
-                  />
-                  {this.state.confirmNewPasswordErrMsg ? (
-                    <FormHelperText id="confirm-new-password-error-text">
-                      {this.state.confirmNewPasswordErrMsg}
-                    </FormHelperText>
-                  ) : null}
-                </FormControl>
-
-                <FormControl fullWidth={true} style={formControlStyle} error={Boolean(this.state.passwordResetErrMsg)}>
-                  {this.state.passwordResetErrMsg ? (
-                    <FormHelperText>{this.state.passwordResetErrMsg}</FormHelperText>
-                  ) : null}
+                <FormControl fullWidth={true} style={{ padding: '10px 0px' }} error={Boolean(error)}>
                   <Button
+                    type="submit"
                     style={{
                       marginTop: 16,
                       marginBottom: 8,
@@ -181,10 +120,10 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
                     }}
                     variant="contained"
                     color="primary"
-                    onClick={this.handleSendPasswordReset}
                   >
                     送信
                   </Button>
+                  {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
               <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
@@ -201,4 +140,6 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
   }
 }
 
-export default PasswordResetActivation;
+export default reduxForm({
+  form: 'passwordResetActivationForm',
+})(PasswordResetActivation);
