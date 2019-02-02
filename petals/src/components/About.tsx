@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const About: React.SFC = () => (
+const About: React.FC = () => (
   <React.Fragment>
     <p>TODO: About</p>
   </React.Fragment>

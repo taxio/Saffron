@@ -11,7 +11,7 @@ import {
   TextField,
 } from '@material-ui/core';
 import * as React from 'react';
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
 import { confirmNewPassword } from '../../api/password';
@@ -141,4 +141,4 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
 
 export default reduxForm({
   form: 'passwordResetActivationForm',
-})(PasswordResetActivation);
+})(withRouter(PasswordResetActivation));
