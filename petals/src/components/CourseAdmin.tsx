@@ -20,13 +20,23 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from '@material-ui/core';
 import { Add, Delete, Visibility, VisibilityOff } from '@material-ui/icons';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import { addLab, createCourse } from '../api/courses';
 import { isIntStr } from '../lib/util';
+
+interface FormParams {
+  courseYear: number;
+  courseName: string;
+  pinCode: string;
+  useName: boolean;
+  useGPA: boolean;
+}
 
 interface LabRowProps {
   key: number;
@@ -47,7 +57,7 @@ const LabRow: React.SFC<LabRowProps> = props => (
   </TableRow>
 );
 
-interface CourseAdminProps extends RouteComponentProps {}
+interface CourseAdminProps extends RouteComponentProps, InjectedFormProps {}
 
 interface Lab {
   labName: string;
@@ -55,12 +65,8 @@ interface Lab {
 }
 
 interface CourseAdminState {
-  courseYear: number;
-  courseName: string;
   pinCode: string;
   showPinCode: boolean;
-  useGpa: boolean;
-  useName: boolean;
   labName: string;
   labCapacity: string;
   labCapacityErr: boolean;
@@ -74,12 +80,8 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
     super(props);
 
     this.state = {
-      courseYear: 0,
-      courseName: '',
       pinCode: '',
       showPinCode: false,
-      useGpa: false,
-      useName: false,
       labName: '',
       labCapacity: '0',
       labCapacityErr: false,
@@ -88,25 +90,19 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
       showDialog: false,
     };
 
-    this.handleChangeCourseName = this.handleChangeCourseName.bind(this);
     this.handleAppendLab = this.handleAppendLab.bind(this);
     this.handleDeleteLab = this.handleDeleteLab.bind(this);
     this.handleChangeLabCapacity = this.handleChangeLabCapacity.bind(this);
-    this.handleSave = this.handleSave.bind(this);
   }
 
-  public handleChangeCourseName(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ courseName: e.target.value });
-  }
-
-  public getCourseYearConds(): number[] {
+  public getCourseYearConds = (): number[] => {
     const currentYear = new Date().getFullYear();
     const conds: number[] = [];
     for (let i = currentYear - 2; i < currentYear + 2; i++) {
       conds.push(i);
     }
     return conds;
-  }
+  };
 
   public handleChangeLabCapacity(e: React.ChangeEvent<HTMLInputElement>) {
     const labCapacity = e.target.value;
@@ -133,14 +129,42 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
     this.setState({ labs });
   }
 
-  public handleSave() {
-    createCourse(
-      this.state.courseName,
-      this.state.pinCode,
-      this.state.courseYear,
-      this.state.useGpa,
-      this.state.useName
-    )
+  public renderTextField = (props: WrappedFieldProps & { label: string; type: string }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
+      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
+
+  public renderSelectField = (props: WrappedFieldProps & { label: string }) => (
+    <FormControl fullWidth={true} style={{ padding: '10px 0px' }}>
+      <InputLabel htmlFor="course-year">{props.label}</InputLabel>
+      <Select {...props.input}>
+        <MenuItem key={0} value={0}>
+          <em>-</em>
+        </MenuItem>
+        {this.getCourseYearConds().map((v: number) => (
+          <MenuItem key={v} value={v}>
+            {v}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
+  public handleChangePinCodeVisible = () => {
+    const showPinCode = this.state.showPinCode;
+    this.setState({ showPinCode: !showPinCode });
+  };
+
+  public handleSubmit = (values: FormParams) => {
+    const formValues: FormParams = { ...values, pinCode: this.state.pinCode };
+    console.log(formValues);
+    const courseNameErrMsg = values.courseName ? '' : '未入力です';
+    if (courseNameErrMsg) {
+      throw new SubmissionError({ courseName: courseNameErrMsg, _error: '入力項目に間違いがあります' });
+    }
+    return createCourse(values.courseName, values.pinCode, values.courseYear, values.useGPA, values.useName)
       .then(res => {
         const promises: Array<Promise<{}>> = [];
         this.state.labs.forEach(lab => {
@@ -161,42 +185,34 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
       .catch(errJson => {
         this.setState({ saveErr: true });
       });
-  }
+  };
+
+  public renderCheckBoxField = (props: WrappedFieldProps & { label: string; helperText: string }) => (
+    <FormControl fullWidth={true}>
+      <FormControlLabel
+        control={<Checkbox value={props.label} checked={props.input.checked} onChange={props.input.onChange} />}
+        label={<React.Fragment>{props.label}</React.Fragment>}
+      />
+      <FormHelperText style={{ margin: 0 }}>{props.helperText}</FormHelperText>
+    </FormControl>
+  );
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
-    const courseYearConds = this.getCourseYearConds();
+    const { error, handleSubmit } = this.props;
 
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={12} sm={8} md={7} lg={6} xl={5}>
           <Paper style={{ marginTop: 20, padding: 20 }}>
-            <form>
+            <form onSubmit={handleSubmit(this.handleSubmit)}>
               <Typography variant="h4" style={{ margin: '10px 0 20px 0' }}>
                 課程設定
               </Typography>
 
-              <FormControl fullWidth={true} style={formControlStyle}>
-                <InputLabel htmlFor="course-year">年度</InputLabel>
-                <Select
-                  value={this.state.courseYear}
-                  onChange={e => this.setState({ courseYear: parseInt(e.target.value, 10) })}
-                >
-                  <MenuItem key={0} value={0}>
-                    <em>-</em>
-                  </MenuItem>
-                  {courseYearConds.map((v: number) => (
-                    <MenuItem key={v} value={v}>
-                      {v}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Field name="courseYear" label="年度" component={this.renderSelectField} />
 
-              <FormControl fullWidth={true} style={formControlStyle}>
-                <InputLabel htmlFor="course-name">課程名</InputLabel>
-                <Input id="course-name" value={this.state.courseName} onChange={this.handleChangeCourseName} />
-              </FormControl>
+              <Field name="courseName" label="課程名" type="text" component={this.renderTextField} />
 
               <FormControl fullWidth={true} style={formControlStyle}>
                 <InputLabel htmlFor="pin-code">PINコード</InputLabel>
@@ -208,10 +224,7 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
                   onChange={e => this.setState({ pinCode: e.target.value })}
                   endAdornment={
                     <InputAdornment position="end">
-                      <IconButton
-                        aria-label="Toggle password visibility"
-                        onClick={e => this.setState({ showPinCode: !this.state.showPinCode })}
-                      >
+                      <IconButton aria-label="Toggle password visibility" onClick={this.handleChangePinCodeVisible}>
                         {this.state.showPinCode ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
                     </InputAdornment>
@@ -228,28 +241,19 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
                 志望状況表示の際に活用する情報を設定します
               </Typography>
 
-              <FormControl fullWidth={true}>
-                <FormControlLabel
-                  control={
-                    <Checkbox checked={this.state.useGpa} onChange={e => this.setState({ useGpa: e.target.checked })} />
-                  }
-                  label={<React.Fragment>GPAの使用</React.Fragment>}
-                />
-                <FormHelperText style={{ margin: 0 }}>ボーダーラインや平均値などを表示します</FormHelperText>
-              </FormControl>
+              <Field
+                name="useGPA"
+                label="GPAの使用・表示"
+                helperText="志望者のGPA状況"
+                component={this.renderCheckBoxField}
+              />
 
-              <FormControl fullWidth={true}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={this.state.useName}
-                      onChange={e => this.setState({ useName: e.target.checked })}
-                    />
-                  }
-                  label={<React.Fragment>ユーザー名の表示</React.Fragment>}
-                />
-                <FormHelperText style={{ margin: 0 }}>志望状況にユーザー名が含まれるようになります</FormHelperText>
-              </FormControl>
+              <Field
+                name="useName"
+                label="ユーザー名の表示"
+                helperText="志望状況にユーザー名が含まれるようになります"
+                component={this.renderCheckBoxField}
+              />
 
               <Typography variant="h5" style={{ margin: '40px 0 10px 0' }}>
                 研究室入力
@@ -294,11 +298,11 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
                 </Table>
               </Paper>
 
-              <FormControl fullWidth={true} style={{ margin: '30px 0 10px 0' }} error={this.state.saveErr}>
+              <FormControl fullWidth={true} style={{ margin: '30px 0 10px 0' }} error={Boolean(error)}>
                 {this.state.saveErr ? (
                   <FormHelperText style={{ marginBottom: 10 }}>作成に失敗しました</FormHelperText>
                 ) : null}
-                <Button variant="contained" color="primary" onClick={this.handleSave}>
+                <Button type="submit" variant="contained" color="primary">
                   保存する
                 </Button>
               </FormControl>
@@ -323,4 +327,6 @@ class CourseAdmin extends React.Component<CourseAdminProps, CourseAdminState> {
   }
 }
 
-export default withRouter(CourseAdmin);
+export default reduxForm({
+  form: 'CourseAdminForm',
+})(withRouter(CourseAdmin));
