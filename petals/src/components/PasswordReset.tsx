@@ -8,19 +8,21 @@ import {
   FormControl,
   FormHelperText,
   Grid,
-  Input,
-  InputLabel,
+  TextField,
 } from '@material-ui/core';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
+import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
 import { resetPassword } from '../api/password';
 
-interface PasswordResetProps extends RouteComponentProps<any> {}
+interface FormParams {
+  email: string;
+}
+
+interface PasswordResetProps extends RouteComponentProps<any>, InjectedFormProps {}
 
 interface PasswordResetState {
-  email: string;
-  passwordResetErrMsg: string;
   showDialog: boolean;
 }
 
@@ -28,68 +30,50 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   constructor(props: PasswordResetProps) {
     super(props);
     this.state = {
-      email: '',
-      passwordResetErrMsg: '',
       showDialog: false,
     };
-
-    this.handleChangeUsername = this.handleChangeUsername.bind(this);
-    this.handleClickPasswordReset = this.handleClickPasswordReset.bind(this);
-    this.handleCloseDialog = this.handleCloseDialog.bind(this);
   }
 
-  public handleChangeUsername(e: React.ChangeEvent<HTMLInputElement>) {
-    e.preventDefault();
-    this.setState({ email: e.target.value });
-  }
+  public handleCloseDialog = () => {
+    this.props.history.push('/');
+  };
 
-  public handleClickPasswordReset() {
-    resetPassword(this.state.email).then(success => {
+  public renderTextField = (props: WrappedFieldProps & { label: string; type: string }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
+      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
+
+  public handleSubmit = (values: FormParams) => {
+    const emailErrMsg = values.email ? '' : '未入力です';
+    if (emailErrMsg) {
+      throw new SubmissionError({ email: emailErrMsg, _error: '入力項目に誤りがあります' });
+    }
+
+    return resetPassword(values.email).then(success => {
       if (!success) {
-        this.setState({ passwordResetErrMsg: 'メール送信に失敗しました' });
-        return;
+        throw new SubmissionError({ _error: 'メール送信に失敗しました' });
       }
       this.setState({ showDialog: true });
     });
-  }
-
-  public handleKeyPress(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.which === 13) {
-      e.preventDefault();
-    }
-  }
-
-  public handleCloseDialog() {
-    this.props.history.push('/');
-  }
+  };
 
   public render(): React.ReactNode {
     const formControlStyle = { padding: '10px 0px' };
+    const { error, handleSubmit } = this.props;
 
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
           <Card style={{ marginTop: 30, padding: 20 }}>
             <CardContent style={{ textAlign: 'center' }}>
-              <form>
-                <FormControl fullWidth={true} error={Boolean(this.state.passwordResetErrMsg)}>
-                  <InputLabel htmlFor="email">メールアドレス</InputLabel>
-                  <Input
-                    id="email"
-                    value={this.state.email}
-                    onChange={this.handleChangeUsername}
-                    onKeyPress={this.handleKeyPress}
-                  />
-                  {this.state.passwordResetErrMsg ? (
-                    <FormHelperText>大学のメールアドレスを入力してください</FormHelperText>
-                  ) : null}
-                </FormControl>
+              <form onSubmit={handleSubmit(this.handleSubmit)}>
+                <Field name="email" label="メールアドレス" type="text" component={this.renderTextField} />
 
-                <FormControl fullWidth={true} style={formControlStyle} error={Boolean(this.state.passwordResetErrMsg)}>
-                  {this.state.passwordResetErrMsg ? (
-                    <FormHelperText>{this.state.passwordResetErrMsg}</FormHelperText>
-                  ) : null}
+                <FormControl fullWidth={true} style={formControlStyle} error={Boolean(error)}>
                   <Button
+                    type="submit"
                     style={{
                       marginTop: 16,
                       marginBottom: 8,
@@ -97,10 +81,10 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
                     }}
                     variant="contained"
                     color="primary"
-                    onClick={this.handleClickPasswordReset}
                   >
                     パスワードリセット用メールを送信する
                   </Button>
+                  {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
               <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
@@ -117,4 +101,6 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
   }
 }
 
-export default PasswordReset;
+export default reduxForm({
+  form: 'passwordResetForm',
+})(PasswordReset);
