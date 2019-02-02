@@ -75,7 +75,6 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
   );
 
   public handleSubmit = (values: FormParams) => {
-    console.log(values);
     const newPasswordErrMsg = validatePasswordWithErrMsg(values.newPassword);
     const confirmNewPasswordErrMsg = values.newPassword === values.confirmNewPassword ? '' : 'パスワードが一致しません';
     if (newPasswordErrMsg || confirmNewPasswordErrMsg) {

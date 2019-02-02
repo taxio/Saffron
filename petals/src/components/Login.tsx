@@ -23,7 +23,6 @@ interface LoginState {}
 class Login extends React.Component<LoginProps, LoginState> {
   constructor(props: LoginProps) {
     super(props);
-    console.log(this.props);
   }
 
   public componentWillMount() {

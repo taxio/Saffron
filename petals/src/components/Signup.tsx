@@ -62,7 +62,6 @@ class Signup extends React.Component<SignupProps, SignupState> {
   );
 
   public handleSubmit = (values: FormParams) => {
-    console.log(values);
     const usernameErrMsg = validateUsernameWithErrMsg(values.username);
     const passwordErrMsg = validatePasswordWithErrMsg(values.password);
     const confirmPasswordErrMsg = values.password === values.confirmPassword ? '' : 'パスワードが一致しません';
