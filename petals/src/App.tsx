@@ -18,7 +18,7 @@ import ProfileEdit from './components/ProfileEdit';
 import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
 
-const App = () => (
+const App: React.FC = () => (
   <MuiThemeProvider theme={muiTheme}>
     <BrowserRouter>
       <React.Fragment>
@@ -38,7 +38,7 @@ const App = () => (
   </MuiThemeProvider>
 );
 
-const AuthRouter = () => (
+const AuthRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/auth/login`} component={Login} />
     <Route exact={true} path={`/auth/signup`} component={Signup} />
@@ -48,14 +48,14 @@ const AuthRouter = () => (
   </Switch>
 );
 
-const ProfileRouter = () => (
+const ProfileRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/profile`} component={Profile} />
     <Route exact={true} path={`/profile/edit`} component={ProfileEdit} />
   </Switch>
 );
 
-const CourseRouter = () => (
+const CourseRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/course/admin`} component={CourseAdmin} />
   </Switch>

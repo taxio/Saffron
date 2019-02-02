@@ -4,7 +4,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 interface HomeProps extends RouteComponentProps {}
 
-const Home: React.SFC<HomeProps> = props => (
+const Home: React.FC<HomeProps> = props => (
   <Grid container={true} justify="center">
     <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
       <Card style={{ marginTop: 30, padding: 20 }}>
