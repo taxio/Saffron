@@ -34,4 +34,4 @@ FROM nginx:stable-alpine as production
 
 COPY conf/petals.prod.conf /etc/nginx/conf.d/default.conf
 
-COPY --from=build /opt/petals/build/ /usr/share/www/html/front
+COPY --from=build /opt/petals/dist/ /usr/share/www/html/front
