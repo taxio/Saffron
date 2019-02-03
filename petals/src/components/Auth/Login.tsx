@@ -10,9 +10,9 @@ import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
-import { AuthAction, setLoginState } from '../actions/auth';
-import * as auth from '../api/auth';
-import { PetalsStore } from '../store';
+import { AuthAction, setLoginState } from '../../actions/auth';
+import * as auth from '../../api/auth';
+import { PetalsStore } from '../../store/index';
 
 interface FormParams {
   username: string;

@@ -4,18 +4,13 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { muiTheme } from './lib/theme';
 
 import About from './components/About';
-import Activation from './components/Auth/Activation';
-import ChangePassword from './components/Auth/ChangePassword';
-import PasswordResetActivation from './components/Auth/PasswordResetActivation';
+import * as AuthComponents from './components/Auth';
 import CourseAdmin from './components/CourseAdmin';
 import Header from './components/Header';
 import Home from './components/Home';
-import Login from './components/Login';
 import NotFound from './components/NotFound';
-import PasswordReset from './components/PasswordReset';
 import Profile from './components/Profile';
 import ProfileEdit from './components/ProfileEdit';
-import Signup from './components/Signup';
 import TermsOfService from './components/TermsOfService';
 
 const App: React.FC = () => (
@@ -30,8 +25,8 @@ const App: React.FC = () => (
           <Route path="/course" component={CourseRouter} />
           <Route exact={true} path="/about" component={About} />
           <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
-          <Route exact={true} path="/activate" component={Activation} />
-          <Route exact={true} path="/password/reset/confirm" component={PasswordResetActivation} />
+          <Route exact={true} path="/activate" component={AuthComponents.Activation} />
+          <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
         </Switch>
       </React.Fragment>
     </BrowserRouter>
@@ -40,10 +35,10 @@ const App: React.FC = () => (
 
 const AuthRouter: React.FC = () => (
   <Switch>
-    <Route exact={true} path={`/auth/login`} component={Login} />
-    <Route exact={true} path={`/auth/signup`} component={Signup} />
-    <Route exact={true} path={`/auth/passwordreset`} component={PasswordReset} />
-    <Route exact={true} path={`/auth/password/change`} component={ChangePassword} />
+    <Route exact={true} path={`/auth/login`} component={AuthComponents.Login} />
+    <Route exact={true} path={`/auth/signup`} component={AuthComponents.Signup} />
+    <Route exact={true} path={`/auth/passwordreset`} component={AuthComponents.PasswordReset} />
+    <Route exact={true} path={`/auth/password/change`} component={AuthComponents.ChangePassword} />
     <Route exact={true} component={NotFound} />
   </Switch>
 );

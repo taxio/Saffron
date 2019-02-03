@@ -14,8 +14,8 @@ import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
-import { createUser } from '../api/users';
-import { validatePasswordWithErrMsg, validateUsernameWithErrMsg } from '../lib/validations';
+import { createUser } from '../../api/users';
+import { validatePasswordWithErrMsg, validateUsernameWithErrMsg } from '../../lib/validations';
 
 interface FormParams {
   username: string;

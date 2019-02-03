@@ -12,7 +12,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
-import { resetPassword } from '../api/password';
+import { resetPassword } from '../../api/password';
 
 interface FormParams {
   email: string;
