@@ -15,8 +15,9 @@
     "redux-form": "^8.1.0"
   },
   "scripts": {
-    "start": "parcel serve -p 3000 public/index.html",
-    "build": "parcel build public/index.html",
+    "start": "NODE_ENV=development parcel serve -p 3000 public/index.html",
+    "build": "NODE_ENV=production parcel build --no-source-maps public/index.html",
+    "qa-build": "rm -rf dist & NODE_ENV=development parcel build public/index.html",
     "prebuild": "rm -rf dist",
     "test": "jest",
     "tslint:prettier-check": "tslint-config-prettier-check ./tslint.json",
