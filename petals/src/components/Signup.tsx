@@ -1,17 +1,15 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  Grid,
-  TextField,
-} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Checkbox from '@material-ui/core/Checkbox';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
