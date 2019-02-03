@@ -6,7 +6,6 @@
     "@material-ui/core": "^3.7.1",
     "@material-ui/icons": "^3.0.1",
     "parcel-bundler": "^1.11.0",
-    "parcel-plugin-typescript": "^1.0.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-redux": "^6.0.0",
@@ -16,13 +15,14 @@
     "redux-form": "^8.1.0"
   },
   "scripts": {
-    "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
+    "start": "parcel serve -p 3000 public/index.html",
+    "build": "parcel build public/index.html",
+    "prebuild": "rm -rf dist",
     "test": "jest",
-    "eject": "react-scripts-ts eject",
     "tslint:prettier-check": "tslint-config-prettier-check ./tslint.json",
     "tslint": "tslint --fix --force --format stylish --project ./tsconfig.json ./{src,__tests__}/**/*.{ts,tsx}",
-    "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}"
+    "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}",
+    "clean": "rm -rf .cache & rm -rf dist"
   },
   "prettier": {
     "semi": true,
