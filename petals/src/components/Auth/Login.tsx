@@ -11,6 +11,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import { AuthAction, setLoginState } from '../../actions/auth';
+import * as AppErr from '../../api/AppErrors';
 import * as auth from '../../api/auth';
 import { PetalsStore } from '../../store/index';
 
@@ -41,9 +42,8 @@ class Login extends React.Component<LoginProps, LoginState> {
     let errMsg = '';
     let usernameErrMsg = '';
     let passwordErrMsg = '';
-    // TODO: validation
     if (!values.username) {
-      usernameErrMsg = 'メールアドレスを入力してください';
+      usernameErrMsg = 'ユーザー名を入力してください';
       errMsg = '未入力項目があります';
     }
     if (!values.password) {
@@ -53,14 +53,20 @@ class Login extends React.Component<LoginProps, LoginState> {
     if (usernameErrMsg || passwordErrMsg) {
       throw new SubmissionError({ username: usernameErrMsg, password: passwordErrMsg, _error: errMsg });
     }
-    return auth.login(values.username, values.password).then(success => {
-      if (!success) {
-        throw new SubmissionError({ _error: 'パスワードかユーザー名が間違っています' });
-      }
 
-      this.props.setLoginState(true);
-      this.props.history.push('/profile');
-    });
+    return auth
+      .jwtCreate(values.username, values.password)
+      .then(res => {
+        localStorage.setItem('token', res.token);
+        this.props.setLoginState(true);
+        this.props.history.push('/profile');
+      })
+      .catch(e => {
+        switch (e.constructor) {
+          case AppErr.BadRequestError:
+            throw new SubmissionError({ _error: 'パスワードかユーザー名が間違っています' });
+        }
+      });
   };
 
   public renderField = (props: WrappedFieldProps & { label: string; type: string }) => (

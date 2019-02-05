@@ -1,38 +1,5 @@
 import * as util from './util';
 
-export enum PasswordValidationError {
-  NONE,
-  NO_INPUT,
-  LENGTH,
-  UNAVAILABLE,
-}
-
-const PasswordRegex = new RegExp('[^\x21-\x7e]+');
-
-export const validatePassword = (password: string): PasswordValidationError => {
-  if (password.length === 0) {
-    return PasswordValidationError.NO_INPUT;
-  }
-  if (password.length < 8) {
-    return PasswordValidationError.LENGTH;
-  }
-
-  // 使用可能文字チェック
-  const ret = password.match(PasswordRegex);
-  if (ret) {
-    return PasswordValidationError.UNAVAILABLE;
-  }
-
-  return PasswordValidationError.NONE;
-};
-
-const UsernameRegex = new RegExp('^[bmd]\\d{7}$');
-
-export const validateUsername = (email: string): boolean => {
-  const ret = email.match(UsernameRegex);
-  return Boolean(ret);
-};
-
 interface JwtCreateRequest {
   username: string;
   password: string;
@@ -43,24 +10,12 @@ interface JwtCreateResponse {
   non_field_errors: string[];
 }
 
-const jwtCreate = async (data: JwtCreateRequest): Promise<JwtCreateResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data, false);
-  if (res.status >= 400) {
-    throw await res.json();
-  }
-  return await res.json();
-};
-
-export const login = async (username: string, password: string): Promise<boolean> => {
-  const req: JwtCreateRequest = { username, password };
-  return jwtCreate(req)
-    .then(res => {
-      localStorage.setItem('token', res.token);
-      return true;
-    })
-    .catch(errJson => {
-      return false;
-    });
+export const jwtCreate = async (username: string, password: string): Promise<JwtCreateResponse> => {
+  const data: JwtCreateRequest = {
+    username,
+    password,
+  };
+  return util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data, false);
 };
 
 export const logout = () => {
