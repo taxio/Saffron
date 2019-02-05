@@ -1,3 +1,5 @@
+import * as AppErr from './AppErrors';
+
 export enum Methods {
   Get,
   Post,
@@ -16,12 +18,28 @@ const convertMethodName = (method: Methods): string => {
   throw new Error(`${method} not found`);
 };
 
-export const sendRequest = async (
-  method: Methods,
-  path: string,
-  data: object,
-  auth: boolean = true
-): Promise<Response> => {
+const handleFetchErrors = (res: Response): Response => {
+  if (res.ok) {
+    return res;
+  }
+
+  switch (res.status) {
+    case 400:
+      throw new AppErr.BadRequestError('Bad Request');
+    case 401:
+      throw new AppErr.UnAuthorizedError('ログインしてください');
+    case 404:
+      throw new AppErr.NotFoundError('Not Found');
+    case 500:
+      throw new AppErr.InternalServerError('Internal Server Error');
+    case 502:
+      throw new AppErr.BadGateWayError('Bad Gateway');
+    default:
+      throw new AppErr.UnhandledError('予期しないエラーが起こりました');
+  }
+};
+
+export const sendRequest = async (method: Methods, path: string, data: object, auth: boolean = true): Promise<any> => {
   const headers: Headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
@@ -45,7 +63,14 @@ export const sendRequest = async (
       break;
   }
 
-  return await fetch(url, options);
+  return fetch(url, options)
+    .catch(e => {
+      throw Error(e);
+    })
+    .then(handleFetchErrors)
+    .then(res => {
+      return res.json();
+    });
 };
 
 export const convertGetQueries = (data: object): string => {
