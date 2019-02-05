@@ -69,7 +69,7 @@ export const sendRequest = async (method: Methods, path: string, data: object, a
     })
     .then(handleFetchErrors)
     .then(res => {
-      return res.json();
+      return res.status === 204 ? {} : res.json();
     });
 };
 
