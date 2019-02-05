@@ -12,8 +12,8 @@ import { Dispatch } from 'redux';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import { AuthAction, setLoginState } from '../../actions/auth';
 import * as AppErr from '../../api/AppErrors';
-import * as auth from '../../api/auth';
-import { PetalsStore } from '../../store/index';
+import * as auth from '../../lib/auth';
+import { PetalsStore } from '../../store';
 
 interface FormParams {
   username: string;
@@ -55,9 +55,8 @@ class Login extends React.Component<LoginProps, LoginState> {
     }
 
     return auth
-      .jwtCreate(values.username, values.password)
-      .then(res => {
-        localStorage.setItem('token', res.token);
+      .login(values.username, values.password)
+      .then(() => {
         this.props.setLoginState(true);
         this.props.history.push('/profile');
       })
@@ -65,6 +64,8 @@ class Login extends React.Component<LoginProps, LoginState> {
         switch (e.constructor) {
           case AppErr.BadRequestError:
             throw new SubmissionError({ _error: 'パスワードかユーザー名が間違っています' });
+          default:
+            throw new SubmissionError({ _error: '予期せぬエラーが発生しました' });
         }
       });
   };

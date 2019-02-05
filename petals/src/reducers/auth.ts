@@ -1,5 +1,5 @@
 import { AuthAction, AuthActionType } from '../actions/auth';
-import { isLogin } from '../api/auth';
+import { isLogin } from '../lib/auth';
 import { AuthState } from '../store';
 
 const initialState: AuthState = {
@@ -10,6 +10,7 @@ function auth(state: AuthState = initialState, action: AuthAction): AuthState {
   switch (action.type) {
     case AuthActionType.SET_LOGIN_STATE:
       return {
+        ...state,
         isLogin: action.isLogin,
       };
 
