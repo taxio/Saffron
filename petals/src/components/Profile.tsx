@@ -20,8 +20,8 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 import { joinCourse } from '../api/courses';
-import { getMeInfo } from '../api/users';
-import { getYearCouseList } from '../api/years';
+import * as usersApi from '../api/users';
+import * as yearApi from '../api/years';
 
 interface ProfileProps extends RouteComponentProps {}
 
@@ -73,7 +73,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       return;
     }
 
-    getMeInfo().then(res => {
+    usersApi.getMeInfo().then(res => {
       this.setState({
         isLoading: false,
         username: res.username,
@@ -84,7 +84,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       });
     });
 
-    getYearCouseList().then(res => {
+    yearApi.getYears().then(res => {
       this.setState({ yearCourseList: res });
     });
   }
