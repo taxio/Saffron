@@ -295,6 +295,9 @@ def set_config_cache(sender, instance: 'Config', **kwargs):
     :param kwargs:
     :return:
     """
-    config_dict = instance.__dict__
+    config_dict = {
+        'show_gpa': instance.show_gpa,
+        'show_username': instance.show_username
+    }
     cache_key = f"course-config-{instance.course_id}"
     cache.set(cache_key, config_dict)

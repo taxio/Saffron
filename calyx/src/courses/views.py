@@ -9,7 +9,7 @@ from .serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
     UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer
 )
-from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
+from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin, SatisfyCourseRequirements
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 
@@ -43,7 +43,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         if self.action == 'list' or self.action == 'create':
             self.permission_classes = [permissions.IsAuthenticated]
         elif self.action == 'retrieve':
-            self.permission_classes = [IsCourseMember | IsAdmin]
+            self.permission_classes = [(IsCourseMember | IsAdmin) & SatisfyCourseRequirements]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseViewSet, self).get_permissions()
