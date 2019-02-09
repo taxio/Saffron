@@ -87,6 +87,14 @@ DATABASES = {
     }
 }
 
+# TODO: 本番環境ではRedisかMemcachedにした方が良い
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
 DEFAULT_FROM_EMAIL = os.getenv('CALYX_EMAIL_DEFAULT_FROM', 'example@example.com')
 EMAIL_ENABLED = os.getenv('CALYX_EMAIL_ENABLED', 'False').lower() == 'true'
 
