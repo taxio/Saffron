@@ -2,10 +2,19 @@ export interface RequestError {
   non_field_errors: string[] | null;
 }
 
+export interface CourseConfig {
+  show_gpa: boolean;
+  show_username: boolean;
+  rank_limit: number;
+}
+
 export interface Course {
   pk: number;
   name: string;
   year: number;
+  config: CourseConfig;
+  users: User[];
+  is_admin: boolean;
 }
 
 export interface Year {
@@ -23,4 +32,11 @@ export interface User {
   is_admin: boolean;
   joined: boolean;
   courses: Course[];
+}
+
+export interface Lab {
+  pk: number;
+  name: string;
+  capacity: number;
+  rank_set: User[];
 }
