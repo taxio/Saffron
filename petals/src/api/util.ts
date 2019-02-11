@@ -1,6 +1,7 @@
 import * as AppErr from './AppErrors';
 
 export enum Methods {
+  Delete,
   Get,
   Post,
   Patch,
@@ -8,6 +9,8 @@ export enum Methods {
 
 const convertMethodName = (method: Methods): string => {
   switch (method) {
+    case Methods.Delete:
+      return 'DELETE';
     case Methods.Get:
       return 'GET';
     case Methods.Post:

@@ -1,99 +1,143 @@
+import * as model from '../model';
 import * as util from './util';
+import { deleteNullObj } from '../lib/util';
 
-interface Course {
-  pk: number;
-  name: string;
-  year: number;
-}
-
-const getCourses = async (): Promise<Course[]> => {
-  const res = await util.sendRequest(util.Methods.Get, '/courses/', {});
-  if (res.status >= 400) {
-    throw await res.json();
-  }
-  return await res.json();
+export const getCourses = async (): Promise<model.Course[]> => {
+  return util.sendRequest(util.Methods.Get, '/courses/', {}, true);
 };
-
-export const getCouseList = async (): Promise<Course[]> => {
-  return getCourses().then(res => {
-    return res;
-  });
-};
-
-interface Config {
-  show_gpa: boolean;
-  show_username: boolean;
-}
 
 interface PostCourseRequest {
   name: string;
   pin_code: string;
   year: number;
-  config: Config;
+  config: {
+    show_username: boolean;
+    show_gpa: boolean;
+  };
 }
 
-const postCourse = async (data: PostCourseRequest): Promise<Course> => {
-  const res = await util.sendRequest(util.Methods.Post, '/courses/', data);
-  if (res.status >= 400) {
-    throw await res.json();
-  }
-  return await res.json();
-};
-
-export const createCourse = async (
+export const postCourse = async (
   name: string,
   pinCode: string,
   year: number,
-  showGpa: boolean,
-  showUsername: boolean
-): Promise<Course> => {
-  const req: PostCourseRequest = {
+  showName: boolean,
+  showGPA: boolean
+): Promise<model.Course> => {
+  const data: PostCourseRequest = {
     name,
     pin_code: pinCode,
     year,
-    config: { show_gpa: showGpa, show_username: showUsername },
+    config: {
+      show_username: showName,
+      show_gpa: showGPA,
+    },
   };
-  return postCourse(req).then(res => {
-    return res;
-  });
+  return util.sendRequest(util.Methods.Post, '/courses/', data, true);
+};
+
+export const getAdmins = async (coursePk: number): Promise<model.User[]> => {
+  return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/admins/`, {}, true);
+};
+
+export const patchAdmin = async (coursePk: number, userPk: number): Promise<{}> => {
+  return util.sendRequest(util.Methods.Patch, `/courses/${coursePk}/admins/${userPk}/`, {}, true);
+};
+
+export const deleteAdmin = async (coursePk: number, userPk: number): Promise<{}> => {
+  return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/admins/${userPk}/`, {}, true);
+};
+
+export const getConfig = async (coursePk: number): Promise<model.CourseConfig> => {
+  return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/config/`, {}, true);
+};
+
+interface PostConfigRequest {
+  show_gpa: boolean;
+  show_username: boolean;
+  rank_limit: number;
+}
+
+export const postConfig = async (coursePk: number, showGPA: boolean, showName: boolean): Promise<{}> => {
+  const data: PostConfigRequest = {
+    show_gpa: showGPA,
+    show_username: showName,
+    rank_limit: 3,
+  };
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/config/`, data, true);
 };
 
 interface JoinRequest {
   pin_code: string;
 }
 
-interface JoinResponse extends Course {
-  non_field_errors: string;
-  pin_code: string;
-}
-
-const postJoin = async (coursePk: number, data: JoinRequest): Promise<JoinResponse> => {
-  const res = await util.sendRequest(util.Methods.Post, `/courses/${coursePk}/join/`, data);
-  if (res.status >= 400) {
-    throw await res.json();
-  }
-  return await res.json();
+export const join = async (coursePk: number, pinCode: string): Promise<model.Course> => {
+  const data: JoinRequest = { pin_code: pinCode };
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/join/`, data, true);
 };
 
-export const joinCourse = async (coursePk: number, pinCode: string): Promise<JoinResponse> => {
-  const req: JoinRequest = { pin_code: pinCode };
-  return postJoin(coursePk, req);
+export const getLabs = async (coursePk: number): Promise<model.Lab[]> => {
+  return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/labs/`, {}, true);
 };
 
-interface Lab {
+interface PostLabRequest {
   name: string;
   capacity: number;
 }
 
-const postLabs = async (courseId: number, data: Lab): Promise<{}> => {
-  const res = await util.sendRequest(util.Methods.Post, `/courses/${courseId}/labs/`, data);
-  if (res.status >= 400) {
-    throw await res.json();
-  }
-  return await res.json();
+export const postLab = async (coursePk: number, name: string, capacity: number): Promise<model.Lab> => {
+  const data: PostLabRequest = { name, capacity };
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/labs/`, data, true);
 };
 
-export const addLab = async (courseId: number, labName: string, labCapacity: number): Promise<{}> => {
-  const req: Lab = { name: labName, capacity: labCapacity };
-  return postLabs(courseId, req);
+export const patchLab = async (coursePk: number, labPk: number): Promise<model.Lab> => {
+  return util.sendRequest(util.Methods.Patch, `/courses/${coursePk}/labs/${labPk}/`, {}, true);
+};
+
+export const deleteLab = async (coursePk: number, labPk: number): Promise<{}> => {
+  return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/labs/${labPk}/`, {}, true);
+};
+
+export const getRanks = async (coursePk: number): Promise<model.Rank> => {
+  return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/ranks/`, {}, true);
+};
+
+// TODO: postRanks
+
+export const getCourse = async (coursePk: number): Promise<model.Course> => {
+  return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/`, {}, true);
+};
+
+interface PatchCourseRequest {
+  name: string | null;
+  pin_code: string | null;
+  year: number | null;
+  config: {
+    show_username: boolean | null;
+    show_gpa: boolean | null;
+  };
+}
+
+export const patchCourse = async (
+  coursePk: number,
+  name: string | null = null,
+  pinCode: string | null = null,
+  year: number | null = null,
+  showName: boolean | null = null,
+  showGPA: boolean | null = null
+): Promise<model.Course> => {
+  const data: PatchCourseRequest = {
+    name,
+    pin_code: pinCode,
+    year,
+    config: {
+      show_username: showName,
+      show_gpa: showGPA,
+    },
+  };
+  const normalized = deleteNullObj(data);
+  return util.sendRequest(util.Methods.Patch, `/courses/${coursePk}/`, normalized, true);
+};
+
+export const deleteCourse = async (coursePk: number): Promise<{}> => {
+  return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/`, {}, true);
 };
