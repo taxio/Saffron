@@ -89,8 +89,14 @@ export const postLab = async (coursePk: number, name: string, capacity: number):
   return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/labs/`, data, true);
 };
 
-export const patchLab = async (coursePk: number, labPk: number): Promise<model.Lab> => {
-  return util.sendRequest(util.Methods.Patch, `/courses/${coursePk}/labs/${labPk}/`, {}, true);
+export const patchLab = async (
+  coursePk: number,
+  labPk: number,
+  name: string | null,
+  capacity: number | null
+): Promise<model.Lab> => {
+  const data = deleteNullObj({ name, capacity });
+  return util.sendRequest(util.Methods.Patch, `/courses/${coursePk}/labs/${labPk}/`, data, true);
 };
 
 export const deleteLab = async (coursePk: number, labPk: number): Promise<{}> => {
