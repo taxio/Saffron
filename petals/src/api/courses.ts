@@ -1,6 +1,6 @@
+import { deleteNullObj } from '../lib/util';
 import * as model from '../model';
 import * as util from './util';
-import { deleteNullObj } from '../lib/util';
 
 export const getCourses = async (): Promise<model.Course[]> => {
   return util.sendRequest(util.Methods.Get, '/courses/', {}, true);
@@ -97,11 +97,17 @@ export const deleteLab = async (coursePk: number, labPk: number): Promise<{}> =>
   return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/labs/${labPk}/`, {}, true);
 };
 
-export const getRanks = async (coursePk: number): Promise<model.Rank> => {
+export const getRanks = async (coursePk: number): Promise<model.Course[]> => {
   return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/ranks/`, {}, true);
 };
 
-// TODO: postRanks
+export const postRanks = async (coursePk: number, labPks: number[]): Promise<{}> => {
+  const data: any[] = [];
+  labPks.forEach(labPk => {
+    data.push({ lab: labPk });
+  });
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/ranks/`, data, true);
+};
 
 export const getCourse = async (coursePk: number): Promise<model.Course> => {
   return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/`, {}, true);

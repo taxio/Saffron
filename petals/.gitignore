@@ -23,3 +23,5 @@ yarn-error.log*
 # parcel
 dist/
 .cache/
+
+/src/playground.test.ts

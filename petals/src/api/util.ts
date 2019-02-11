@@ -42,7 +42,12 @@ const handleFetchErrors = (res: Response): Response => {
   }
 };
 
-export const sendRequest = async (method: Methods, path: string, data: object, auth: boolean = true): Promise<any> => {
+export const sendRequest = async (
+  method: Methods,
+  path: string,
+  data: object | any[],
+  auth: boolean = true
+): Promise<any> => {
   const headers: Headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
