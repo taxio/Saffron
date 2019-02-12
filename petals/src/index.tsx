@@ -5,9 +5,10 @@ import { Store } from 'redux';
 import App from './App';
 import { bodyTheme } from './lib/theme';
 import registerServiceWorker from './registerServiceWorker';
-import { configureStore, PetalsStore } from './store';
+import { configureStore, initSaga, PetalsStore } from './store';
 
 const store: Store<PetalsStore> = configureStore();
+initSaga();
 
 document.body.style.backgroundColor = bodyTheme.backgroundColor;
 document.body.style.margin = bodyTheme.margin;
