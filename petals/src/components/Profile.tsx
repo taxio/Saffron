@@ -43,6 +43,7 @@ interface ProfileState {
   selectedYear: number;
   selectedCourse: number;
   pinCode: string;
+  joinErrMsg: string;
 }
 
 class Profile extends React.Component<ProfileProps, ProfileState> {
@@ -55,6 +56,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
       selectedYear: 0,
       selectedCourse: 0,
       pinCode: '',
+      joinErrMsg: '',
     };
   }
 
@@ -249,11 +251,11 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                     onChange={this.handleChangePinCode}
                   />
                 </FormControl>
-                {/* {this.state.joinErrMsg ? (
+                {this.state.joinErrMsg ? (
                   <FormControl fullWidth={true} style={{ marginTop: 10 }} error={true}>
                     <FormHelperText>{this.state.joinErrMsg}</FormHelperText>
                   </FormControl>
-                ) : null} */}
+                ) : null}
               </form>
             </DialogContent>
             <DialogActions>
