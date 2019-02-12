@@ -31,6 +31,8 @@ const handleFetchErrors = (res: Response): Response => {
       throw new AppErr.BadRequestError('Bad Request');
     case 401:
       throw new AppErr.UnAuthorizedError('ログインしてください');
+    case 403:
+      throw new AppErr.ForbiddenError('アクセス権限がありません');
     case 404:
       throw new AppErr.NotFoundError('Not Found');
     case 500:
