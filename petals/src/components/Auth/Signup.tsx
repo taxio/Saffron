@@ -41,7 +41,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
 
   public renderTextField = (props: WrappedFieldProps & { label: string; type: string }) => (
     <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
-      <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+      <TextField label={props.label} margin="normal" autoComplete="off" type={props.type} {...props.input} />
       {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
     </FormControl>
   );
