@@ -1,7 +1,14 @@
 import json
 from copy import deepcopy
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 from rest_framework_jwt.settings import api_settings
+
+from courses.models import Lab, Rank
+
+if TYPE_CHECKING:
+    from courses.models import Course
+    from typing import List, Dict
 
 
 years = [2017, 2018, 2019]
@@ -67,6 +74,19 @@ class DatasetMixin(object):
     def to_dict(self, data: OrderedDict) -> dict:
         """OrderedDictを標準のdictに変換する"""
         return json.loads(json.dumps(data, ensure_ascii=False))
+
+    def create_labs(self, course: 'Course') -> 'List[Lab]':
+        return [Lab.objects.create(**lab_data, course=course) for lab_data in self.lab_data_set]
+
+    def submit_ranks(self, labs: "List[Lab]", user) -> 'List[Rank]':
+        ranks = []
+        for i, lab in enumerate(labs):
+            rank = Rank.objects.create(lab=lab, course=lab.course, user=user, order=i)
+            ranks.append(rank)
+        return ranks
+
+    def create_rank_order(self, labs: 'List[Lab]') -> 'List[Dict[str, int]]':
+        return [{'lab': lab.pk for lab in labs}]
 
 
 class JWTAuthMixin(object):

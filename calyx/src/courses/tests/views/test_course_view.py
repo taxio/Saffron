@@ -16,7 +16,6 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
     def test_list(self):
         """GET /course/"""
         course = Course.objects.create_course(**self.course_data_set[0])
-        course.join(self.user, self.course_data_set[0]['pin_code'])
         expected_json = [
             {
                 "pk": course.pk,
@@ -74,14 +73,6 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         """GET /course/<pk>/"""
         course_data = self.course_data_set[0]
         course = Course.objects.create_course(**course_data)
-        # ログインしていなければ詳細を閲覧できない
-        self._unset_credentials()
-        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(401, resp.status_code)
-        self._set_credentials()
-        # 参加していないユーザは詳細を閲覧できない
-        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(403, resp.status_code)
         # 参加しているユーザは閲覧できる
         course.join(self.user, course_data['pin_code'])
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
@@ -101,6 +92,57 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
+
+    def test_retrieve_permissions(self):
+        """GET /courses/<pk>/"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        # ログインしていなければ詳細を閲覧できない
+        self._unset_credentials()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # 参加していないユーザは詳細を閲覧できない
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+
+    def test_retrieve_permission_gpa(self):
+        """GET /courses/<pk>/"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        # 課程へ加入
+        course.join(self.user, course_data['pin_code'])
+        # GPA必須の場合，未入力では閲覧できない
+        course.config.show_gpa = True
+        course.config.save()
+        self.user.gpa = None
+        self.user.save()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # GPAを入力すれば閲覧できる
+        self.user.gpa = 2.0
+        self.user.save()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_retrieve_permission_username(self):
+        """GET /courses/<pk>/"""
+        course_data = self.course_data_set[0]
+        course = Course.objects.create_course(**course_data)
+        # 課程へ加入
+        course.join(self.user, course_data['pin_code'])
+        # screen_name必須の場合，未入力では閲覧できない
+        course.config.show_username = True
+        course.config.save()
+        self.user.screen_name = None
+        self.user.save()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(403, resp.status_code)
+        # GPAを入力すれば閲覧できる
+        self.user.screen_name = 'test_user'
+        self.user.save()
+        resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
+        self.assertEqual(200, resp.status_code)
 
     def test_patch(self):
         """PATCH /courses/<pk>/"""

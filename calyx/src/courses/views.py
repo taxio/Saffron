@@ -9,7 +9,9 @@ from .serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
     UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer
 )
-from .permissions import IsAdmin, IsCourseMember, IsCourseAdmin
+from .permissions import (
+    IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
+)
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 
@@ -43,7 +45,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         if self.action == 'list' or self.action == 'create':
             self.permission_classes = [permissions.IsAuthenticated]
         elif self.action == 'retrieve':
-            self.permission_classes = [IsCourseMember | IsAdmin]
+            self.permission_classes = [(IsCourseMember | IsAdmin) & GPARequirement & ScreenNameRequirement]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseViewSet, self).get_permissions()
@@ -249,8 +251,11 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return LabSerializer
 
     def get_permissions(self):
-        if self.action == "list" or self.action == "retrieve":
+        if self.action == "list":
             self.permission_classes = [IsCourseMember | IsAdmin]
+        elif self.action == "retrieve":
+            self.permission_classes = [(IsCourseMember | IsAdmin) & GPARequirement &
+                                       ScreenNameRequirement & RankSubmitted]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(LabViewSet, self).get_permissions()

@@ -2,6 +2,7 @@ import unicodedata
 
 from typing import TYPE_CHECKING
 from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.db import models, transaction, IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import get_user_model
@@ -283,3 +284,21 @@ def move_up_ranks(sender, instance: 'Lab', **kwargs):
         # 最後の志望の研究室はNULLにする
         rank_to_del.lab = None
         rank_to_del.save()
+
+
+@receiver(models.signals.post_save, sender=Config)
+def set_config_cache(sender, instance: 'Config', **kwargs):
+    """
+    設定が更新されたときにキャッシュも更新する
+    :param sender: Modelクラス
+    :param instance: 設定のインスタンス
+    :param kwargs:
+    :return:
+    """
+    config_dict = {
+        'show_gpa': instance.show_gpa,
+        'show_username': instance.show_username,
+        'rank_limit': instance.rank_limit,
+    }
+    cache_key = f"course-config-{instance.course_id}"
+    cache.set(cache_key, config_dict)
