@@ -8,10 +8,13 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
-import { editMeInfo, getMeInfo } from '../api/users';
+
+import * as AppErr from '../api/AppErrors';
+import * as meApi from '../api/me';
 
 interface FormParams {
   screenName: string;
@@ -39,7 +42,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
   }
 
   public componentDidMount() {
-    getMeInfo().then(res => {
+    meApi.getMe().then(res => {
       this.setState({
         username: res.username,
         email: res.email,
@@ -60,12 +63,17 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
       throw new SubmissionError({ screenName: '未入力です', _error: '入力内容に誤りがあります' });
     }
 
-    return editMeInfo(this.state.screenName, this.state.gpa).then(success => {
-      if (!success) {
-        throw new SubmissionError({ _error: 'プロフィールの更新に失敗しました' });
-      }
-      this.props.history.push('/profile');
-    });
+    return meApi
+      .patchMe(values.screenName)
+      .then(() => {
+        this.props.history.push('/profile');
+      })
+      .catch(e => {
+        switch (e.constructor) {
+          case AppErr.BadRequestError:
+            throw new SubmissionError({ _error: 'ユーザー情報の更新に失敗しました' });
+        }
+      });
   };
 
   public renderTextField = (props: WrappedFieldProps & { label: string; type: string }) => (

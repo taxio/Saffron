@@ -18,6 +18,7 @@
       "severity": "warning"
     },
     "no-empty-interface": false,
-    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"]
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
+    "max-classes-per-file": [false]
   }
 }

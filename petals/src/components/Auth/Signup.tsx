@@ -14,7 +14,8 @@ import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
-import { createUser } from '../../api/users';
+import * as AppErr from '../../api/AppErrors';
+import * as usersApi from '../../api/users';
 import { validatePasswordWithErrMsg, validateUsernameWithErrMsg } from '../../lib/validations';
 
 interface FormParams {
@@ -75,15 +76,22 @@ class Signup extends React.Component<SignupProps, SignupState> {
       });
     }
 
-    return createUser(values.username, values.password).then(success => {
-      if (!success) {
-        throw new SubmissionError({ _error: 'アカウント作成に失敗しました' });
-      }
-      this.setState({ showDialog: true });
-    });
+    return usersApi
+      .create(values.username, values.password, 'screen test name')
+      .then(() => {
+        this.setState({ showDialog: true });
+      })
+      .catch(e => {
+        switch (e.constructor) {
+          case AppErr.BadRequestError:
+            throw new SubmissionError({ _error: 'アカウント作成に失敗しました' });
+          default:
+            throw new SubmissionError({ _error: '予期せぬエラーが発生しました' });
+        }
+      });
   };
 
-  public handleCloseDialog() {
+  public handleCloseDialog = () => {
     this.props.history.push('/');
   }
 
