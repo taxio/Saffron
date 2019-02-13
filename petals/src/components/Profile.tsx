@@ -116,10 +116,6 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     })[0];
 
     const { user, isFetching, fetchError } = this.props;
-    console.log(user);
-    console.log(isFetching);
-    console.log(fetchError);
-
     if (!user || isFetching || fetchError) {
       return null;
     }
