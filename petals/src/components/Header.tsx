@@ -26,7 +26,7 @@ interface HeaderProps extends RouteComponentProps<any> {
 }
 
 interface HeaderState {
-  anchorEl: any;
+  anchorEl: HTMLElement | null;
   showDialog: boolean;
 }
 
@@ -38,54 +38,45 @@ class Header extends React.Component<HeaderProps, HeaderState> {
       anchorEl: null,
       showDialog: false,
     };
-
-    this.handleOpenDialog = this.handleOpenDialog.bind(this);
-    this.handleCloseDialog = this.handleCloseDialog.bind(this);
-    this.handleLogout = this.handleLogout.bind(this);
-    this.handleMenu = this.handleMenu.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.handleClickLogin = this.handleClickLogin.bind(this);
-    this.handleClickSignup = this.handleClickSignup.bind(this);
-    this.handleToProfile = this.handleToProfile.bind(this);
   }
 
-  public handleOpenDialog() {
-    this.setState({ showDialog: true, anchorEl: false });
-  }
+  public handleOpenDialog = () => {
+    this.setState({ showDialog: true, anchorEl: null });
+  };
 
-  public handleCloseDialog() {
+  public handleCloseDialog = () => {
     this.setState({ showDialog: false });
-  }
+  };
 
-  public handleLogout() {
+  public handleLogout = () => {
     logout();
     this.props.setLoginState(false);
     this.props.history.push('/');
     this.setState({ showDialog: false, anchorEl: null });
-  }
+  };
 
-  public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
+  public handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     this.setState({ anchorEl: e.currentTarget });
-  }
+  };
 
-  public handleClickLogin() {
+  public handleClickLogin = () => {
     this.props.history.push('/auth/login');
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleClickSignup() {
+  public handleClickSignup = () => {
     this.props.history.push('/auth/signup');
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleClose() {
+  public handleClose = () => {
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleToProfile() {
+  public handleToProfile = () => {
     this.props.history.push('/profile');
     this.setState({ anchorEl: null });
-  }
+  };
 
   public render() {
     const anchorEl = this.state.anchorEl;
