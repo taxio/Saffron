@@ -1,7 +1,10 @@
-import { CircularProgress, Grid, Paper, Typography } from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { activateUser } from '../../api/users';
+import * as usersApi from '../../api/users';
 
 interface ActivationMatchParams {
   uid: string;
@@ -51,9 +54,14 @@ class Activation extends React.Component<ActivationProps, ActivationState> {
       return;
     }
 
-    activateUser(this.state.params.uid, this.state.params.token).then(success => {
-      this.setState({ isLoading: false, isActivated: success });
-    });
+    usersApi
+      .activate(this.state.params.uid, this.state.params.token)
+      .then(() => {
+        this.setState({ isLoading: false, isActivated: true });
+      })
+      .catch(e => {
+        this.setState({ isLoading: false, isActivated: false });
+      });
   }
 
   public render(): React.ReactNode {

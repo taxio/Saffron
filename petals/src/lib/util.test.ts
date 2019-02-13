@@ -16,3 +16,35 @@ describe('isIntStr', () => {
     expect(util.isIntStr('')).toBe(false);
   });
 });
+
+describe('deleteNullObj', () => {
+  it('correct', () => {
+    const data = {
+      hoge: 'hoge',
+      foo: null,
+    };
+    const want = {
+      hoge: 'hoge',
+    };
+    expect(util.deleteNullObj(data)).toEqual(want);
+  });
+  it('have nest', () => {
+    const data = {
+      hoge: 'hoge',
+      foo: {
+        piyo: null,
+      },
+      fuga: {
+        a: 100,
+        b: null,
+      },
+    };
+    const want = {
+      hoge: 'hoge',
+      fuga: {
+        a: 100,
+      },
+    };
+    expect(util.deleteNullObj(data)).toEqual(want);
+  });
+});

@@ -1,10 +1,14 @@
-import { Button, Card, CardContent, Grid, Typography } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 interface HomeProps extends RouteComponentProps {}
 
-const Home: React.SFC<HomeProps> = props => (
+const Home: React.FC<HomeProps> = props => (
   <Grid container={true} justify="center">
     <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
       <Card style={{ marginTop: 30, padding: 20 }}>

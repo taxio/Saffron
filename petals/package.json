@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^3.7.1",
     "@material-ui/icons": "^3.0.1",
+    "parcel-bundler": "^1.11.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-redux": "^6.0.0",
@@ -12,17 +13,18 @@
     "react-scripts-ts": "3.1.0",
     "redux": "^4.0.1",
     "redux-form": "^8.1.0",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.2"
+    "redux-saga": "^1.0.1"
   },
   "scripts": {
-    "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
+    "start": "NODE_ENV=development parcel serve -p 3000 public/index.html",
+    "build": "NODE_ENV=production parcel build --no-source-maps public/index.html",
+    "qa-build": "rm -rf dist & NODE_ENV=development parcel build public/index.html",
+    "prebuild": "rm -rf dist",
     "test": "jest",
-    "eject": "react-scripts-ts eject",
     "tslint:prettier-check": "tslint-config-prettier-check ./tslint.json",
     "tslint": "tslint --fix --force --format stylish --project ./tsconfig.json ./{src,__tests__}/**/*.{ts,tsx}",
-    "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}"
+    "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}",
+    "clean": "rm -rf .cache & rm -rf dist"
   },
   "prettier": {
     "semi": true,
@@ -54,6 +56,7 @@
     "@types/react-router-dom": "^4.3.1",
     "@types/redux": "^3.6.0",
     "@types/redux-form": "^7.4.15",
+    "parcel-plugin-bundle-visualiser": "^1.2.0",
     "prettier": "^1.15.3",
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",

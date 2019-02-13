@@ -1,43 +1,47 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormHelperText,
-  Grid,
-  Input,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  Typography,
-} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Grid from '@material-ui/core/Grid';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Paper from '@material-ui/core/Paper';
+import Select from '@material-ui/core/Select';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
+
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
-import { joinCourse } from '../api/courses';
-import { getMeInfo } from '../api/users';
-import { getYearCouseList } from '../api/years';
+import { Dispatch } from 'redux';
 
-interface ProfileProps extends RouteComponentProps {}
+import { UserAction, userFetchRequest } from '../actions/user';
+import * as AppErr from '../api/AppErrors';
+import * as coursesApi from '../api/courses';
+import * as yearsApi from '../api/years';
+import * as model from '../model';
+import { PetalsStore } from '../store';
+
+interface ProfileProps extends RouteComponentProps {
+  fetchUserInfo: () => void;
+  user: model.User | null;
+  isFetching: boolean;
+  fetchError: Error | null;
+}
 
 interface ProfileState {
-  isLoading: boolean;
-  username: string;
-  email: string;
-  screenName: string;
-  isJoinedCourse: boolean;
-  course: any;
+  yearCourseList: model.Year[];
   showSelectPopUp: boolean;
-  selectedCourse: number;
-  yearCourseList: any[];
   selectedYear: number;
+  selectedCourse: number;
   pinCode: string;
   joinErrMsg: string;
 }
@@ -47,96 +51,74 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
     super(props);
 
     this.state = {
-      isLoading: true,
-      username: '',
-      email: '',
-      screenName: '',
-      isJoinedCourse: false,
-      course: {},
-      showSelectPopUp: false,
-      selectedCourse: 0,
       yearCourseList: [],
+      showSelectPopUp: false,
       selectedYear: 0,
+      selectedCourse: 0,
       pinCode: '',
       joinErrMsg: '',
     };
-
-    this.handleClickEdit = this.handleClickEdit.bind(this);
-    this.handleClickSelectCourse = this.handleClickSelectCourse.bind(this);
-    this.handleCloseSelectCourse = this.handleCloseSelectCourse.bind(this);
-    this.handleChangeCourseSelect = this.handleChangeCourseSelect.bind(this);
-    this.handleChangeYearSelect = this.handleChangeYearSelect.bind(this);
-    this.handleChangePinCode = this.handleChangePinCode.bind(this);
-    this.handleJoinCourse = this.handleJoinCourse.bind(this);
   }
 
   public componentDidMount() {
-    if (!this.state.isLoading) {
-      return;
-    }
-
-    getMeInfo().then(res => {
-      this.setState({
-        isLoading: false,
-        username: res.username,
-        email: res.email,
-        screenName: res.screen_name,
-        isJoinedCourse: res.joined,
-        course: res.joined ? res.courses[0] : [],
-      });
-    });
-
-    getYearCouseList().then(res => {
+    yearsApi.getYears().then(res => {
       this.setState({ yearCourseList: res });
     });
+
+    this.props.fetchUserInfo();
   }
 
-  public handleClickEdit() {
+  public handleClickEdit = () => {
     this.props.history.push('/profile/edit');
-  }
+  };
 
-  public handleClickSelectCourse() {
+  public handleClickSelectCourse = () => {
     this.setState({ showSelectPopUp: true });
-  }
+  };
 
-  public handleCloseSelectCourse() {
+  public handleCloseSelectCourse = () => {
     this.setState({ showSelectPopUp: false });
-  }
+  };
 
-  public handleChangeCourseSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+  public handleChangeCourseSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     this.setState({ selectedCourse: parseInt(e.target.value, 10) });
-  }
+  };
 
-  public handleChangeYearSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+  public handleChangeYearSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedYear = parseInt(e.target.value, 10);
     if (this.state.selectedYear !== selectedYear) {
       this.setState({ selectedYear, selectedCourse: 0 });
     }
-  }
+  };
 
-  public handleChangePinCode(e: React.ChangeEvent<HTMLInputElement>) {
+  public handleChangePinCode = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ pinCode: e.target.value });
-  }
+  };
 
-  public handleJoinCourse() {
-    joinCourse(this.state.selectedCourse, this.state.pinCode)
+  public handleJoinCourse = () => {
+    coursesApi
+      .join(this.state.selectedCourse, this.state.pinCode)
       .then(res => {
+        // TODO: move to 'course/{coursePk}'
         this.props.history.push('/');
       })
-      .catch(errJson => {
-        for (const key in errJson) {
-          if (!errJson[key]) {
-            continue;
-          }
-          this.setState({ joinErrMsg: errJson[key] });
+      .catch(e => {
+        switch (e.constructor) {
+          case AppErr.UnAuthorizedError:
+            this.props.history.push('/login');
         }
       });
-  }
+  };
 
   public render(): React.ReactNode {
     const yearCourse: any = this.state.yearCourseList.filter(e => {
       return e.year === this.state.selectedYear;
     })[0];
+
+    const { user, isFetching, fetchError } = this.props;
+    if (!user || isFetching || fetchError) {
+      return null;
+    }
 
     return (
       <Grid container={true} justify="center">
@@ -152,7 +134,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
             >
               <Grid item={true} xs={7}>
                 <Typography style={{ color: '#DDDDDD' }}>ユーザーID</Typography>
-                <Typography variant="h6">{this.state.username}</Typography>
+                <Typography variant="h6">{user.username}</Typography>
               </Grid>
               <Grid item={true} xs={5}>
                 <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
@@ -165,15 +147,15 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
               <TableBody>
                 <TableRow>
                   <TableCell padding="dense">メール</TableCell>
-                  <TableCell>{this.state.email}</TableCell>
+                  <TableCell>{user.email}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell padding="dense">ユーザー名</TableCell>
-                  <TableCell>{this.state.screenName}</TableCell>
+                  <TableCell>{user.screen_name}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
-            {this.state.isJoinedCourse ? (
+            {user.joined ? (
               <div style={{ marginTop: 20 }}>
                 <Grid
                   container={true}
@@ -184,7 +166,7 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
                   style={{ padding: '10px 0' }}
                 >
                   <Grid item={true} xs={7}>
-                    <Typography variant="h6">{this.state.course.name}</Typography>
+                    <Typography variant="h6">{user.courses[0].name}</Typography>
                   </Grid>
                   <Grid item={true} xs={5}>
                     <Button variant="contained" color="primary" onClick={this.handleClickEdit}>
@@ -285,4 +267,33 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
   }
 }
 
-export default withRouter(Profile);
+interface StateFromProps {
+  user: model.User | null;
+  isFetching: boolean;
+  fetchError: Error | null;
+}
+
+interface DispatchFromProps {
+  fetchUserInfo: () => void;
+}
+
+const mapStateToProps = (state: PetalsStore): StateFromProps => {
+  return {
+    user: state.user.user,
+    isFetching: state.user.isFetching,
+    fetchError: state.user.error,
+  };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<UserAction>): DispatchFromProps => {
+  return {
+    fetchUserInfo: () => {
+      dispatch(userFetchRequest());
+    },
+  };
+};
+
+export default connect<StateFromProps, DispatchFromProps, {}>(
+  mapStateToProps,
+  mapDispatchToProps
+)(withRouter(Profile));

@@ -1,5 +1,14 @@
-import { AppBar, IconButton, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
-import { AccountCircle } from '@material-ui/icons';
+import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@material-ui/core/IconButton';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
@@ -17,7 +26,8 @@ interface HeaderProps extends RouteComponentProps<any> {
 }
 
 interface HeaderState {
-  anchorEl: any;
+  anchorEl: HTMLElement | null;
+  showDialog: boolean;
 }
 
 class Header extends React.Component<HeaderProps, HeaderState> {
@@ -26,47 +36,47 @@ class Header extends React.Component<HeaderProps, HeaderState> {
 
     this.state = {
       anchorEl: null,
+      showDialog: false,
     };
-
-    this.handleLogout = this.handleLogout.bind(this);
-    this.handleMenu = this.handleMenu.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.handleClickLogin = this.handleClickLogin.bind(this);
-    this.handleClickSignup = this.handleClickSignup.bind(this);
-    this.handleToProfile = this.handleToProfile.bind(this);
   }
 
-  public handleLogout() {
-    if (window.confirm('ログアウトしてもよろしいですか？')) {
-      logout();
-      this.props.setLoginState(false);
-      this.props.history.push('/');
-    }
-    this.setState({ anchorEl: null });
-  }
+  public handleOpenDialog = () => {
+    this.setState({ showDialog: true, anchorEl: null });
+  };
 
-  public handleMenu(e: React.MouseEvent<HTMLElement, MouseEvent>) {
+  public handleCloseDialog = () => {
+    this.setState({ showDialog: false });
+  };
+
+  public handleLogout = () => {
+    logout();
+    this.props.setLoginState(false);
+    this.props.history.push('/');
+    this.setState({ showDialog: false, anchorEl: null });
+  };
+
+  public handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     this.setState({ anchorEl: e.currentTarget });
-  }
+  };
 
-  public handleClickLogin() {
+  public handleClickLogin = () => {
     this.props.history.push('/auth/login');
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleClickSignup() {
+  public handleClickSignup = () => {
     this.props.history.push('/auth/signup');
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleClose() {
+  public handleClose = () => {
     this.setState({ anchorEl: null });
-  }
+  };
 
-  public handleToProfile() {
+  public handleToProfile = () => {
     this.props.history.push('/profile');
     this.setState({ anchorEl: null });
-  }
+  };
 
   public render() {
     const anchorEl = this.state.anchorEl;
@@ -109,7 +119,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
                 onClose={this.handleClose}
               >
                 <MenuItem onClick={this.handleToProfile}>Profile</MenuItem>
-                <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                <MenuItem onClick={this.handleOpenDialog}>Logout</MenuItem>
               </Menu>
             </React.Fragment>
           ) : (
@@ -141,6 +151,15 @@ class Header extends React.Component<HeaderProps, HeaderState> {
               </Menu>
             </React.Fragment>
           )}
+          <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+            <DialogTitle>ログアウトしてもよろしいですか？</DialogTitle>
+            <DialogActions>
+              <Button color="secondary" onClick={this.handleLogout}>
+                はい
+              </Button>
+              <Button onClick={this.handleCloseDialog}>いいえ</Button>
+            </DialogActions>
+          </Dialog>
         </Toolbar>
       </AppBar>
     );

@@ -19,3 +19,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# parcel
+dist/
+.cache/
+
+/src/playground.test.ts
