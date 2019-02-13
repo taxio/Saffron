@@ -297,7 +297,8 @@ def set_config_cache(sender, instance: 'Config', **kwargs):
     """
     config_dict = {
         'show_gpa': instance.show_gpa,
-        'show_username': instance.show_username
+        'show_username': instance.show_username,
+        'rank_limit': instance.rank_limit,
     }
     cache_key = f"course-config-{instance.course_id}"
     cache.set(cache_key, config_dict)

@@ -1,5 +1,6 @@
 import functools
 from django.core import exceptions
+from django.core.cache import cache
 from django.db import IntegrityError, models, transaction
 from django.contrib.auth import get_user_model, password_validation
 from django.conf import settings
@@ -36,6 +37,23 @@ class UserSerializer(serializers.ModelSerializer):
             "screen_name": {"read_only": True},
         }
 
+    def _rm_from_represent(self, represent: dict, config_cache: dict, cache_key: str, to_del: str) -> dict:
+        """課程の設定のキーと削除対象のキーを受取って存在すれば削除"""
+        if not config_cache.get(cache_key, True):
+            if to_del in represent:
+                represent.pop(to_del)
+        return represent
+
+    def to_representation(self, instance):
+        """課程の設定に応じて返すパラメータを決定する"""
+        represent = super(UserSerializer, self).to_representation(instance)
+        course = self.context.get('course', None)
+        if course:
+            config = cache.get(f"course-config-{course.pk}")
+            represent = self._rm_from_represent(represent, config, 'show_gpa', 'gpa')
+            represent = self._rm_from_represent(represent, config, 'show_username', 'screen_name')
+        return represent
+
 
 class RankListSerializer(serializers.ListSerializer):
     """希望順位をまとめて作成/更新するシリアライザ"""
@@ -60,7 +78,7 @@ class RankListSerializer(serializers.ListSerializer):
         with transaction.atomic():
             for i, data in enumerate(validated_data):
                 rank, _ = Rank.objects.update_or_create(
-                    user=user, course=course, order=i+1, defaults={'lab': data['lab']}
+                    user=user, course=course, order=i, defaults={'lab': data['lab']}
                 )
                 rank_list.append(rank)
         return rank_list
@@ -89,11 +107,10 @@ class RankPerLabListSerializer(serializers.ListSerializer):
         :return:
         """
         config = self.context['course'].config  # type: Config
-        iterable = data.all() if isinstance(data, models.Manager) else data
         rank_per_order = list()
-        for order in range(1, config.rank_limit+1):
+        for order in range(config.rank_limit):
             rank_per_order.append(
-                [self.child.to_representation(rank) for rank in iterable.filter(order=order).all()]
+                [self.child.to_representation(rank) for rank in data.filter(order=order).all()]
             )
         return rank_per_order
 

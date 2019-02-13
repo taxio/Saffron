@@ -38,18 +38,26 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         """GET /courses/<course_pk>/labs/<lab_pk>/"""
         course = self.course
         course.join(self.user, self.pin_code)
+        labs = self.create_labs(course)
+        ranks = self.submit_ranks(labs, self.user)
         resp = self.client.get(f'/courses/{course.pk}/labs/9999/', format='json')
         self.assertEqual(404, resp.status_code)
-        lab = Lab.objects.create(**self.lab_data_set[0], course=course)
-        expected = {
-            "pk": lab.pk,
-            "name": lab.name,
-            "capacity": lab.capacity,
-            'rank_set': [[], [], []]
-        }
-        resp = self.client.get(f'/courses/{course.pk}/labs/{lab.pk}/', format='json')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        for rank in ranks:
+            lab = rank.lab
+            expected = {
+                "pk": lab.pk,
+                "name": lab.name,
+                "capacity": lab.capacity,
+                'rank_set': [[], [], []]
+            }
+            expected['rank_set'][rank.order] = [{
+                'pk': self.user.pk,
+                'username': self.user.username,
+                'email': self.user.email
+            }]
+            resp = self.client.get(f'/courses/{course.pk}/labs/{lab.pk}/', format='json')
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
 
     def test_create_lab(self):
         """POST /courses/<course_pk>/labs/"""

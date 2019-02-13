@@ -26,7 +26,7 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.assertEqual(expected, self.to_dict(resp.data))
         ranks = Rank.objects.filter(course=self.course, user=self.user).all()
         for i, lab in enumerate(self.labs):
-            self.assertTrue(ranks.filter(lab=lab, order=i+1).exists())
+            self.assertTrue(ranks.filter(lab=lab, order=i).exists())
         # 数が少ない
         resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected[1:], format='json')
         self.assertEqual(400, resp.status_code)
@@ -61,7 +61,7 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.assertEqual([], self.to_dict(resp.data))
         ranks = [
             Rank.objects.create(
-                course=self.course, user=self.user, lab=lab, order=i+1
+                course=self.course, user=self.user, lab=lab, order=i
             ) for i, lab in enumerate(self.labs)
         ]
         expected = [
@@ -75,7 +75,6 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             "pk": self.user.pk,
             "username": self.user.username,
             "email": self.user.email,
-            "screen_name": self.user.screen_name
         }
         for i in range(len(ranks)):
             expected[i]['rank_set'] = [[], [], []]
