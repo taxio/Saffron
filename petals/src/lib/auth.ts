@@ -5,7 +5,7 @@ export const getToken = (): string | null => {
 };
 
 export const login = async (username: string, password: string) => {
-  AuthApi.jwtCreate(username, password).then(res => {
+  return AuthApi.jwtCreate(username, password).then(res => {
     localStorage.setItem('token', res.token);
   });
 };
