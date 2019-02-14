@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING
 from django.core.cache import cache
 from rest_framework import permissions
 
+from .models import Course, get_config_cache
+
 if TYPE_CHECKING:
     from typing import Optional
-    from .models import Course
 
 
 class IsAdmin(permissions.IsAuthenticated):
@@ -22,6 +23,8 @@ class IsCourseMember(permissions.IsAuthenticated):
     """
 
     def has_object_permission(self, request, view, obj: 'Course'):
+        if not isinstance(obj, Course):
+            return True
         user = request.user
         if obj.users.filter(pk=user.pk).exists():
             return True
@@ -34,6 +37,8 @@ class IsCourseAdmin(permissions.IsAuthenticated):
     """
 
     def has_object_permission(self, request, view, obj: 'Course'):
+        if not isinstance(obj, Course):
+            return True
         user = request.user
         if user.groups.filter(name=obj.admin_group_name).exists():
             return True
@@ -52,7 +57,7 @@ class GPARequirement(permissions.IsAuthenticated):
         return True
 
     def get_config(self, obj):
-        return cache.get(f'course-config-{obj.pk}')
+        return get_config_cache(obj.pk)
 
     def has_object_permission(self, request, view, obj):
         user = request.user
