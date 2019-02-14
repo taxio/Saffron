@@ -27,7 +27,8 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             "pk": new_user.pk,
             "username": new_user.username,
             "email": new_user.email,
-            "screen_name": new_user.screen_name
+            "screen_name": new_user.screen_name,
+            "gpa": new_user.gpa
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected, self.to_dict(resp.data))
@@ -58,7 +59,8 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             "pk": new_user.pk,
             "username": new_user.username,
             "email": new_user.email,
-            "screen_name": new_user.screen_name
+            "screen_name": new_user.screen_name,
+            "gpa": new_user.gpa
         }
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected, self.to_dict(resp.data))
