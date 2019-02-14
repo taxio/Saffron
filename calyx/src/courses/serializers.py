@@ -30,11 +30,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("pk", "username", "email", "screen_name")
+        fields = ("pk", "username", "email", "screen_name", "gpa")
         extra_kwargs = {
             "username": {"read_only": True},
             "email": {"read_only": True},
             "screen_name": {"read_only": True},
+            "gpa": {"read_only": True}
         }
 
     def _rm_from_represent(self, represent: dict, config_cache: dict, cache_key: str, to_del: str) -> dict:
