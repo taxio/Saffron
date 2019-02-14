@@ -35,6 +35,7 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
   };
 
   public render() {
+    const { stepId } = this.state;
     const steps = ['基本情報', '研究室', '設定確認'];
 
     return (
@@ -44,13 +45,14 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
             <Typography component="h1" variant="h5" align="center">
               課程作成
             </Typography>
-            <Stepper activeStep={this.state.stepId} alternativeLabel={true}>
+            <Stepper activeStep={stepId} alternativeLabel={true}>
               {steps.map((label, key) => (
                 <Step key={key}>
                   <StepLabel>{label}</StepLabel>
                 </Step>
               ))}
             </Stepper>
+            {stepId === 3 ? <Typography align="center">課程を作成しました</Typography> : null}
             <Button onClick={this.prevStep}>Prev</Button>
             <Button onClick={this.nextStep}>Next</Button>
           </Paper>
