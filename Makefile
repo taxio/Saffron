@@ -21,6 +21,7 @@ PUBLIC_SRCS := $(shell find $(FRONT_SRC_DIR)/public -type f \( -name '*.json' -o
 DEV_DB_CONTAINER := $(NAME)-db-dev-local
 DB_IMAGE := $(ORG)/mysql-utf8mb4
 DB_IMAGE_VERSION := latest
+DB_DIR := $(PWD)/bulb
 
 $(FRONT_SRC_DIR)/build/index.html: $(SRCS) $(PUBLIC_SRCS)
 	cd $(FRONT_SRC_DIR) && yarn build
@@ -31,7 +32,7 @@ node_modules:
 	cd $(FRONT_SRC_DIR) && yarn install
 
 venv:
-	cd $(API_SRC_DIR)/src && PIPENV_VENV_IN_PROJECT=true pipenv install
+	cd $(API_SRC_DIR)/src && PIPENV_VENV_IN_PROJECT=true pipenv install --dev
 
 calyx-image:
 	docker build $(API_SRC_DIR) -t $(API_IMAGE):$(API_IMAGE_VERSION)

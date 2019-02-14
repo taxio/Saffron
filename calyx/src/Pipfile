@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">2.0.8"
+django = ">=2.1.6"
 djangorestframework = "*"
 djangorestframework-jwt = "*"
 djoser = "*"
@@ -16,6 +16,7 @@ django-cors-headers = "*"
 drf-nested-routers = "*"
 
 [dev-packages]
+faker = "*"
 
 [requires]
 python_version = "3.7"
