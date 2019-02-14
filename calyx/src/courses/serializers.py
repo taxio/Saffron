@@ -1,12 +1,12 @@
 import functools
-from django.core import exceptions
-from django.core.cache import cache
-from django.db import IntegrityError, models, transaction
-from django.contrib.auth import get_user_model, password_validation
-from django.conf import settings
-from rest_framework import serializers
-from .models import Course, Year, Config, Lab, Rank
 
+from django.conf import settings
+from django.contrib.auth import get_user_model, password_validation
+from django.core import exceptions
+from django.db import IntegrityError, transaction
+from rest_framework import serializers
+
+from .models import Course, Year, Config, Lab, Rank, get_config_cache
 
 User = get_user_model()
 
@@ -30,11 +30,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("pk", "username", "email", "screen_name")
+        fields = ("pk", "username", "email", "screen_name", "gpa")
         extra_kwargs = {
             "username": {"read_only": True},
             "email": {"read_only": True},
             "screen_name": {"read_only": True},
+            "gpa": {"read_only": True}
         }
 
     def _rm_from_represent(self, represent: dict, config_cache: dict, cache_key: str, to_del: str) -> dict:
@@ -49,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
         represent = super(UserSerializer, self).to_representation(instance)
         course = self.context.get('course', None)
         if course:
-            config = cache.get(f"course-config-{course.pk}")
+            config = get_config_cache(course.pk)
             represent = self._rm_from_represent(represent, config, 'show_gpa', 'gpa')
             represent = self._rm_from_represent(represent, config, 'show_username', 'screen_name')
         return represent
@@ -106,9 +107,10 @@ class RankPerLabListSerializer(serializers.ListSerializer):
         :param data:
         :return:
         """
-        config = self.context['course'].config  # type: Config
+        course = self.context['course']
+        config = get_config_cache(course.pk)
         rank_per_order = list()
-        for order in range(config.rank_limit):
+        for order in range(config["rank_limit"]):
             rank_per_order.append(
                 [self.child.to_representation(rank) for rank in data.filter(order=order).all()]
             )
