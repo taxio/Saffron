@@ -45,7 +45,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         if self.action == 'list' or self.action == 'create':
             self.permission_classes = [permissions.IsAuthenticated]
         elif self.action == 'retrieve':
-            self.permission_classes = [(IsCourseMember | IsAdmin) & GPARequirement & ScreenNameRequirement]
+            self.permission_classes = [(IsCourseMember & GPARequirement & ScreenNameRequirement) | IsAdmin]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseViewSet, self).get_permissions()
@@ -136,9 +136,9 @@ class CourseAdminView(NestedViewSetMixin,
 
     def get_permissions(self):
         if self.action == 'list':
-            self.permission_classes = [IsCourseMember]
+            self.permission_classes = [IsCourseMember | IsAdmin]
         else:
-            self.permission_classes = [IsCourseMember & IsCourseAdmin]
+            self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseAdminView, self).get_permissions()
 
     def update(self, request, *args, **kwargs):
@@ -250,12 +250,15 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return LabAbstractSerializer
         return LabSerializer
 
+    def get_queryset(self):
+        return self.queryset.filter(course=self.course).all()
+
     def get_permissions(self):
         if self.action == "list":
             self.permission_classes = [IsCourseMember | IsAdmin]
         elif self.action == "retrieve":
-            self.permission_classes = [(IsCourseMember | IsAdmin) & GPARequirement &
-                                       ScreenNameRequirement & RankSubmitted]
+            self.permission_classes = [(IsCourseMember & GPARequirement &
+                                       ScreenNameRequirement & RankSubmitted) | IsAdmin]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(LabViewSet, self).get_permissions()
@@ -271,8 +274,9 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_object(self):
         pk = self.kwargs.pop('pk')
+        course_pk = self.kwargs.get('course_pk', None)
         try:
-            obj = self.get_queryset().get(pk=pk)
+            obj = Lab.objects.filter(course_id=course_pk).select_related('course').get(pk=pk)
         except Lab.DoesNotExist:
             raise exceptions.NotFound('見つかりませんでした．')
         self.check_object_permissions(self.request, obj.course)
