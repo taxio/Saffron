@@ -69,6 +69,11 @@ Django管理コマンドの発行
 $ make migrate-dev
 # manage.pyコマンドの実行
 $ make manage-dev args="createsuperuser"
+# ダミーデータを読み込む
+# まず既存のデータを全削除
+$ make manage-dev args="flush"
+# 読み込む
+$ make manage-dev args="loaddata dummy.json"
 ```
 
 データは基本的にDocker Volumeで管理されている．削除したい場合はこのVolumeを削除する
