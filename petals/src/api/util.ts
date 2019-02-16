@@ -1,3 +1,4 @@
+import { getAccessToken } from '../lib/auth';
 import * as AppErr from './AppErrors';
 
 export enum Methods {
@@ -54,7 +55,11 @@ export const sendRequest = async (
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
   if (auth) {
-    headers.append('Authorization', `JWT ${localStorage.getItem('token')}`);
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      throw new AppErr.UnAuthorizedError('ログインしてください');
+    }
+    headers.append('Authorization', `JWT ${accessToken}`);
   }
 
   let options: object = {

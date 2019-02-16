@@ -7,7 +7,8 @@ interface JwtCreateRequest {
 }
 
 interface JwtCreateResponse extends model.RequestError {
-  token: string;
+  access: string;
+  refresh: string;
 }
 
 export const jwtCreate = async (username: string, password: string): Promise<JwtCreateResponse> => {
