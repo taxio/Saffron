@@ -1,7 +1,9 @@
 from unicodedata import normalize
-from django.test import TestCase
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.test import TestCase
+
 from courses.tests.base import DatasetMixin
 from users.models import User, StudentNumberValidator
 

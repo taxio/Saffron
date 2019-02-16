@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import ASCIIUsernameValidator
-from django.conf import settings
-from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
 
 if TYPE_CHECKING:
     from courses.models import Course
@@ -19,6 +19,7 @@ class UserManager(BaseUserManager):
     """
     カスタムユーザモデルのためのマネージャ
     """
+
     def __init__(self, alive_only: bool = True, *args, **kwargs):
         self.alive_only = alive_only
         super(UserManager, self).__init__(*args, **kwargs)

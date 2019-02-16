@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
+
 from courses.models import Course, Lab
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 

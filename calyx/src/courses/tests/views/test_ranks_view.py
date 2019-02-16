@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
+
 from courses.models import Course, Lab, Rank
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
@@ -15,7 +16,7 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.course_data = self.course_data_set[0]
         self.pin_code = self.course_data['pin_code']
         self.course = Course.objects.create_course(**self.course_data)
-        self.labs = [Lab.objects.create(**lab,course=self.course) for lab in self.lab_data_set]
+        self.labs = [Lab.objects.create(**lab, course=self.course) for lab in self.lab_data_set]
 
     def test_create_rank(self):
         """POST /courses/<course_pk>/ranks/"""
@@ -31,7 +32,7 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected[1:], format='json')
         self.assertEqual(400, resp.status_code)
         # 数が多い
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected+expected, format='json')
+        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected + expected, format='json')
         self.assertEqual(400, resp.status_code)
         # 存在しない研究室
         expected[0]['lab'] = 0

@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from django.core.cache import cache
+
 from rest_framework import permissions
 
 from .models import Course, get_config_cache

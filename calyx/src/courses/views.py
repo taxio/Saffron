@@ -1,19 +1,20 @@
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
-from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
+
+from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 from .models import Course, Year, Config, Lab, Rank
+from .permissions import (
+    IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
+)
+from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 from .serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
     UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer
 )
-from .permissions import (
-    IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
-)
-from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
-from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 
 User = get_user_model()
 
@@ -258,7 +259,7 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             self.permission_classes = [IsCourseMember | IsAdmin]
         elif self.action == "retrieve":
             self.permission_classes = [(IsCourseMember & GPARequirement &
-                                       ScreenNameRequirement & RankSubmitted) | IsAdmin]
+                                        ScreenNameRequirement & RankSubmitted) | IsAdmin]
         else:
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(LabViewSet, self).get_permissions()

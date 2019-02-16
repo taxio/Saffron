@@ -2,7 +2,6 @@ import coreapi
 import coreschema
 from rest_framework import schemas
 
-
 course_pk_field = coreapi.Field(
     "course_pk",
     required=True,
@@ -19,7 +18,7 @@ class CourseAdminSchema(schemas.AutoSchema):
         if method in ["PUT", "PATCH"]:
             extras += [
                 coreapi.Field(
-                   "id",
+                    "id",
                     required=True,
                     location="path",
                     schema=coreschema.Integer(description="対象となる所属メンバーのプライマリキー")

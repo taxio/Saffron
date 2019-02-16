@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
-from courses.models import Course, Lab
+
+from courses.models import Course
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 User = get_user_model()
@@ -175,4 +176,3 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.patch(f'/courses/{course.pk}/', data=expected_json, format='json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
-

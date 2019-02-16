@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Course, Year, Lab, Config
+
 from .forms import CourseForm
+from .models import Course, Year, Lab, Config
 
 
 class MembershipInline(admin.TabularInline):
@@ -44,7 +45,6 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
-
     list_display = ('course_name', 'show_gpa', 'show_username', 'rank_limit')
 
     def course_name(self, obj):
@@ -54,7 +54,6 @@ class ConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Year)
 class YearAdmin(admin.ModelAdmin):
-
     list_display = ('year', 'course_count')
 
     def course_count(self, obj):
@@ -64,7 +63,6 @@ class YearAdmin(admin.ModelAdmin):
 
 @admin.register(Lab)
 class LabAdmin(admin.ModelAdmin):
-
     list_display = ('name', 'course_name', 'capacity')
 
     list_filter = (

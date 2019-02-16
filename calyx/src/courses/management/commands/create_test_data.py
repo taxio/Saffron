@@ -1,15 +1,13 @@
-import itertools
 import random
 
 from django.core.management import BaseCommand
 from faker import Factory
 
-from users.models import User
 from courses.models import Course, Rank, Lab, Year
+from users.models import User
 
 
 class Command(BaseCommand):
-
     years = [
         2018,
         2019
@@ -82,7 +80,8 @@ class Command(BaseCommand):
             User.objects.bulk_create(students)
             # bulk_createではidが返ってこないので取得し直す
             students = User.objects.all()
-            for student_set, course_data in zip([students[:50], students[50:100], students[100:150], students[150:200]], self.courses):
+            for student_set, course_data in zip([students[:50], students[50:100], students[100:150], students[150:200]],
+                                                self.courses):
                 course = Course.objects.create_course(
                     name=course_data['name'],
                     pin_code=course_data['pin_code'],
@@ -96,7 +95,7 @@ class Command(BaseCommand):
                 course.register_as_admin(random.choice(list(student_set)))
                 lab_sets = [
                     Lab(
-                        name=f"研究室{chr(i+65)}",
+                        name=f"研究室{chr(i + 65)}",
                         course=course,
                         capacity=random.choice(self.capacity_choices)
                     ) for i in range(self.lab_count)

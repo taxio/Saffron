@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
-from courses.models import Course, Lab
+
+from courses.models import Course
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 User = get_user_model()
@@ -60,4 +61,3 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self._unset_credentials()
         resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
         self.assertEqual(401, resp.status_code)
-
