@@ -2,7 +2,8 @@ import json
 from copy import deepcopy
 from collections import OrderedDict
 from typing import TYPE_CHECKING
-from rest_framework_jwt.settings import api_settings
+from django.utils.six import text_type
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from courses.models import Lab, Rank
 
@@ -91,14 +92,15 @@ class DatasetMixin(object):
 
 class JWTAuthMixin(object):
 
+    auth_header = 'Bearer'
+
     def _set_credentials(self, user=None):
         if not user:
             user = self.user
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        self.client.credentials(HTTP_AUTHORIZATION="JWT " + token)
+        token = RefreshToken.for_user(user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"{self.auth_header} {text_type(token.access_token)}"
+        )
 
     def _unset_credentials(self):
-        self.client.credentials(HTTP_AUTHORIZATION="")
+        self.client.credentials()
