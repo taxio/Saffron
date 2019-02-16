@@ -1,17 +1,23 @@
 import * as AuthApi from '../api/auth';
 
-export const getToken = (): string | null => {
-  return localStorage.getItem('token');
+export const getAccessToken = (): string | null => {
+  return localStorage.getItem('accessToken');
+};
+
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem('refreshToken');
 };
 
 export const login = async (username: string, password: string) => {
   return AuthApi.jwtCreate(username, password).then(res => {
-    localStorage.setItem('token', res.token);
+    localStorage.setItem('accessToken', res.access);
+    localStorage.setItem('refreshToken', res.refresh);
   });
 };
 
 export const logout = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
 };
 
 interface JwtPayload {
@@ -28,7 +34,7 @@ export const parseJwtTokenPayload = (token: string): JwtPayload => {
 };
 
 export const isLogin = (): boolean => {
-  const token = getToken();
+  const token = getAccessToken();
   if (!token) {
     return false;
   }
