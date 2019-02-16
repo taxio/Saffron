@@ -17,13 +17,13 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_swagger.views import get_swagger_view
 
-from users import urls as accounts_urls
+from users.urls import jwt as jwt_urls
+from users.urls import accounts as accounts_urls
 from courses import urls as course_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('djoser.urls.base')),
-    path('auth/', include('djoser.urls.jwt')),
+    path('auth/', include(jwt_urls)),
     path('swagger/', get_swagger_view(title='Calyx API Document')),
     path('', include(accounts_urls)),
     path('', include(course_urls)),
