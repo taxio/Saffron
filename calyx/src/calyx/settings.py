@@ -124,12 +124,11 @@ DJOSER = {
     }
 }
 
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(
         hours=int(os.getenv('CALYX_JWT_EXPIRATION_HOURS', '24'))
     ),
-    'JWT_ALLOW_REFRESH': os.getenv('CALYX_JWT_ALLOW_REFRESH', 'True').lower() == 'true',
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(
         hours=int(os.getenv('CALYX_JWT_REFRESH_EXPIRATION_HOURS', '168'))
     ),
 }
