@@ -131,6 +131,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(
         hours=int(os.getenv('CALYX_JWT_REFRESH_EXPIRATION_HOURS', '168'))
     ),
+    'AUTH_HEADER_TYPES': ('JWT',),
 }
 
 AUTH_PASSWORD_VALIDATORS = [

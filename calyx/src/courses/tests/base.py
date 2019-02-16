@@ -92,7 +92,7 @@ class DatasetMixin(object):
 
 class JWTAuthMixin(object):
 
-    auth_header = 'Bearer'
+    auth_header = 'JWT'
 
     def _set_credentials(self, user=None):
         if not user:
