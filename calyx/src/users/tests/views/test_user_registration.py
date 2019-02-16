@@ -13,7 +13,7 @@ from courses.tests.base import DatasetMixin, JWTAuthMixin
 class UserRegistrationTests(DatasetMixin, JWTAuthMixin, APITestCase, URLPatternsTestCase):
     """ユーザ登録周りのテスト"""
     urlpatterns = [
-        path('', include('users.urls'))
+        path('', include('users.urls.accounts'))
     ]
 
     def setUp(self):

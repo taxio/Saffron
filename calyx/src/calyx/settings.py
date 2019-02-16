@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_jwt',
+    'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'corsheaders',
@@ -124,14 +124,14 @@ DJOSER = {
     }
 }
 
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(
         hours=int(os.getenv('CALYX_JWT_EXPIRATION_HOURS', '24'))
     ),
-    'JWT_ALLOW_REFRESH': os.getenv('CALYX_JWT_ALLOW_REFRESH', 'True').lower() == 'true',
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(
         hours=int(os.getenv('CALYX_JWT_REFRESH_EXPIRATION_HOURS', '168'))
     ),
+    'AUTH_HEADER_TYPES': ('JWT',),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -163,7 +163,7 @@ PIN_CODE_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }

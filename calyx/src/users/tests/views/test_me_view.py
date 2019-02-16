@@ -11,7 +11,7 @@ class TestMeView(DatasetMixin, JWTAuthMixin, APITestCase, URLPatternsTestCase):
     """MeViewのテスト"""
 
     urlpatterns = [
-        path('', include('users.urls'))
+        path('', include('users.urls.accounts'))
     ]
 
     def setUp(self):

@@ -35,7 +35,7 @@ class YearViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(expected_json, self.to_dict(resp.data))
         # ログインしていなければ見れない
-        self.client.credentials(HTTP_AUTHORIZATION="")
+        self._unset_credentials()
         resp = self.client.get('/years/', format='json')
         self.assertEqual(401, resp.status_code)
 

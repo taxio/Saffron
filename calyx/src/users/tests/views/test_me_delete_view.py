@@ -11,7 +11,7 @@ class TestMeDeleteView(DatasetMixin, JWTAuthMixin, APITestCase, URLPatternsTestC
     """UserDeleteViewのテスト"""
 
     urlpatterns = [
-        path('', include('users.urls'))
+        path('', include('users.urls.accounts'))
     ]
 
     def setUp(self):

@@ -1,6 +1,6 @@
 from django.urls import path
 from djoser import views as djoser_views
-from .views import Login, Logout, MeViewSet, UserDeleteView
+from users.views import Login, Logout, MeViewSet, UserDeleteView
 
 app_name = 'accounts'
 
