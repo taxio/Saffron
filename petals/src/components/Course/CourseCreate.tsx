@@ -1,6 +1,8 @@
 import { Button, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
 import * as React from 'react';
 
+import BasicInformation from './BasicInformation';
+
 interface CourseCreateProps {}
 
 interface CourseCreateState {
@@ -14,6 +16,14 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
       stepId: 0,
     };
   }
+
+  public getRenderComponentFromStepId = (stepId: number) => {
+    switch (stepId) {
+      case 0:
+        return <BasicInformation />;
+    }
+    return null;
+  };
 
   public normalizeStepId = (stepId: number): number => {
     if (stepId < 0) {
@@ -36,7 +46,7 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
 
   public render() {
     const { stepId } = this.state;
-    const steps = ['基本情報', '研究室', '設定確認'];
+    const stepLabels = ['基本情報', '研究室', '設定確認'];
 
     return (
       <Grid container={true} justify="center">
@@ -46,15 +56,22 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
               課程作成
             </Typography>
             <Stepper activeStep={stepId} alternativeLabel={true}>
-              {steps.map((label, key) => (
+              {stepLabels.map((label, key) => (
                 <Step key={key}>
                   <StepLabel>{label}</StepLabel>
                 </Step>
               ))}
             </Stepper>
+            {this.getRenderComponentFromStepId(stepId)}
             {stepId === 3 ? <Typography align="center">課程を作成しました</Typography> : null}
-            <Button onClick={this.prevStep}>Prev</Button>
-            <Button onClick={this.nextStep}>Next</Button>
+            <div style={{ textAlign: 'right', marginTop: '24px' }}>
+              <Button style={{ marginRight: '20px' }} onClick={this.prevStep}>
+                戻る
+              </Button>
+              <Button variant="contained" color="primary" onClick={this.nextStep}>
+                次へ
+              </Button>
+            </div>
           </Paper>
         </Grid>
       </Grid>
