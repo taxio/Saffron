@@ -3,22 +3,6 @@ import * as React from 'react';
 
 import BasicInformation from './BasicInformation';
 
-interface CourseCreateFormParams {
-  courseYear: number;
-  courseName: string;
-  useName: boolean;
-  useGPA: boolean;
-}
-
-export const validate = (values: CourseCreateFormParams) => {
-  const errors = {};
-  if (!values.courseYear) {
-    errors.courseYear = '選択してください';
-    console.log('error')
-  }
-  return errors;
-};
-
 interface CourseCreateProps {}
 
 interface CourseCreateState {
@@ -36,6 +20,7 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
   public getRenderComponentFromStepId = (stepId: number) => {
     switch (stepId) {
       case 0:
+        // @ts-ignore
         return <BasicInformation nextStep={this.nextStep} />;
     }
     return null;

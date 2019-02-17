@@ -4,12 +4,16 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
+  IconButton,
+  Input,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography,
 } from '@material-ui/core';
+import { Visibility, VisibilityOff } from '@material-ui/icons';
 import * as React from 'react';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
@@ -22,14 +26,14 @@ const getCourseYearConds = (): number[] => {
   return conds;
 };
 
-const renderTextField = (props: WrappedFieldProps & { label: string; type: string }) => (
+const renderCourseNameField = (props: WrappedFieldProps & { label: string; type: string }) => (
   <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
     <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
     {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
   </FormControl>
 );
 
-const renderSelectField = (props: WrappedFieldProps & { label: string }) => (
+const renderYearSelectField = (props: WrappedFieldProps & { label: string }) => (
   <FormControl style={{ padding: '10px 0px', width: '80px' }} error={Boolean(props.meta.error)}>
     <InputLabel htmlFor="course-year">{props.label}</InputLabel>
     <Select {...props.input}>
@@ -46,6 +50,34 @@ const renderSelectField = (props: WrappedFieldProps & { label: string }) => (
   </FormControl>
 );
 
+const renderPinCodeField = (props: WrappedFieldProps & { label: string }) => {
+  const [showPinCode, setShowPinCode] = React.useState<boolean>(false);
+
+  return (
+    <FormControl fullWidth={true} style={{ padding: '10px 0px' }}>
+      <InputLabel htmlFor="pin-code">PINコード</InputLabel>
+      <Input
+        type={showPinCode ? 'text' : 'password'}
+        autoComplete="off"
+        {...props.input}
+        endAdornment={
+          <InputAdornment position="end">
+            <IconButton
+              aria-label="Toggle password visibility"
+              onClick={() => {
+                setShowPinCode(!showPinCode);
+              }}
+            >
+              {showPinCode ? <Visibility /> : <VisibilityOff />}
+            </IconButton>
+          </InputAdornment>
+        }
+      />
+      <FormHelperText>他のユーザーがこの課程に登録するために必要な簡単なパスワードです</FormHelperText>
+    </FormControl>
+  );
+};
+
 const renderCheckBoxField = (props: WrappedFieldProps & { label: string; helperText: string }) => (
   <FormControl fullWidth={true}>
     <FormControlLabel
@@ -59,6 +91,7 @@ const renderCheckBoxField = (props: WrappedFieldProps & { label: string; helperT
 interface FormParams {
   courseYear: number;
   courseName: string;
+  pinCode: string;
   useName: boolean;
   useGPA: boolean;
 }
@@ -86,8 +119,9 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
 
   return (
     <form onSubmit={handleSubmit(validate)}>
-      <Field name="courseYear" label="年度" component={renderSelectField} />
-      <Field name="courseName" label="課程名" type="text" component={renderTextField} />
+      <Field name="courseYear" label="年度" component={renderYearSelectField} />
+      <Field name="courseName" label="課程名" type="text" component={renderCourseNameField} />
+      <Field name="pinCode" label="PINコード" component={renderPinCodeField} />
 
       <Typography variant="h5" style={{ marginTop: '40px' }}>
         使用情報設定
