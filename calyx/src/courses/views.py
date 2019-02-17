@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
-from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
+from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions, generics
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
 
@@ -13,7 +14,7 @@ from .permissions import (
 from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 from .serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
-    UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer
+    UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer, CourseStatusSerializer
 )
 
 User = get_user_model()
@@ -60,6 +61,30 @@ class CourseViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             course = serializer.save()
             course.register_as_admin(self.request.user)
+
+
+class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    課程の設定と照らし合わせてそのユーザが要求を満たしているかどうかをチェックするビュー
+
+    list:
+        要求を満たしているかどうかの状態を取得する
+    """
+    permission_classes = [IsCourseMember | IsAdmin]
+
+    def list(self, request, **kwargs):
+        course_pk = kwargs.get('course_pk')
+        if not isinstance(course_pk, int):
+            course_pk = int(course_pk)
+        try:
+            course = Course.objects.get(pk=course_pk)
+            self.check_object_permissions(request, course)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        serializer_context = self.get_serializer_context()
+        serializer_context['course_pk'] = course_pk
+        serializer = CourseStatusSerializer(instance=request.user, context=serializer_context)
+        return Response(serializer.data)
 
 
 class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
