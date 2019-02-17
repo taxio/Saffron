@@ -30,7 +30,7 @@ const renderTextField = (props: WrappedFieldProps & { label: string; type: strin
 );
 
 const renderSelectField = (props: WrappedFieldProps & { label: string }) => (
-  <FormControl style={{ padding: '10px 0px', width: '80px' }}>
+  <FormControl style={{ padding: '10px 0px', width: '80px' }} error={Boolean(props.meta.error)}>
     <InputLabel htmlFor="course-year">{props.label}</InputLabel>
     <Select {...props.input}>
       <MenuItem key={0} value={0}>
@@ -68,16 +68,21 @@ interface BasicInformationProps extends InjectedFormProps, FormParams {
 }
 
 const BasicInformation: React.FC<BasicInformationProps> = props => {
-  const { error, handleSubmit } = props;
-  console.log(error);
+  const { handleSubmit } = props;
 
-  // const validateData = (values: FormParams) => {
-  //   console.log(values);
-  //   if (!values) {
-  //     throw new SubmissionError({ _error: '入力に誤りがあります' });
-  //   }
-  //   props.nextStep();
-  // };
+  const validate = (values: FormParams) => {
+    const errors: any = {};
+    if (!values.courseName) {
+      errors.courseName = '必須項目です';
+    }
+    if (!values.courseYear) {
+      errors.courseYear = '必須項目です';
+    }
+    if (errors) {
+      throw new SubmissionError(errors);
+    }
+    props.nextStep();
+  };
 
   return (
     <form onSubmit={handleSubmit(validate)}>
@@ -110,16 +115,7 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
   );
 };
 
-const validate = (values: FormParams) => {
-  console.log('in validate');
-  if (!values.courseYear) {
-    return { courseYear: '選択してください' };
-  }
-  return {};
-};
-
 export default reduxForm({
   form: 'CourseCreateForm',
   destroyOnUnmount: false,
-  validate,
 })(BasicInformation);
