@@ -5,6 +5,7 @@ from rest_framework import serializers
 from courses.tests.base import DatasetMixin
 from users.models import User
 from users.serializers import UserCreateSerializer, UserSerializer, PasswordValidationSerializer
+from users.tests.base import UserDatasetMixin
 
 
 class UserCreateSerializerTest(DatasetMixin, TestCase):
@@ -100,11 +101,11 @@ class UserSerializerTest(DatasetMixin, TestCase):
             self.assertEqual(expected, serializer.data)
 
 
-class PasswordValidationSerializerTest(TestCase):
+class PasswordValidationSerializerTest(UserDatasetMixin, TestCase):
 
     def test_user_valid_password(self):
         type_ = 'user'
-        valid_passwords = ['hogefuga', 'piyopoyo', 'fugapoyo']
+        valid_passwords = self.valid_passwords
         for valid_password in valid_passwords:
             data = {
                 'type': type_,
@@ -120,16 +121,7 @@ class PasswordValidationSerializerTest(TestCase):
 
     def test_user_invalid_password(self):
         type_ = 'user'
-        invalid_passwords = [
-            # 短すぎる
-            'hoge',
-            # 一般的すぎる
-            'password',
-            # 短すぎるかつ一般的すぎる
-            'pass',
-            # 数字のみで構成されている
-            '135791113'
-        ]
+        invalid_passwords = self.invalid_passwords
         for invalid_password in invalid_passwords:
             data = {
                 'type': type_,
@@ -141,7 +133,7 @@ class PasswordValidationSerializerTest(TestCase):
 
     def test_pin_code_valid_password(self):
         type_ = 'pin_code'
-        valid_passwords = ['hoge', 'hogefuga', '3125']
+        valid_passwords = self.valid_pin_codes
         for valid_password in valid_passwords:
             data = {
                 'type': type_,
@@ -157,15 +149,7 @@ class PasswordValidationSerializerTest(TestCase):
 
     def test_pin_code_invalid_password(self):
         type_ = 'pin_code'
-        invalid_passwords = [
-            # 短すぎる
-            'po',
-            # 一般的すぎる
-            'pass',
-            '1234',
-            # 短すぎるかつ一般的すぎる
-            '123'
-        ]
+        invalid_passwords = self.invalid_pin_codes
         for invalid_password in invalid_passwords:
             data = {
                 'type': type_,
@@ -177,7 +161,7 @@ class PasswordValidationSerializerTest(TestCase):
 
     def test_invalid_type(self):
         invalid_types = ['hoge', 'poyo']
-        password = 'hogefuga'
+        password = self.valid_passwords[0]
         for invalid_type in invalid_types:
             data = {
                 'type': invalid_type,
