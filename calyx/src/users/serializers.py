@@ -1,5 +1,9 @@
+import functools
+
+from django.contrib.auth import password_validation
 from django.db import IntegrityError
 from django.core import exceptions as django_exceptions
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import User, StudentNumberValidator
@@ -73,3 +77,51 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except IntegrityError:
             raise serializers.ValidationError({'username': 'このユーザは既に登録されています．'})
 
+
+@functools.lru_cache(maxsize=None)
+def get_pin_code_validators():
+    return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
+
+
+class PasswordValidationSerializer(serializers.Serializer):
+    """
+    パスワードのチェックを行うシリアライザー
+    """
+
+    supported_types = ('user', 'pin_code')
+
+    type = serializers.CharField(required=True)
+    password = serializers.CharField(style={'input_type': 'password'}, required=True)
+
+    def validate_type(self, data):
+        if data not in self.supported_types:
+            raise serializers.ValidationError(
+                {
+                    'type': f"'{data}'はサポートされていません．"
+                    f"以下のいずれかを入力してください．[{', '.join(self.supported_types)}]"
+                }
+            )
+        return data
+
+    def validate(self, data):
+        password = data.get('password')
+        type_ = data.get('type')
+        try:
+            if type_ == self.supported_types[0]:
+                validators = None
+            else:
+                validators = get_pin_code_validators()
+            validate_password(password, password_validators=validators)
+        except django_exceptions.ValidationError as e:
+            raise serializers.ValidationError({'password': [*e]})
+        return data
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
+    def to_representation(self, instance):
+        instance['password'] = 'ok'
+        return instance
