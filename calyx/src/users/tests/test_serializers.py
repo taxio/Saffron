@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from courses.tests.base import DatasetMixin
 from users.models import User
-from users.serializers import UserCreateSerializer, UserSerializer
+from users.serializers import UserCreateSerializer, UserSerializer, PasswordValidationSerializer
 
 
 class UserCreateSerializerTest(DatasetMixin, TestCase):
@@ -98,3 +98,91 @@ class UserSerializerTest(DatasetMixin, TestCase):
                 'courses': []
             }
             self.assertEqual(expected, serializer.data)
+
+
+class PasswordValidationSerializerTest(TestCase):
+
+    def test_user_valid_password(self):
+        type_ = 'user'
+        valid_passwords = ['hogefuga', 'piyopoyo', 'fugapoyo']
+        for valid_password in valid_passwords:
+            data = {
+                'type': type_,
+                'password': valid_password
+            }
+            serializer = PasswordValidationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            expected = {
+                'type': type_,
+                'password': 'ok'
+            }
+            self.assertEqual(expected, serializer.data)
+
+    def test_user_invalid_password(self):
+        type_ = 'user'
+        invalid_passwords = [
+            # 短すぎる
+            'hoge',
+            # 一般的すぎる
+            'password',
+            # 短すぎるかつ一般的すぎる
+            'pass',
+            # 数字のみで構成されている
+            '135791113'
+        ]
+        for invalid_password in invalid_passwords:
+            data = {
+                'type': type_,
+                'password': invalid_password
+            }
+            serializer = PasswordValidationSerializer(data=data)
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
+
+    def test_pin_code_valid_password(self):
+        type_ = 'pin_code'
+        valid_passwords = ['hoge', 'hogefuga', '3125']
+        for valid_password in valid_passwords:
+            data = {
+                'type': type_,
+                'password': valid_password
+            }
+            serializer = PasswordValidationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            expected = {
+                'type': type_,
+                'password': 'ok'
+            }
+            self.assertEqual(expected, serializer.data)
+
+    def test_pin_code_invalid_password(self):
+        type_ = 'pin_code'
+        invalid_passwords = [
+            # 短すぎる
+            'po',
+            # 一般的すぎる
+            'pass',
+            '1234',
+            # 短すぎるかつ一般的すぎる
+            '123'
+        ]
+        for invalid_password in invalid_passwords:
+            data = {
+                'type': type_,
+                'password': invalid_password
+            }
+            serializer = PasswordValidationSerializer(data=data)
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
+
+    def test_invalid_type(self):
+        invalid_types = ['hoge', 'poyo']
+        password = 'hogefuga'
+        for invalid_type in invalid_types:
+            data = {
+                'type': invalid_type,
+                'password': password
+            }
+            serializer = PasswordValidationSerializer(data=data)
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
