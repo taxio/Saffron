@@ -1,11 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from rest_framework import status, generics, response
+from rest_framework import status, generics, response, permissions
+from rest_framework.response import Response
 from djoser.conf import settings as djoser_settings
 from djoser.utils import logout_user
 from .forms import LoginForm
 from .permissions import IsOwner
-from .serializers import UserSerializer
+from .serializers import UserSerializer, PasswordValidationSerializer
 
 
 class Login(LoginView):
@@ -77,3 +78,17 @@ class UserDeleteView(generics.CreateAPIView,
         user = self.request.user
         self.check_object_permissions(self.request, user)
         return user
+
+
+class PasswordValidationView(generics.CreateAPIView, generics.GenericAPIView):
+    """
+    パスワード（またはPINコード）のバリデーションを行う．typeには`user`または`pin_code`を選択可能．
+    """
+    serializer_class = PasswordValidationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

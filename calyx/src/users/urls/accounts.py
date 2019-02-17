@@ -1,6 +1,6 @@
 from django.urls import path
 from djoser import views as djoser_views
-from users.views import Login, Logout, MeViewSet, UserDeleteView
+from users.views import Login, Logout, MeViewSet, UserDeleteView, PasswordValidationView
 
 app_name = 'accounts'
 
@@ -24,6 +24,11 @@ urlpatterns = [
         'password/reset/',
         djoser_views.PasswordResetView.as_view(),
         name='password_reset'
+    ),
+    path(
+        'password/validate/',
+        PasswordValidationView.as_view(),
+        name='password_validate'
     ),
     path(
         'password/reset/confirm/',
