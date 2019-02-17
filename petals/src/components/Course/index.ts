@@ -1,3 +1,3 @@
-import CourseCreate from './CourseCreate';
+import CourseCreateManager from './CourseCreateManager';
 
-export { CourseCreate };
+export { CourseCreateManager };

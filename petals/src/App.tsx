@@ -54,7 +54,7 @@ const ProfileRouter: React.FC = () => (
 const CourseRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/course/admin`} component={CourseAdmin} />
-    <Route exact={true} path={`/course/create`} component={CourseComponents.CourseCreate} />
+    <Route exact={true} path={`/course/create`} component={CourseComponents.CourseCreateManager} />
   </Switch>
 );
 

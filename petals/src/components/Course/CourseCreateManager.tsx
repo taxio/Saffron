@@ -1,7 +1,22 @@
 import { Button, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
 import * as React from 'react';
 
-import BasicInformation from './BasicInformation';
+import BasicInformationStep from './BasicInformationStep';
+import ReviewStep from './ReviewStep';
+
+export interface Lab {
+  name: string;
+  capacity: number;
+}
+
+export interface CourseCreateFormParams {
+  courseYear: number;
+  courseName: string;
+  pinCode: string;
+  useName: boolean;
+  useGPA: boolean;
+  labs: Lab[];
+}
 
 interface CourseCreateProps {}
 
@@ -9,7 +24,7 @@ interface CourseCreateState {
   stepId: number;
 }
 
-class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState> {
+class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreateState> {
   constructor(props: CourseCreateProps) {
     super(props);
     this.state = {
@@ -21,7 +36,9 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
     switch (stepId) {
       case 0:
         // @ts-ignore
-        return <BasicInformation nextStep={this.nextStep} />;
+        return <BasicInformationStep nextStep={this.nextStep} />;
+      case 2:
+        return <ReviewStep />;
     }
     return null;
   };
@@ -80,4 +97,4 @@ class CourseCreate extends React.Component<CourseCreateProps, CourseCreateState>
   }
 }
 
-export default CourseCreate;
+export default CourseCreateManager;

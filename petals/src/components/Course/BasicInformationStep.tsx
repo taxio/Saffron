@@ -28,7 +28,7 @@ const getCourseYearConds = (): number[] => {
 
 const renderCourseNameField = (props: WrappedFieldProps & { label: string; type: string }) => (
   <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px' }}>
-    <TextField label={props.label} margin="normal" type={props.type} {...props.input} />
+    <TextField label={props.label} type={props.type} {...props.input} />
     {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
   </FormControl>
 );
@@ -100,7 +100,7 @@ interface BasicInformationProps extends InjectedFormProps, FormParams {
   nextStep: () => void;
 }
 
-const BasicInformation: React.FC<BasicInformationProps> = props => {
+const BasicInformationStep: React.FC<BasicInformationProps> = props => {
   const { handleSubmit } = props;
 
   const validate = (values: FormParams) => {
@@ -111,7 +111,7 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
     if (!values.courseYear) {
       errors.courseYear = '必須項目です';
     }
-    if (errors) {
+    if (Object.keys(errors).length) {
       throw new SubmissionError(errors);
     }
     props.nextStep();
@@ -152,4 +152,4 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
 export default reduxForm({
   form: 'CourseCreateForm',
   destroyOnUnmount: false,
-})(BasicInformation);
+})(BasicInformationStep);
