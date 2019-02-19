@@ -54,7 +54,7 @@ const renderPinCodeField = (props: WrappedFieldProps & { label: string }) => {
   const [showPinCode, setShowPinCode] = React.useState<boolean>(false);
 
   return (
-    <FormControl fullWidth={true} style={{ padding: '10px 0px' }}>
+    <FormControl error={Boolean(props.meta.error)} fullWidth={true} style={{ padding: '10px 0px' }}>
       <InputLabel htmlFor="pin-code">PINコード</InputLabel>
       <Input
         type={showPinCode ? 'text' : 'password'}
@@ -74,6 +74,7 @@ const renderPinCodeField = (props: WrappedFieldProps & { label: string }) => {
         }
       />
       <FormHelperText>他のユーザーがこの課程に登録するために必要な簡単なパスワードです</FormHelperText>
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
     </FormControl>
   );
 };
@@ -111,6 +112,10 @@ const BasicInformationStep: React.FC<BasicInformationProps> = props => {
     if (!values.courseYear) {
       errors.courseYear = '必須項目です';
     }
+    if (!values.pinCode) {
+      errors.pinCode = '必須項目です';
+    }
+    // TODO: Common password check
     if (Object.keys(errors).length) {
       throw new SubmissionError(errors);
     }

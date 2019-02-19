@@ -1,7 +1,6 @@
 import {
   Button,
   FormControl,
-  FormHelperText,
   FormLabel,
   IconButton,
   Input,
@@ -15,7 +14,7 @@ import {
 } from '@material-ui/core';
 import { Add, Delete } from '@material-ui/icons';
 import * as React from 'react';
-import { FieldArray, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldArrayProps } from 'redux-form';
+import { FieldArray, InjectedFormProps, reduxForm, WrappedFieldArrayProps } from 'redux-form';
 
 interface LabRowProps {
   labName: string;
@@ -47,12 +46,21 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
     if (isNaN(capacityInt)) {
       props.setErrMsg('募集人数は半角数字で入力してください');
       return;
-    } else if (capacityInt< 0) {
+    } else if (capacityInt < 0) {
       props.setErrMsg('募集人数は0人以上にしてください');
       return;
     }
     if (!labName) {
       props.setErrMsg('研究室名を入力してください');
+      return;
+    }
+    if (
+      labs &&
+      labs.find((lab: LabRowProps) => {
+        return lab.labName === labName;
+      })
+    ) {
+      props.setErrMsg('同名の研究室が既に存在しています');
       return;
     }
     props.fields.push({
@@ -79,12 +87,11 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
         <TableCell style={{ padding: '4px 0' }}>
           <FormControl>
             <Input value={capacity} onChange={e => setCapacity(e.target.value)} />
-            {/*{this.state.labCapacityErr ? <FormHelperText>半角数字のみ</FormHelperText> : null}*/}
           </FormControl>
         </TableCell>
         <TableCell padding="none" style={{ textAlign: 'center' }}>
-          <IconButton>
-            <Add onClick={onAddLab} />
+          <IconButton onClick={onAddLab}>
+            <Add />
           </IconButton>
         </TableCell>
       </TableRow>
@@ -115,6 +122,8 @@ const LabsStep: React.FC<LabsStepProps> = props => {
           </TableRow>
         </TableHead>
         <TableBody>
+          {/*
+          // @ts-ignore */}
           <FieldArray name="labs" setErrMsg={setErrMsg} component={renderAddLabsField} />
         </TableBody>
         <TableFooter>
