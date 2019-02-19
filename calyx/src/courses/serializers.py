@@ -289,8 +289,8 @@ class CourseStatusDetailSerializer(serializers.Serializer):
     各設定項目を満たしているかどうかを表現するSerializer
     """
 
-    show_gpa = serializers.BooleanField(read_only=True)
-    show_username = serializers.BooleanField(read_only=True)
+    gpa = serializers.BooleanField(read_only=True)
+    username = serializers.BooleanField(read_only=True)
     rank_submitted = serializers.BooleanField(read_only=True)
 
 

@@ -165,8 +165,8 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer_context = {'course_pk': self.course.pk}
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
-                    'show_gpa': True if show_gpa is False else gpa is not None,
-                    'show_username': True,
+                    'gpa': True if show_gpa is False else gpa is not None,
+                    'username': True,
                     'rank_submitted': False
                 }
                 self.assertEqual(expected, self.to_dict(serializer.data['detail']))
@@ -185,8 +185,8 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer_context = {'course_pk': self.course.pk}
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
-                    'show_username': True if show_username is False else screen_name is not None,
-                    'show_gpa': True,
+                    'username': True if show_username is False else screen_name is not None,
+                    'gpa': True,
                     'rank_submitted': False
                 }
                 self.assertEqual(expected, self.to_dict(serializer.data['detail']))
@@ -205,8 +205,8 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer_context = {'course_pk': self.course.pk}
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
-                    'show_username': True,
-                    'show_gpa': True,
+                    'username': True,
+                    'gpa': True,
                     'rank_submitted': submit == limit
                 }
                 self.assertEqual(expected, self.to_dict(serializer.data['detail']))
@@ -219,8 +219,8 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
         expected = {
             'status': 'pending',
             'detail': {
-                'show_username': False,
-                'show_gpa': False,
+                'username': False,
+                'gpa': False,
                 'rank_submitted': False
             }
         }
