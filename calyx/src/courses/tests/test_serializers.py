@@ -1,9 +1,11 @@
+import itertools
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import serializers
 
 from courses.models import Course, Year
-from courses.serializers import YearSerializer, CourseSerializer, CourseWithoutUserSerializer
+from courses.serializers import YearSerializer, CourseSerializer, CourseWithoutUserSerializer, CourseStatusSerializer
 from .base import DatasetMixin
 
 User = get_user_model()
@@ -137,3 +139,91 @@ class CourseSerializerTest(DatasetMixin, TestCase):
             course_data['pin_code'] = '1234'
             serializer = CourseSerializer(data=course_data)
             serializer.is_valid(raise_exception=True)
+
+
+class CourseStatusSerializerTest(DatasetMixin, TestCase):
+
+    def setUp(self):
+        super(CourseStatusSerializerTest, self).setUp()
+        self.course_data = self.course_data_set[0]
+        self.course = Course.objects.create_course(**self.course_data)
+        self.user = User.objects.create_user(**self.user_data_set[0])
+        self.course.join(self.user, self.course_data['pin_code'])
+        self.labs = self.create_labs(self.course)
+
+    def test_show_gpa(self):
+        """GPAの表示の可否"""
+        data_set = [4.0, None]
+        show_gpa_set = [True, False]
+        for gpa, show_gpa in list(itertools.product(data_set, show_gpa_set)):
+            with self.subTest(gpa=gpa, show_gpa=show_gpa):
+                self.course.config.show_gpa = show_gpa
+                self.course.config.show_username = False
+                self.course.config.save()
+                self.user.gpa = gpa
+                self.user.save()
+                serializer_context = {'course_pk': self.course.pk}
+                serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
+                expected = {
+                    'show_gpa': True if show_gpa is False else gpa is not None,
+                    'show_username': True,
+                    'rank_submitted': False
+                }
+                self.assertEqual(expected, self.to_dict(serializer.data['detail']))
+
+    def test_show_username(self):
+        """ユーザ名の表示の可否"""
+        data_set = ["hoge", None]
+        show_username_set = [True, False]
+        for screen_name, show_username in list(itertools.product(data_set, show_username_set)):
+            with self.subTest(screen_name=screen_name, show_username=show_username):
+                self.course.config.show_username = show_username
+                self.course.config.show_gpa = False
+                self.course.config.save()
+                self.user.screen_name = screen_name
+                self.user.save()
+                serializer_context = {'course_pk': self.course.pk}
+                serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
+                expected = {
+                    'show_username': True if show_username is False else screen_name is not None,
+                    'show_gpa': True,
+                    'rank_submitted': False
+                }
+                self.assertEqual(expected, self.to_dict(serializer.data['detail']))
+
+    def test_rank_submitted(self):
+        """提出した希望順位の数の可否"""
+        data_set = [3, 1]
+        rank_limit_set = [3, 1]
+        for submit, limit in list(itertools.product(data_set, rank_limit_set)):
+            with self.subTest(submit=submit, limit=limit):
+                self.course.config.rank_limit = limit
+                self.course.config.save()
+                self.user.rank_set.all().delete()
+                self.user.save()
+                self.submit_ranks(self.labs[:submit], self.user)
+                serializer_context = {'course_pk': self.course.pk}
+                serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
+                expected = {
+                    'show_username': True,
+                    'show_gpa': True,
+                    'rank_submitted': submit == limit
+                }
+                self.assertEqual(expected, self.to_dict(serializer.data['detail']))
+
+    def test_no_course_joined(self):
+        """課程にジョインしていないユーザの場合"""
+        self.user.courses.all().delete()
+        serializer_context = {'course_pk': self.course.pk}
+        serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
+        expected = {
+            'status': 'pending',
+            'detail': {
+                'show_username': False,
+                'show_gpa': False,
+                'rank_submitted': False
+            }
+        }
+        actual = serializer.data
+        actual.pop('status_message')
+        self.assertEqual(expected, actual)

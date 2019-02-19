@@ -82,7 +82,7 @@ class DatasetMixin(object):
     def submit_ranks(self, labs: "List[Lab]", user) -> 'List[Rank]':
         ranks = []
         for i, lab in enumerate(labs):
-            rank = Rank.objects.create(lab=lab, course=lab.course, user=user, order=i)
+            rank, _ = Rank.objects.update_or_create(lab=lab, defaults={"course": lab.course, "user": user, "order": i})
             ranks.append(rank)
         return ranks
 
