@@ -16,13 +16,13 @@ class Status(object):
 
     @classmethod
     def from_user_instance(cls, user, course_pk: int) -> 'Status':
-        status = Status()
+        status = cls()
         config = get_config_cache(course_pk)
         if config['show_gpa']:
             if user.gpa is None:
                 status.show_gpa = False
         if config['show_username']:
-            if user.username is None or user.username == "":
+            if user.screen_name is None or user.screen_name == "":
                 status.show_username = False
         if config['rank_limit'] != user.rank_set.filter(course_id=course_pk).count():
             status.rank_submitted = False
@@ -34,7 +34,7 @@ class Status(object):
         keys = ['show_gpa', 'show_username', 'rank_submitted']
         ok = True
         for k in keys:
-            ok |= self.__dict__[k]
+            ok &= self.__dict__[k]
         if ok:
             return 'ok'
         return 'insufficient'
