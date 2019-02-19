@@ -2,6 +2,7 @@ import { Button, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@mate
 import * as React from 'react';
 
 import BasicInformationStep from './BasicInformationStep';
+import LabsStep from './LabsStep';
 import ReviewStep from './ReviewStep';
 
 export interface Lab {
@@ -37,6 +38,9 @@ class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreat
       case 0:
         // @ts-ignore
         return <BasicInformationStep nextStep={this.nextStep} />;
+      case 1:
+        // @ts-ignore
+        return <LabsStep nextStep={this.nextStep} prevStep={this.prevStep} />;
       case 2:
         return <ReviewStep />;
     }
