@@ -3,10 +3,15 @@ from .models import get_config_cache
 
 class Status(object):
 
+    OK = 'ok'
+    NG = 'insufficient'
+    PENDING = 'pending'
+
     def __init__(self, show_gpa: bool = True, show_username: bool = True, rank_submitted: bool = True):
         self.show_gpa = show_gpa
         self.show_username = show_username
         self.rank_submitted = rank_submitted
+        self._type = None
 
     def set_false_all(self):
         self.show_gpa = False
@@ -17,6 +22,9 @@ class Status(object):
     @classmethod
     def from_user_instance(cls, user, course_pk: int) -> 'Status':
         status = cls()
+        if not user.courses.filter(pk=course_pk).exists():
+            status._type = cls.PENDING
+            return status.set_false_all()
         config = get_config_cache(course_pk)
         if config['show_gpa']:
             if user.gpa is None:
@@ -31,33 +39,26 @@ class Status(object):
     @property
     def type_str(self) -> str:
         """Statusの状態によって'ok'または'insufficient'を返す"""
+        if self._type is not None:
+            return self._type
         keys = ['show_gpa', 'show_username', 'rank_submitted']
         ok = True
         for k in keys:
             ok &= self.__dict__[k]
         if ok:
-            return 'ok'
-        return 'insufficient'
+            return self.OK
+        return self.NG
 
 
 class StatusMessage(object):
 
     default_messages = {
-        'ok': '閲覧資格を満たしています．',
-        'insufficient': '閲覧資格を満たしていません．',
-        'pending': 'まだどの課程にも加入していません．'
+        Status.OK: '閲覧資格を満たしています．',
+        Status.NG: '閲覧資格を満たしていません．',
+        Status.PENDING: 'まだどの課程にも加入していません．'
     }
 
-    status_types = ('ok', 'insufficient', 'pending')
-
-    def __init__(self, status: str, detail: 'Status' = None):
-        if status not in self.status_types:
-            raise ValueError(f"Status type '{status}' is not supported.")
-        self.status = status
-        self.status_message = self.default_messages[status]
-        if detail is None:
-            self.detail = Status().set_false_all()
-        else:
-            self.detail = detail
-
-
+    def __init__(self, user, course_pk: int):
+        self.detail = Status.from_user_instance(user, course_pk)
+        self.status = self.detail.type_str
+        self.status_message = self.default_messages[self.status]

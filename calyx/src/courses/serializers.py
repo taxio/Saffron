@@ -305,11 +305,7 @@ class CourseStatusSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """Userインスタンスからステータスをチェックする"""
         course_pk = self.context['course_pk']
-        if not instance.courses.filter(pk=course_pk).exists():
-            status_msg = StatusMessage('pending')
-        else:
-            status = Status.from_user_instance(instance, course_pk)
-            status_msg = StatusMessage(status.type_str, status)
+        status_msg = StatusMessage(instance, course_pk)
         return super(CourseStatusSerializer, self).to_representation(status_msg)
 
 
