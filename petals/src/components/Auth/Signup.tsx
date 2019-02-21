@@ -93,7 +93,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
 
   public handleCloseDialog = () => {
     this.props.history.push('/');
-  }
+  };
 
   public render(): React.ReactNode {
     const { error, handleSubmit } = this.props;
