@@ -66,7 +66,6 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
           default:
             throw new SubmissionError({ _error: '未知のエラーです' });
         }
-        console.log(e);
       });
   };
 
