@@ -68,12 +68,11 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course = self.course
         course.join(self.user, self.pin_code)
         course.register_as_admin(self.user)
-        resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
+        resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0:1], format='json')
         self.assertEqual(201, resp.status_code)
         data = self.to_dict(resp.data)
-        data.pop('pk')
-        self.lab_data_set[0]['rank_set'] = [[], [], []]
-        self.assertEqual(self.lab_data_set[0], data)
+        data[0].pop('pk')
+        self.assertEqual(self.lab_data_set[0:1], data)
 
     def test_update_lab(self):
         """PUT /courses/<course_pk>/labs/<lab_pk>/"""
