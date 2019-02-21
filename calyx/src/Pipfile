@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = ">=2.1.6"
 djangorestframework = "*"
-django-rest-swagger = "*"
 python-dotenv = "*"
 uwsgi = "*"
 mysqlclient = "*"
