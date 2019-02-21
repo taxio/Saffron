@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from rest_framework import status, generics, response, permissions
 from rest_framework.response import Response
 from djoser.conf import settings as djoser_settings
 from djoser.utils import logout_user
+from rest_framework import status, generics, response, permissions
+
 from .forms import LoginForm
 from .permissions import IsOwner
 from .serializers import UserSerializer, PasswordValidationSerializer

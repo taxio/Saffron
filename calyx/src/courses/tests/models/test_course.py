@@ -1,10 +1,12 @@
 from datetime import datetime
+
 from django.db import IntegrityError
 from django.test import TestCase
-from users.models import User
-from courses.models import Course, Year
+
 from courses.errors import NotJoinedError, AlreadyJoinedError, NotAdminError
+from courses.models import Course, Year
 from courses.tests.base import DatasetMixin
+from users.models import User
 
 
 class CourseTest(DatasetMixin, TestCase):

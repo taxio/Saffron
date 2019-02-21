@@ -1,5 +1,5 @@
-from django.test import TestCase
 from django.conf import settings
+from django.test import TestCase
 from rest_framework import serializers
 
 from courses.tests.base import DatasetMixin

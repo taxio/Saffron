@@ -33,6 +33,7 @@ class SaffronConfirmationEmail(ConfirmationEmail, object):
     """
     アカウントアクティベート後の確認メール本文作成クラス
     """
+
     def get_context_data(self, **kwargs):
         """
         テンプレートに埋め込む変数をオーバーライド

@@ -1,9 +1,10 @@
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_nested.routers import NestedDefaultRouter
+
 from .views import (
     CourseViewSet, YearViewSet, JoinAPIView, CourseAdminView,
-    CourseConfigViewSet, LabViewSet, RankViewSet
+    CourseConfigViewSet, LabViewSet, RankViewSet, RequirementStatusView
 )
 
 router = routers.DefaultRouter()
@@ -15,6 +16,7 @@ course_nested_router = NestedDefaultRouter(router, r'courses', lookup='course')
 course_nested_router.register('join', JoinAPIView, basename='join')
 course_nested_router.register('admins', CourseAdminView, basename='admin')
 course_nested_router.register('config', CourseConfigViewSet, basename='config')
+course_nested_router.register('status', RequirementStatusView, basename='status')
 course_nested_router.register('labs', LabViewSet, basename='lab')
 course_nested_router.register('ranks', RankViewSet, basename='rank')
 

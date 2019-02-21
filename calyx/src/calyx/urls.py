@@ -17,9 +17,9 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_swagger.views import get_swagger_view
 
-from users.urls import jwt as jwt_urls
-from users.urls import accounts as accounts_urls
 from courses import urls as course_urls
+from users.urls import accounts as accounts_urls
+from users.urls import jwt as jwt_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),

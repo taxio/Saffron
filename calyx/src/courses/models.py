@@ -1,13 +1,14 @@
 import unicodedata
-
 from typing import TYPE_CHECKING
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.db import models, transaction, IntegrityError
-from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 from django.utils import timezone
+
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
 
 if TYPE_CHECKING:
@@ -44,7 +45,7 @@ class CourseManager(models.Manager):
     """
 
     def create_course(self, name: str, pin_code: str, year: 'Optional[int]' = None,
-                      config: 'Optional[dict]'=None) -> 'Course':
+                      config: 'Optional[dict]' = None) -> 'Course':
         """
         新しい課程を作成する．
         :param name: 課程の名前
@@ -112,11 +113,13 @@ class Course(models.Model):
         与えられたPINコードが正しいならばTrueを返す
         :return:
         """
+
         def setter(raw_password):
             """Passwordのハッシュアルゴリズムが変わった場合にパスワードを更新する"""
             self.set_password(raw_password)
             self._password = None
             self.save(update_fields=["password"])
+
         return check_password(raw_pin_code, self.pin_code, setter)
 
     @classmethod
@@ -228,7 +231,7 @@ class Rank(models.Model):
     # SET_NULL等をすると入れ替えた後にNoneが代入されてしまう
     lab = models.ForeignKey(Lab, verbose_name='研究室', on_delete=models.DO_NOTHING, blank=True, null=True)
     user = models.ForeignKey(User, verbose_name='ユーザ', on_delete=models.CASCADE)
-    course = models.ForeignKey(Course,verbose_name='課程', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, verbose_name='課程', on_delete=models.CASCADE)
     order = models.IntegerField("志望順位")
 
     objects = RankManager()

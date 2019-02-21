@@ -1,17 +1,17 @@
 import functools
 
 from django.contrib.auth import password_validation
-from django.db import IntegrityError
+from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from django.conf import settings
-from django.contrib.auth.password_validation import validate_password
+from django.db import IntegrityError
 from rest_framework import serializers
-from .models import User, StudentNumberValidator
+
 from courses.serializers import CourseWithoutUserSerializer
+from .models import User, StudentNumberValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     is_admin = serializers.SerializerMethodField(read_only=True)
     joined = serializers.SerializerMethodField(read_only=True)
     courses = CourseWithoutUserSerializer(many=True, read_only=True)

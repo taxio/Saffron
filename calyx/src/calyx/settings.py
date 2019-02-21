@@ -4,9 +4,10 @@ Django settings for calyx.
 Calyx is a backend implementation of Saffron ( https://github.com/StudioAquatan/Saffron.git ).
 """
 
-import os
-import dotenv
 import datetime
+import os
+
+import dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

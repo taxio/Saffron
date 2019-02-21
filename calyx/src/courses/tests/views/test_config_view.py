@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
-from courses.models import Course, Lab
+
+from courses.models import Course
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 User = get_user_model()
@@ -69,4 +70,3 @@ class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course.join(self.user, pin_code)
         resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
         self.assertEqual(403, resp.status_code)
-

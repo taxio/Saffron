@@ -1,7 +1,8 @@
 import json
-from copy import deepcopy
 from collections import OrderedDict
+from copy import deepcopy
 from typing import TYPE_CHECKING
+
 from django.utils.six import text_type
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -10,7 +11,6 @@ from courses.models import Lab, Rank
 if TYPE_CHECKING:
     from courses.models import Course
     from typing import List, Dict
-
 
 years = [2017, 2018, 2019]
 
@@ -82,7 +82,7 @@ class DatasetMixin(object):
     def submit_ranks(self, labs: "List[Lab]", user) -> 'List[Rank]':
         ranks = []
         for i, lab in enumerate(labs):
-            rank = Rank.objects.create(lab=lab, course=lab.course, user=user, order=i)
+            rank, _ = Rank.objects.update_or_create(lab=lab, defaults={"course": lab.course, "user": user, "order": i})
             ranks.append(rank)
         return ranks
 
@@ -91,7 +91,6 @@ class DatasetMixin(object):
 
 
 class JWTAuthMixin(object):
-
     auth_header = 'JWT'
 
     def _set_credentials(self, user=None):
