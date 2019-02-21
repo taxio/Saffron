@@ -36,48 +36,60 @@ class UserRegistrationTests(DatasetMixin, JWTAuthMixin, APITestCase, URLPatterns
         self.assertEqual(resp.data, self.expect_created_result)
         # 登録されたユーザ情報を検証
         users = User.objects.all()
-        self.assertEqual(len(users), 1)
-        self.assertEqual(users[0].is_active, False)
-        self.assertEqual(users[0].email, self.user_email)
+        with self.subTest(user_count=len(users)):
+            self.assertEqual(len(users), 1)
+            self.assertEqual(users[0].is_active, False)
+            self.assertEqual(users[0].email, self.user_email)
         # メールの内容をチェック
-        self.assertEqual(mail.outbox[0].subject, self.expected_mail_subject)
-        self.assertEqual(len(mail.outbox[0].to), 1)
-        self.assertEqual(mail.outbox[0].to[0], self.user_email)
+        with self.subTest():
+            self.assertEqual(mail.outbox[0].subject, self.expected_mail_subject)
+            self.assertEqual(len(mail.outbox[0].to), 1)
+            self.assertEqual(mail.outbox[0].to[0], self.user_email)
         # メールからアクティベーションURLを抽出して検証
         activation_urls = self.urlregex.findall(mail.outbox[0].body)
-        self.assertEqual(len(activation_urls), 1)
+        with self.subTest():
+            self.assertEqual(len(activation_urls), 1)
         parsed_url = urlparse(activation_urls[0])
-        self.assertEqual(parsed_url.scheme, settings.PETALS_PROTOCOL)
-        self.assertEqual(parsed_url.netloc, settings.PETALS_DOMAIN)
+        with self.subTest(activation_url=parsed_url):
+            self.assertEqual(parsed_url.scheme, settings.PETALS_PROTOCOL)
+            self.assertEqual(parsed_url.netloc, settings.PETALS_DOMAIN)
+        # 間違った内容を送りつける
+        invalid_token = 'invalid'
+        invalid_uid = 'invalid'
+        with self.subTest(invalid_token=invalid_token, invalid_uid=invalid_uid):
+            invalid_resp = self.client.post(reverse('accounts:user-activate'),
+                                            data={'token': 'invalid', 'uid': 'invalid'}, format='json')
+            self.assertEqual(invalid_resp.status_code, status.HTTP_400_BAD_REQUEST)
+            not_activated_user = User.objects.get(username=self.user_data['username'])
+            self.assertEqual(not_activated_user.is_active, False)
         # アクティベーションされるか検証
         token = parsed_url.fragment.split('/')[-1]
         uid = parsed_url.fragment.split('/')[-2]
-        # 間違った内容を送りつける
-        invalid_resp = self.client.post(reverse('accounts:user-activate'),
-                                        data={'token': 'invalid', 'uid': 'invalid'}, format='json')
-        self.assertEqual(invalid_resp.status_code, status.HTTP_400_BAD_REQUEST)
-        not_activated_user = User.objects.get(username=self.user_data['username'])
-        self.assertEqual(not_activated_user.is_active, False)
-        # 正しいトークンとuidでアクティベート
-        post_resp = self.client.post(reverse('accounts:user-activate'), data={'token': token, 'uid': uid}, format='json')
-        self.assertEqual(post_resp.status_code, status.HTTP_204_NO_CONTENT)
-        activated_user = User.objects.get(username=self.user_data['username'])
-        self.assertEqual(activated_user.is_active, True)
+        with self.subTest(token=token, uid=uid):
+            # 正しいトークンとuidでアクティベート
+            post_resp = self.client.post(reverse('accounts:user-activate'), data={'token': token, 'uid': uid}, format='json')
+            self.assertEqual(post_resp.status_code, status.HTTP_204_NO_CONTENT)
+            activated_user = User.objects.get(username=self.user_data['username'])
+            self.assertEqual(activated_user.is_active, True)
 
     def test_duplicate_create_user(self):
         """ユーザを2重で登録するテスト"""
-        first_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
-        self.assertEqual(first_resp.status_code, status.HTTP_201_CREATED)
-        second_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
-        self.assertEqual(second_resp.status_code, status.HTTP_400_BAD_REQUEST)
-        users = User.objects.all()
-        self.assertEqual(len(users), 1)
+        with self.subTest():
+            first_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
+            self.assertEqual(first_resp.status_code, status.HTTP_201_CREATED)
+        with self.subTest():
+            second_resp = self.client.post(reverse('accounts:user-create'), data=self.user_data, format='json')
+            self.assertEqual(second_resp.status_code, status.HTTP_400_BAD_REQUEST)
+            users = User.objects.all()
+            self.assertEqual(len(users), 1)
 
     def test_post_invalid_params(self):
         """ユーザ登録に必要ない値などを送るテスト"""
-        invalid_resp = self.client.post(reverse('accounts:user-create'), data={'hoge': 'fuga'}, format='json')
-        self.assertEqual(invalid_resp .status_code, status.HTTP_400_BAD_REQUEST)
+        with self.subTest():
+            invalid_resp = self.client.post(reverse('accounts:user-create'), data={'hoge': 'fuga'}, format='json')
+            self.assertEqual(invalid_resp .status_code, status.HTTP_400_BAD_REQUEST)
         # 無駄なパラメータを一緒にpostした場合
-        extra_param_resp = self.client.post(reverse('accounts:user-create'),
-                                            data=dict(**self.user_data, hoge='fuga'), format='json')
-        self.assertEqual(extra_param_resp .status_code, status.HTTP_201_CREATED)
+        with self.subTest():
+            extra_param_resp = self.client.post(reverse('accounts:user-create'),
+                                                data=dict(**self.user_data, hoge='fuga'), format='json')
+            self.assertEqual(extra_param_resp .status_code, status.HTTP_201_CREATED)

@@ -43,11 +43,13 @@ class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていない
         self._unset_credentials()
         resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
-        self.assertEqual(401, resp.status_code)
-        self._set_credentials()
+        with self.subTest(logged_in=False, is_member=False):
+            self.assertEqual(401, resp.status_code)
+            self._set_credentials()
         # メンバーで無い
         resp = self.client.get(f'/courses/{course.pk}/config/', data={}, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False):
+            self.assertEqual(403, resp.status_code)
 
     def test_update_config_permission(self):
         """POST /courses/<course_pk>/config/"""
@@ -61,12 +63,15 @@ class ConfigViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていない
         self._unset_credentials()
         resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False, is_admin=False):
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # メンバーでない
         resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False, is_admin=False):
+            self.assertEqual(403, resp.status_code)
         # メンバーだが管理者で無い
         course.join(self.user, pin_code)
         resp = self.client.post(f'/courses/{course.pk}/config/', data=expected, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=True, is_admin=False):
+            self.assertEqual(403, resp.status_code)

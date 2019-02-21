@@ -46,10 +46,12 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
             'config': self.default_config,
             'is_admin': True
         }
-        self.assertEqual(201, resp.status_code)
-        actual = self.to_dict(resp.data)
-        Course.objects.get(pk=actual.pop("pk")).delete()
-        self.assertEqual(expected_json, actual)
+        with self.subTest(status=201, expected=expected_json, with_config=False):
+            self.assertEqual(201, resp.status_code)
+            actual = self.to_dict(resp.data)
+            course_pk = actual.pop("pk")
+            self.assertEqual(expected_json, actual)
+        Course.objects.get(pk=course_pk).delete()
         # configと一緒にPOSTする
         new_config = self.default_config
         new_config['show_gpa'] = True
@@ -59,16 +61,19 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         resp = self.client.post('/courses/', data=course_with_config, format='json')
         actual = self.to_dict(resp.data)
         actual.pop('pk')
-        self.assertEqual(201, resp.status_code)
-        self.assertEqual(expected_json, actual)
+        with self.subTest(status=201, expected=expected_json, with_config=True):
+            self.assertEqual(201, resp.status_code)
+            self.assertEqual(expected_json, actual)
         # PINコード無し
         course_data.pop('pin_code')
         resp = self.client.post('/courses/', data=course_data, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(status=400, expected=None):
+            self.assertEqual(400, resp.status_code)
         # PINコードが短すぎ
         course_data['pin_code'] = '0'
         resp = self.client.post('/courses/', data=course_data, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(status=400, expected=None):
+            self.assertEqual(400, resp.status_code)
 
     def test_retrieve(self):
         """GET /course/<pk>/"""
@@ -101,11 +106,13 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていなければ詳細を閲覧できない
         self._unset_credentials()
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(status=401, expected=None):
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # 参加していないユーザは詳細を閲覧できない
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(status=403, expected=None):
+            self.assertEqual(403, resp.status_code)
 
     def test_retrieve_permission_gpa(self):
         """GET /courses/<pk>/"""
@@ -119,12 +126,14 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.user.gpa = None
         self.user.save()
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(status=403, expected=None):
+            self.assertEqual(403, resp.status_code)
         # GPAを入力すれば閲覧できる
         self.user.gpa = 2.0
         self.user.save()
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(200, resp.status_code)
+        with self.subTest(status=200, expected=None):
+            self.assertEqual(200, resp.status_code)
 
     def test_retrieve_permission_username(self):
         """GET /courses/<pk>/"""
@@ -138,12 +147,14 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.user.screen_name = None
         self.user.save()
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(status=403, expected=None):
+            self.assertEqual(403, resp.status_code)
         # GPAを入力すれば閲覧できる
         self.user.screen_name = 'test_user'
         self.user.save()
         resp = self.client.get(f'/courses/{course.pk}/', data={}, format='json')
-        self.assertEqual(200, resp.status_code)
+        with self.subTest(status=200, expected=None):
+            self.assertEqual(200, resp.status_code)
 
     def test_patch(self):
         """PATCH /courses/<pk>/"""
@@ -169,10 +180,12 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         }
         # 標準メンバーは更新できない
         resp = self.client.patch(f'/courses/{course.pk}/', data=expected_json, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(status=403, expected=None, is_admin=False):
+            self.assertEqual(403, resp.status_code)
         # 管理者は更新できる
         course.register_as_admin(self.user)
         self._set_credentials(self.user)
         resp = self.client.patch(f'/courses/{course.pk}/', data=expected_json, format='json')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected_json, self.to_dict(resp.data))
+        with self.subTest(status=200, expected=expected_json, is_admin=True):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(expected_json, self.to_dict(resp.data))

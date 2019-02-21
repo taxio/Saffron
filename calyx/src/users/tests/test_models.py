@@ -23,7 +23,8 @@ class StudentNumberValidatorTest(TestCase):
             'd0000000',  # 博士
         ]
         for valid_id in valid_id_set:
-            self.assertEqual(None, self.validator(valid_id))
+            with self.subTest(valid_id=valid_id):
+                self.assertEqual(None, self.validator(valid_id))
 
     def test_invalid_id(self):
         """誤った学籍番号のテスト"""
@@ -33,8 +34,9 @@ class StudentNumberValidatorTest(TestCase):
             'a1234567',  # プレフィクスが違う
         ]
         for invalid_id in invalid_id_set:
-            with self.assertRaises(ValidationError):
-                self.validator(invalid_id)
+            with self.subTest(invalid_id=invalid_id):
+                with self.assertRaises(ValidationError):
+                    self.validator(invalid_id)
 
 
 class UserModelTest(DatasetMixin, TestCase):
@@ -43,18 +45,20 @@ class UserModelTest(DatasetMixin, TestCase):
     def test_create_user(self):
         """ユーザを作成する"""
         for user_data in self.user_data_set:
-            user = User.objects.create_user(**user_data)
-            self.assertEqual(normalize('NFKC', user_data['username']), user.username)
-            self.assertEqual(user_data.get('screen_name', None), user.screen_name)
-            self.assertFalse(user.is_active)
-            self.assertFalse(user.is_staff)
-            self.assertFalse(user.is_superuser)
-            self.assertTrue(user.check_password(user_data['password']))
+            with self.subTest(user=user_data):
+                user = User.objects.create_user(**user_data)
+                self.assertEqual(normalize('NFKC', user_data['username']), user.username)
+                self.assertEqual(user_data.get('screen_name', None), user.screen_name)
+                self.assertFalse(user.is_active)
+                self.assertFalse(user.is_staff)
+                self.assertFalse(user.is_superuser)
+                self.assertTrue(user.check_password(user_data['password']))
         # 同一ユーザ名は重複登録できない
         for user_data in self.user_data_set:
-            with transaction.atomic():
-                with self.assertRaises(IntegrityError):
-                    User.objects.create_user(**user_data)
+            with self.subTest(user=user_data):
+                with transaction.atomic():
+                    with self.assertRaises(IntegrityError):
+                        User.objects.create_user(**user_data)
 
     def test_update_username(self):
         """作成したユーザのユーザ名を変更する"""
@@ -68,23 +72,26 @@ class UserModelTest(DatasetMixin, TestCase):
             User.objects.filter(pk=user_id).update(username=new_id)
             new_id_set.append(new_id)
         for user_id, new_id in zip(user_id_set, new_id_set):
-            user = User.objects.get(pk=user_id)
-            self.assertEqual(user.username, new_id)
+            with self.subTest(new_username=new_id):
+                user = User.objects.get(pk=user_id)
+                self.assertEqual(user.username, new_id)
 
     def test_update_gpa(self):
         """GPAを更新する"""
         user = User.objects.create_user(**self.user_data_set[0])
         # 最初はNULL
-        self.assertEqual(None, user.gpa)
+        with self.subTest(gpa=None):
+            self.assertEqual(None, user.gpa)
         # 正しいGPAで更新する
         valid_gpa_set = [
             0,  # 整数も許容する
             4.0,
         ]
         for valid_gpa in valid_gpa_set:
-            user.gpa = valid_gpa
-            user.save()
-            self.assertEqual(valid_gpa, user.gpa)
+            with self.subTest(valid_gpa=valid_gpa):
+                user.gpa = valid_gpa
+                user.save()
+                self.assertEqual(valid_gpa, user.gpa)
 
     def test_update_password(self):
         """パスワードを更新する"""

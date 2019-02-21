@@ -23,8 +23,9 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course.join(self.user, self.pin_code)
         resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
         expected = []
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(status=200, expected=expected):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
         lab = Lab.objects.create(**self.lab_data_set[0], course=course)
         expected = [{
             "pk": lab.pk,
@@ -32,8 +33,9 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             "capacity": lab.capacity
         }]
         resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(status=200, expected=expected):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
 
     def test_retrieve_lab(self):
         """GET /courses/<course_pk>/labs/<lab_pk>/"""
@@ -57,8 +59,9 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
                 'email': self.user.email
             }]
             resp = self.client.get(f'/courses/{course.pk}/labs/{lab.pk}/', format='json')
-            self.assertEqual(200, resp.status_code)
-            self.assertEqual(expected, self.to_dict(resp.data))
+            with self.subTest(status=200, expected=expected):
+                self.assertEqual(200, resp.status_code)
+                self.assertEqual(expected, self.to_dict(resp.data))
 
     def test_create_lab(self):
         """POST /courses/<course_pk>/labs/"""
@@ -79,12 +82,14 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course.register_as_admin(self.user)
         lab = Lab.objects.create(**self.lab_data_set[0], course=course)
         resp = self.client.put(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
-        self.assertEqual(200, resp.status_code)
         self.lab_data_set[1]['pk'] = lab.pk
         self.lab_data_set[1]['rank_set'] = [[], [], []]
-        self.assertEqual(self.lab_data_set[1], self.to_dict(resp.data))
+        with self.subTest(status=200, expected=self.lab_data_set[1]):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(self.lab_data_set[1], self.to_dict(resp.data))
         resp = self.client.put(f'/courses/{course.pk}/labs/9999/', data=self.lab_data_set[1], format='json')
-        self.assertEqual(404, resp.status_code)
+        with self.subTest(status=404, expected=None):
+            self.assertEqual(404, resp.status_code)
 
     def test_delete_lab(self):
         """DELETE /courses/<course_pk>/labs/<lab_pk>/"""
@@ -103,26 +108,31 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていない
         self._unset_credentials()
         resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False):
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # メンバーでない
         resp = self.client.get(f'/courses/{course.pk}/labs/', format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False):
+            self.assertEqual(403, resp.status_code)
 
     def test_create_lab_permission(self):
         course = self.course
         # ログインしていない
         self._unset_credentials()
         resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False, is_admin=False):
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # メンバーでない
         resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False, is_admin=False):
+            self.assertEqual(403, resp.status_code)
         # 管理者で無い
         course.join(self.user, self.pin_code)
         resp = self.client.post(f'/courses/{course.pk}/labs/', data=self.lab_data_set[0], format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=True, is_admin=False):
+            self.assertEqual(403, resp.status_code)
 
     def test_update_lab_permission(self):
         course = self.course
@@ -130,12 +140,15 @@ class LabViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていない
         self._unset_credentials()
         resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False, is_admin=False):
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # メンバーでない
         resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False, is_admin=False):
+            self.assertEqual(403, resp.status_code)
         # 管理者で無い
         course.join(self.user, self.pin_code)
         resp = self.client.patch(f'/courses/{course.pk}/labs/{lab.pk}/', data=self.lab_data_set[1], format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False, is_admin=False):
+            self.assertEqual(403, resp.status_code)
