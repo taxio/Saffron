@@ -17,6 +17,7 @@
     "no-console": {
       "severity": "warning"
     },
+    "no-unused-variable": true,
     "no-empty-interface": false,
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
     "max-classes-per-file": [false]
