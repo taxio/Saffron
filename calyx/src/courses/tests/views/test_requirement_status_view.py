@@ -4,7 +4,8 @@ from collections import ChainMap
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 
-from courses.models import Course, Lab
+from courses.models import Course
+from courses.status import Status, StatusMessage
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 User = get_user_model()
@@ -62,8 +63,18 @@ class RequirementStatusViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
                 self.user.save()
                 resp = self.client.get(f'/courses/{self.course.pk}/status/', format='json')
                 self.assertEqual(200, resp.status_code)
-                self.assertEqual('ok' if user_pattern['ok'] else 'insufficient', resp.data['status'])
+                self.assertEqual(Status.OK if user_pattern['ok'] else Status.NG, resp.data['status'])
 
     def test_no_course_joined(self):
         resp = self.client.get(f'/courses/{self.course.pk}/status/', format='json')
-        self.assertEqual(403, resp.status_code)
+        expected = {
+            'status': Status.PENDING,
+            'status_message': StatusMessage.default_messages[Status.PENDING],
+            'detail': {
+                'gpa': False,
+                'screen_name': False,
+                'rank_submitted': False
+            }
+        }
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected, self.to_dict(resp.data))

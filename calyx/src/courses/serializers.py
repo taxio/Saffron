@@ -290,7 +290,7 @@ class CourseStatusDetailSerializer(serializers.Serializer):
     """
 
     gpa = serializers.BooleanField(read_only=True)
-    username = serializers.BooleanField(read_only=True)
+    screen_name = serializers.BooleanField(read_only=True)
     rank_submitted = serializers.BooleanField(read_only=True)
 
 

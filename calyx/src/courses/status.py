@@ -9,13 +9,13 @@ class Status(object):
 
     def __init__(self, show_gpa: bool = True, show_username: bool = True, rank_submitted: bool = True):
         self.gpa = show_gpa
-        self.username = show_username
+        self.screen_name = show_username
         self.rank_submitted = rank_submitted
         self._type = None
 
     def set_false_all(self):
         self.gpa = False
-        self.username = False
+        self.screen_name = False
         self.rank_submitted = False
         return self
 
@@ -31,7 +31,7 @@ class Status(object):
                 status.gpa = False
         if config['show_username']:
             if user.screen_name is None or user.screen_name == "":
-                status.username = False
+                status.screen_name = False
         if config['rank_limit'] != user.rank_set.filter(course_id=course_pk).count():
             status.rank_submitted = False
         return status
@@ -41,10 +41,9 @@ class Status(object):
         """Statusの状態によって'ok'または'insufficient'を返す"""
         if self._type is not None:
             return self._type
-        keys = ['gpa', 'username', 'rank_submitted']
         ok = True
-        for k in keys:
-            ok &= self.__dict__[k]
+        for k in [self.gpa, self.screen_name, self.rank_submitted]:
+            ok &= k
         if ok:
             return self.OK
         return self.NG

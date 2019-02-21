@@ -166,7 +166,7 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
                     'gpa': True if show_gpa is False else gpa is not None,
-                    'username': True,
+                    'screen_name': True,
                     'rank_submitted': False
                 }
                 self.assertEqual(expected, self.to_dict(serializer.data['detail']))
@@ -185,7 +185,7 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer_context = {'course_pk': self.course.pk}
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
-                    'username': True if show_username is False else screen_name is not None,
+                    'screen_name': True if show_username is False else screen_name is not None,
                     'gpa': True,
                     'rank_submitted': False
                 }
@@ -205,7 +205,7 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
                 serializer_context = {'course_pk': self.course.pk}
                 serializer = CourseStatusSerializer(instance=self.user, context=serializer_context)
                 expected = {
-                    'username': True,
+                    'screen_name': True,
                     'gpa': True,
                     'rank_submitted': submit == limit
                 }
@@ -219,7 +219,7 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
         expected = {
             'status': 'pending',
             'detail': {
-                'username': False,
+                'screen_name': False,
                 'gpa': False,
                 'rank_submitted': False
             }

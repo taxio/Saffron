@@ -1,8 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
-from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions, generics
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
 
@@ -70,7 +69,7 @@ class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
     list:
         要求を満たしているかどうかの状態を取得する
     """
-    permission_classes = [IsCourseMember | IsAdmin]
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, **kwargs):
         course_pk = kwargs.get('course_pk')
