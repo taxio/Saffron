@@ -1,8 +1,10 @@
 import { Button, Divider, List, ListItem, ListItemText, Typography } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { formValueSelector, InjectedFormProps, reduxForm } from 'redux-form';
 
+// import * as AppErr from '../../api/AppErrors';
 import * as courseApi from '../../api/courses';
 import { CourseCreateFormParams, Lab } from './CourseCreateManager';
 
@@ -24,30 +26,35 @@ const getUseParamStr = (useGPA: boolean, useName: boolean): string => {
   return '';
 };
 
-const submitCourseData = async (values: CourseCreateFormParams) => {
-  console.log(values);
-  return courseApi
-    .postCourse(values.courseName, values.pinCode, values.courseYear, values.useName, values.useGPA)
-    .then(() => {
-      console.log('course created');
-    })
-    .catch((e: Error) => {
-      console.log(e);
-    });
-};
-
-interface CreateReviewProps extends InjectedFormProps, CourseCreateFormParams {
+interface CreateReviewProps extends InjectedFormProps, CourseCreateFormParams, RouteComponentProps {
   prevStep: () => void;
 }
 
 const ReviewStep: React.FC<CreateReviewProps> = props => {
   const { handleSubmit, courseName, courseYear, pinCode, useName, useGPA, labs } = props;
-  // courseName = 'course1';
-  // courseYear = 2017;
-  // pinCode = 'hogehoge';
-  // useGPA = false;
-  // useName = true;
-  // labs = [{ name: 'lab1', capacity: 4 }, { name: 'lab2', capacity: 3 }];
+
+  const submitCourseData = async (values: CourseCreateFormParams) => {
+    return courseApi
+      .postCourse(values.courseName, values.pinCode, values.courseYear, values.useName, values.useGPA)
+      .then(courseRes => {
+        const promises: Array<Promise<any>> = [];
+        values.labs.map(lab => {
+          promises.push(courseApi.postLab(courseRes.pk, lab.name, lab.capacity));
+        });
+        Promise.all(promises).then(() => {
+          props.history.push('/');
+        });
+      })
+      .catch((e: Error) => {
+        // switch (e.constructor) {
+        //   case AppErr.UnhandledError:
+        //     console.log('unhandle fetch error');
+        //   default:
+        //     console.log('未知のエラーです');
+        // }
+        console.log(e);
+      });
+  };
 
   return (
     <React.Fragment>
@@ -109,5 +116,5 @@ export default reduxForm({
     useName: selector(state, 'useName'),
     useGPA: selector(state, 'useGPA'),
     labs: selector(state, 'labs'),
-  }))(ReviewStep)
+  }))(withRouter(ReviewStep))
 );
