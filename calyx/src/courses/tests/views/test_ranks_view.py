@@ -23,24 +23,30 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.course.join(self.user, self.pin_code)
         expected = [{'lab': lab.pk} for lab in self.labs]
         resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
-        self.assertEqual(201, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(expected=expected):
+            self.assertEqual(201, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
         ranks = Rank.objects.filter(course=self.course, user=self.user).all()
         for i, lab in enumerate(self.labs):
-            self.assertTrue(ranks.filter(lab=lab, order=i).exists())
+            with self.subTest(order=i, lab=lab):
+                self.assertTrue(ranks.filter(lab=lab, order=i).exists())
         # 数が少ない
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected[1:], format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(data=expected[1:]):
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected[1:], format='json')
+            self.assertEqual(400, resp.status_code)
         # 数が多い
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected + expected, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(data=expected+expected):
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected + expected, format='json')
+            self.assertEqual(400, resp.status_code)
         # 存在しない研究室
         expected[0]['lab'] = 0
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(data=expected):
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
+            self.assertEqual(400, resp.status_code)
         # 存在しない課程
-        resp = self.client.post(f'/courses/9999/ranks/', data=expected, format='json')
-        self.assertEqual(404, resp.status_code)
+        with self.subTest(course=9999):
+            resp = self.client.post(f'/courses/9999/ranks/', data=expected, format='json')
+            self.assertEqual(404, resp.status_code)
 
     def test_update_rank(self):
         """POST /courses/<course_pk>/ranks/"""
@@ -48,31 +54,36 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         self.submit_ranks(self.labs, self.user)
         # 逆順にして更新する
         expected = [{'lab': lab.pk} for lab in self.labs][::-1]
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
-        self.assertEqual(201, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(data=expected):
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
+            self.assertEqual(201, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
         ranks = Rank.objects.filter(course=self.course, user=self.user).all()
         for i, lab in enumerate(self.labs[::-1]):
-            self.assertTrue(ranks.filter(lab=lab, order=i).exists())
+            with self.subTest(order=i, lab=lab):
+                self.assertTrue(ranks.filter(lab=lab, order=i).exists())
 
     def test_create_rank_permission(self):
         """POST /courses/<course_pk>/ranks/"""
         expected = [{'lab': lab.pk} for lab in self.labs]
         # ログインしていない
-        self._unset_credentials()
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False):
+            self._unset_credentials()
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
+            self.assertEqual(401, resp.status_code)
         self._set_credentials()
         # メンバーで無い
-        resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False):
+            resp = self.client.post(f'/courses/{self.course.pk}/ranks/', data=expected, format='json')
+            self.assertEqual(403, resp.status_code)
 
     def test_get_ranks(self):
         """GET /courses/<course_pk>/ranks/"""
         self.course.join(self.user, self.pin_code)
         resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual([], self.to_dict(resp.data))
+        with self.subTest(status=200, expected=[]):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual([], self.to_dict(resp.data))
         ranks = [
             Rank.objects.create(
                 course=self.course, user=self.user, lab=lab, order=i
@@ -94,19 +105,23 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             expected[i]['rank_set'] = [[], [], []]
             expected[i]['rank_set'][i].append(expected_user_data)
         resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(status=200, expected=expected):
+            self.assertEqual(200, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
         # 存在しない課程
-        resp = self.client.get(f'/courses/9999/ranks/')
-        self.assertEqual(404, resp.status_code)
+        with self.subTest(status=404, expected=None):
+            resp = self.client.get(f'/courses/9999/ranks/')
+            self.assertEqual(404, resp.status_code)
 
     def test_get_rank_permission(self):
         """GET /courses/<course_pk>/ranks/"""
         # ログインしていない
-        self._unset_credentials()
-        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
-        self.assertEqual(401, resp.status_code)
-        self._set_credentials()
-        # メンバーでない
-        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
-        self.assertEqual(403, resp.status_code)
+        with self.subTest(logged_in=False, is_member=False):
+            self._unset_credentials()
+            resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+            self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False):
+            self._set_credentials()
+            # メンバーでない
+            resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+            self.assertEqual(403, resp.status_code)

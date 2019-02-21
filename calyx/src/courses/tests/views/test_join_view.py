@@ -34,11 +34,13 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             'config': self.default_config,
             'is_admin': False
         }
-        self.assertEqual(201, resp.status_code)
-        self.assertEqual(expected, self.to_dict(resp.data))
+        with self.subTest(status=201, expected=expected):
+            self.assertEqual(201, resp.status_code)
+            self.assertEqual(expected, self.to_dict(resp.data))
         # 同じユーザの二度目の加入はエラー
         resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(status=400, expected=None):
+            self.assertEqual(400, resp.status_code)
 
     def test_join_with_invalid_pin_code(self):
         """POST /couses/<pk>/join/"""
@@ -47,10 +49,12 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # 間違ったPINコードで参加
         payload = {'pin_code': 'invalid_code'}
         resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
-        self.assertEqual(400, resp.status_code)
+        with self.subTest(status=400):
+            self.assertEqual(400, resp.status_code)
         # 存在しない課程に対してジョイン
         resp = self.client.post('/courses/9999/join/', data=payload, format='json')
-        self.assertEqual(404, resp.status_code)
+        with self.subTest(status=404):
+            self.assertEqual(404, resp.status_code)
 
     def test_join_permission(self):
         """POST /courses/<pk>/join/"""
@@ -60,4 +64,5 @@ class JoinViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         # ログインしていなければ参加できない
         self._unset_credentials()
         resp = self.client.post(f'/courses/{course.pk}/join/', data=payload, format='json')
-        self.assertEqual(401, resp.status_code)
+        with self.subTest(status=401):
+            self.assertEqual(401, resp.status_code)
