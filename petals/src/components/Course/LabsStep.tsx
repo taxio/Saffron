@@ -17,14 +17,14 @@ import * as React from 'react';
 import { FieldArray, InjectedFormProps, reduxForm, WrappedFieldArrayProps } from 'redux-form';
 
 interface LabRowProps {
-  labName: string;
+  name: string;
   capacity: number;
 }
 
 const LabRow = (props: LabRowProps & { onDelete: () => void }) => {
   return (
     <TableRow>
-      <TableCell padding="dense">{props.labName}</TableCell>
+      <TableCell padding="dense">{props.name}</TableCell>
       <TableCell style={{ padding: '4px 0' }}>{props.capacity}</TableCell>
       <TableCell padding="none" style={{ textAlign: 'center' }}>
         <IconButton>
@@ -57,14 +57,14 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
     if (
       labs &&
       labs.find((lab: LabRowProps) => {
-        return lab.labName === labName;
+        return lab.name === labName;
       })
     ) {
       props.setErrMsg('同名の研究室が既に存在しています');
       return;
     }
     props.fields.push({
-      labName,
+      name: labName,
       capacity: capacityInt,
     });
     setLabName('');
@@ -75,7 +75,7 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
     <React.Fragment>
       {labs
         ? labs.map((lab: LabRowProps, idx: number) => (
-            <LabRow key={idx} labName={lab.labName} capacity={lab.capacity} onDelete={() => props.fields.remove(idx)} />
+            <LabRow key={idx} name={lab.name} capacity={lab.capacity} onDelete={() => props.fields.remove(idx)} />
           ))
         : null}
       <TableRow>

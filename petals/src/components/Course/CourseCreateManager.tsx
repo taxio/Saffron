@@ -42,7 +42,8 @@ class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreat
         // @ts-ignore
         return <LabsStep nextStep={this.nextStep} prevStep={this.prevStep} />;
       case 2:
-        return <ReviewStep />;
+        // @ts-ignore
+        return <ReviewStep nextStep={this.nextStep} />;
     }
     return null;
   };
@@ -73,7 +74,7 @@ class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreat
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={12} sm={8} md={7} lg={6} xl={5}>
-          <Paper style={{ marginTop: 20, padding: 30 }}>
+          <Paper style={{ marginTop: 20, padding: 30, maxWidth: '720px' }}>
             <Typography component="h1" variant="h5" align="center">
               課程作成
             </Typography>
