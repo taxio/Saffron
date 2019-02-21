@@ -6,7 +6,6 @@ import { muiTheme } from './lib/theme';
 import About from './components/About';
 import * as AuthComponents from './components/Auth';
 import * as CourseComponents from './components/Course';
-import CourseAdmin from './components/CourseAdmin';
 import Header from './components/Header';
 import Home from './components/Home';
 import NotFound from './components/NotFound';
@@ -53,7 +52,7 @@ const ProfileRouter: React.FC = () => (
 
 const CourseRouter: React.FC = () => (
   <Switch>
-    <Route exact={true} path={`/course/admin`} component={CourseAdmin} />
+    {/*<Route exact={true} path={`/course/admin`} component={CourseAdmin} />*/}
     <Route exact={true} path={`/course/create`} component={CourseComponents.CourseCreateManager} />
   </Switch>
 );
