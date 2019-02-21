@@ -21,7 +21,7 @@
     "qa-build": "rm -rf dist & NODE_ENV=development parcel build public/index.html",
     "prebuild": "rm -rf dist",
     "test": "jest",
-    "tslint": "tslint --format stylish --project ./tsconfig.json 'src/**/*.{ts,tsx}'",
+    "tslint": "tslint -c ./tslint.json --format stylish --project ./tsconfig.json 'src/**/*.{ts,tsx}'",
     "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}",
     "clean": "rm -rf .cache & rm -rf dist"
   },
