@@ -330,10 +330,13 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context['course'] = self.course
         return context
 
-    @swagger_auto_schema(responses={
-        201: LabAbstractSerializer(many=True),
-        400: 'Validation error',
-        403: 'ログインしていない，またはこの課程に参加していません'}
+    @swagger_auto_schema(
+        request_body=LabAbstractSerializer(many=True),
+        responses={
+            201: LabAbstractSerializer(many=True),
+            400: 'Validation error',
+            403: 'ログインしていない，またはこの課程に参加していません'
+        }
     )
     def create(self, request, *args, **kwargs):
         course_pk = kwargs.pop('course_pk')
@@ -387,6 +390,9 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         self.check_object_permissions(request, self.course)
         return super(RankViewSet, self).list(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        request_body=RankSerializer(many=True)
+    )
     def create(self, request, *args, **kwargs):
         course_pk = kwargs.get('course_pk')
         try:
