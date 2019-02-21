@@ -160,8 +160,10 @@ class LabListCreateSerializer(serializers.ListSerializer):
         return data
 
     def create(self, validated_data):
+        course = self.context.get("course")
         labs = [Lab(**data) for data in validated_data]
-        return Lab.objects.bulk_create(labs)
+        Lab.objects.bulk_create(labs)
+        return Lab.objects.filter(course_id=course.pk).all()
 
 
 class LabAbstractSerializer(serializers.ModelSerializer):
