@@ -1,21 +1,23 @@
-import {
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  IconButton,
-  Input,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@material-ui/core';
-import { Visibility, VisibilityOff } from '@material-ui/icons';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
+
 import * as React from 'react';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
+
+import { CourseCreateFormParams } from './CourseCreateManager';
 
 const getCourseYearConds = (): number[] => {
   const currentYear = new Date().getFullYear();
@@ -89,22 +91,14 @@ const renderCheckBoxField = (props: WrappedFieldProps & { label: string; helperT
   </FormControl>
 );
 
-interface FormParams {
-  courseYear: number;
-  courseName: string;
-  pinCode: string;
-  useName: boolean;
-  useGPA: boolean;
-}
-
-interface BasicInformationProps extends InjectedFormProps, FormParams {
+interface BasicInformationProps extends InjectedFormProps, CourseCreateFormParams {
   nextStep: () => void;
 }
 
 const BasicInformationStep: React.FC<BasicInformationProps> = props => {
   const { handleSubmit } = props;
 
-  const validate = (values: FormParams) => {
+  const validate = (values: CourseCreateFormParams) => {
     const errors: any = {};
     if (!values.courseName) {
       errors.courseName = '必須項目です';

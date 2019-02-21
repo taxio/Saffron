@@ -1,27 +1,25 @@
-import {
-  Button,
-  FormControl,
-  FormLabel,
-  IconButton,
-  Input,
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@material-ui/core';
-import { Add, Delete } from '@material-ui/icons';
+import Button from '@material-ui/core/Button';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableFooter from '@material-ui/core/TableFooter';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
+
+import Add from '@material-ui/icons/Add';
+import Delete from '@material-ui/icons/Delete';
+
 import * as React from 'react';
 import { FieldArray, InjectedFormProps, reduxForm, WrappedFieldArrayProps } from 'redux-form';
 
-interface LabRowProps {
-  name: string;
-  capacity: number;
-}
+import { LabParams } from './CourseCreateManager';
 
-const LabRow = (props: LabRowProps & { onDelete: () => void }) => {
+const LabRow = (props: LabParams & { onDelete: () => void }) => {
   return (
     <TableRow>
       <TableCell padding="dense">{props.name}</TableCell>
@@ -35,11 +33,11 @@ const LabRow = (props: LabRowProps & { onDelete: () => void }) => {
   );
 };
 
-const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setErrMsg: (errMsg: string) => void }) => {
+const renderAddLabsField = (props: WrappedFieldArrayProps<LabParams> & { setErrMsg: (errMsg: string) => void }) => {
   const [labName, setLabName] = React.useState<string>('');
   const [capacity, setCapacity] = React.useState<string>('');
 
-  const labs: LabRowProps[] = props.fields.getAll();
+  const labs: LabParams[] = props.fields.getAll();
 
   const onAddLab = () => {
     const capacityInt = parseInt(capacity, 10);
@@ -56,7 +54,7 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
     }
     if (
       labs &&
-      labs.find((lab: LabRowProps) => {
+      labs.find((lab: LabParams) => {
         return lab.name === labName;
       })
     ) {
@@ -74,7 +72,7 @@ const renderAddLabsField = (props: WrappedFieldArrayProps<LabRowProps> & { setEr
   return (
     <React.Fragment>
       {labs
-        ? labs.map((lab: LabRowProps, idx: number) => (
+        ? labs.map((lab: LabParams, idx: number) => (
             <LabRow key={idx} name={lab.name} capacity={lab.capacity} onDelete={() => props.fields.remove(idx)} />
           ))
         : null}

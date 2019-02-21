@@ -1,11 +1,18 @@
-import { Button, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import Stepper from '@material-ui/core/Stepper';
+import Typography from '@material-ui/core/Typography';
+
 import * as React from 'react';
 
 import BasicInformationStep from './BasicInformationStep';
 import LabsStep from './LabsStep';
 import ReviewStep from './ReviewStep';
 
-export interface Lab {
+export interface LabParams {
   name: string;
   capacity: number;
 }
@@ -16,7 +23,7 @@ export interface CourseCreateFormParams {
   pinCode: string;
   useName: boolean;
   useGPA: boolean;
-  labs: Lab[];
+  labs: LabParams[];
 }
 
 interface CourseCreateProps {}

@@ -1,12 +1,20 @@
-import { Button, Divider, List, ListItem, ListItemText, Typography } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Divider from '@material-ui/core/Divider';
+import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Typography from '@material-ui/core/Typography';
+
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { formValueSelector, InjectedFormProps, reduxForm } from 'redux-form';
+import { formValueSelector, InjectedFormProps, reduxForm, SubmissionError } from 'redux-form';
 
-// import * as AppErr from '../../api/AppErrors';
+import * as AppErr from '../../api/AppErrors';
 import * as courseApi from '../../api/courses';
-import { CourseCreateFormParams, Lab } from './CourseCreateManager';
+import { CourseCreateFormParams, LabParams } from './CourseCreateManager';
 
 const selector = formValueSelector('CourseCreateForm');
 
@@ -31,7 +39,7 @@ interface CreateReviewProps extends InjectedFormProps, CourseCreateFormParams, R
 }
 
 const ReviewStep: React.FC<CreateReviewProps> = props => {
-  const { handleSubmit, courseName, courseYear, pinCode, useName, useGPA, labs } = props;
+  const { error, handleSubmit, courseName, courseYear, pinCode, useName, useGPA, labs } = props;
 
   const submitCourseData = async (values: CourseCreateFormParams) => {
     return courseApi
@@ -46,12 +54,18 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
         });
       })
       .catch((e: Error) => {
-        // switch (e.constructor) {
-        //   case AppErr.UnhandledError:
-        //     console.log('unhandle fetch error');
-        //   default:
-        //     console.log('未知のエラーです');
-        // }
+        switch (e.constructor) {
+          case AppErr.UnAuthorizedError:
+            props.history.push('/login/');
+            throw new SubmissionError({ _error: 'ログインセッションが切れました' });
+          case AppErr.BadRequestError:
+            // TODO: レスポンス中のエラーの表示
+            throw new SubmissionError({ _error: '課程作成に失敗しました' });
+          case AppErr.UnhandledError:
+            throw new SubmissionError({ _error: '課程作成に失敗しました' });
+          default:
+            throw new SubmissionError({ _error: '未知のエラーです' });
+        }
         console.log(e);
       });
   };
@@ -84,7 +98,7 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
       </Typography>
       <Divider />
       <List disablePadding={true}>
-        {labs.map((lab: Lab, idx: number) => (
+        {labs.map((lab: LabParams, idx: number) => (
           <ListItem key={idx}>
             <ListItemText primary={lab.name} />
             <Typography variant="body1">{lab.capacity} 人</Typography>
@@ -93,6 +107,11 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
       </List>
 
       <form onSubmit={handleSubmit(submitCourseData)}>
+        {error ? (
+          <FormControl error={true}>
+            <FormHelperText>{error}</FormHelperText>
+          </FormControl>
+        ) : null}
         <div style={{ textAlign: 'right', marginTop: '24px' }}>
           <Button style={{ marginRight: '20px' }} onClick={props.prevStep}>
             戻る
