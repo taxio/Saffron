@@ -96,14 +96,16 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
         研究室
       </Typography>
       <Divider />
-      <List disablePadding={true}>
-        {labs.map((lab: LabParams, idx: number) => (
-          <ListItem key={idx}>
-            <ListItemText primary={lab.name} />
-            <Typography variant="body1">{lab.capacity} 人</Typography>
-          </ListItem>
-        ))}
-      </List>
+      {labs ? (
+        <List disablePadding={true}>
+          {labs.map((lab: LabParams, idx: number) => (
+            <ListItem key={idx}>
+              <ListItemText primary={lab.name} />
+              <Typography variant="body1">{lab.capacity} 人</Typography>
+            </ListItem>
+          ))}
+        </List>
+      ) : null}
 
       <form onSubmit={handleSubmit(submitCourseData)}>
         {error ? (
@@ -126,6 +128,7 @@ const ReviewStep: React.FC<CreateReviewProps> = props => {
 
 export default reduxForm({
   form: 'CourseCreateForm',
+  destroyOnUnmount: false,
 })(
   connect(state => ({
     courseYear: selector(state, 'courseYear'),

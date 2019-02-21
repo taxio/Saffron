@@ -109,6 +109,7 @@ const LabsStep: React.FC<LabsStepProps> = props => {
   return (
     <form onSubmit={handleSubmit}>
       <Typography variant="h5">研究室入力</Typography>
+      <Typography variant="caption">※後で編集可能です</Typography>
       <Table style={{ minWidth: 280, tableLayout: 'auto' }}>
         <TableHead>
           <TableRow>

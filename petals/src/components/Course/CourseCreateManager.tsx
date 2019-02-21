@@ -1,4 +1,3 @@
-import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Step from '@material-ui/core/Step';
@@ -50,7 +49,7 @@ class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreat
         return <LabsStep nextStep={this.nextStep} prevStep={this.prevStep} />;
       case 2:
         // @ts-ignore
-        return <ReviewStep nextStep={this.nextStep} />;
+        return <ReviewStep prevStep={this.prevStep} />;
     }
     return null;
   };
@@ -94,14 +93,6 @@ class CourseCreateManager extends React.Component<CourseCreateProps, CourseCreat
             </Stepper>
             {this.getRenderComponentFromStepId(stepId)}
             {stepId === 3 ? <Typography align="center">課程を作成しました</Typography> : null}
-            <div style={{ textAlign: 'right', marginTop: '24px' }}>
-              <Button style={{ marginRight: '20px' }} onClick={this.prevStep}>
-                戻る
-              </Button>
-              <Button variant="contained" color="primary" onClick={this.nextStep}>
-                次へ
-              </Button>
-            </div>
           </Paper>
         </Grid>
       </Grid>
