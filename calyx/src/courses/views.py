@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
@@ -72,6 +73,12 @@ class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CourseStatusSerializer
 
+    @swagger_auto_schema(responses={
+        200: CourseStatusSerializer,
+        401: "ログインしていません",
+        403: "課程に参加していません",
+        404: "指定した課程は存在しません"
+    })
     def list(self, request, **kwargs):
         course_pk = kwargs.get('course_pk')
         if not isinstance(course_pk, int):
@@ -166,6 +173,18 @@ class CourseAdminView(mixins.UpdateModelMixin,
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseAdminView, self).get_permissions()
 
+    def get_course(self, kwargs):
+        course_pk = kwargs.get('course_pk', None)
+        if course_pk is None:
+            return None
+        if isinstance(course_pk, str):
+            course_pk = int(course_pk)
+        try:
+            course = self.get_queryset().get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        return course
+
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop('pk')
         if not isinstance(pk, int):
@@ -250,6 +269,12 @@ class CourseConfigViewSet(NestedViewSetMixin,
             instance._prefetched_objects_cache = {}
         return Response(serializer.data)
 
+    @swagger_auto_schema(responses={
+        200: ConfigSerializer,
+        401: "ログインしていません",
+        403: "課程に参加していません",
+        404: "指定した課程は存在しません"
+    })
     def list(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -305,6 +330,11 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context['course'] = self.course
         return context
 
+    @swagger_auto_schema(responses={
+        201: LabAbstractSerializer(many=True),
+        400: 'Validation error',
+        403: 'ログインしていない，またはこの課程に参加していません'}
+    )
     def create(self, request, *args, **kwargs):
         course_pk = kwargs.pop('course_pk')
         try:

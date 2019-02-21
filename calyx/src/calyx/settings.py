@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'djoser',
     'courses',
     'users',
+    'drf_yasg',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -172,6 +173,7 @@ REST_FRAMEWORK = {
 SWAGGER_SETTINGS = {
     'LOGIN_URL': 'accounts:login',
     'LOGOUT_URL': 'accounts:logout',
+    'DEFAULT_MODEL_RENDERING': 'example'
 }
 
 CORS_ORIGIN_ALLOW_ALL = os.getenv("CALYX_CORS_ALLOW_ALL", "False").lower() == 'true'

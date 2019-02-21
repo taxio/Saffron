@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, password_validation
 from django.core import exceptions
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
+from drf_yasg.utils import swagger_serializer_method
 
 from .models import Course, Year, Config, Lab, Rank, get_config_cache
 from .status import StatusMessage
@@ -270,6 +271,7 @@ class CourseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(e))
         return data
 
+    @swagger_serializer_method(serializer_or_field=UserSerializer(many=True))
     def get_users(self, obj):
         users = obj.users.prefetch_related('groups').all()
         group_name = obj.admin_group_name
@@ -281,7 +283,7 @@ class CourseSerializer(serializers.ModelSerializer):
             } for user in users
         ]
 
-    def get_is_admin(self, obj):
+    def get_is_admin(self, obj) -> bool:
         try:
             user = self.context['request'].user
         except KeyError:

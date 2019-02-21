@@ -14,6 +14,7 @@ django-cors-headers = "*"
 drf-nested-routers = "*"
 djoser = ">=1.4.0"
 djangorestframework-simplejwt = "*"
+drf-yasg = "*"
 
 [dev-packages]
 faker = "*"
