@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { UserActionType, UserFetchRequestedAction, UserUpdateRequestedAction } from '../actions/user';
+import { UserActionType, UserFetchRequestedAction } from '../actions/user';
 import * as meApi from '../api/me';
 
 function* fetchUser(action: UserFetchRequestedAction) {

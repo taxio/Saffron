@@ -1,5 +1,3 @@
-import { deepStrictEqual } from 'assert';
-
 const intReg = new RegExp('[^0-9]+');
 
 export const isIntStr = (val: string): boolean => {
