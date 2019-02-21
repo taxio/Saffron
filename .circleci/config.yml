@@ -161,6 +161,9 @@ jobs:
           name: Load previous image
           command: docker load -i /tmp/workspace/petals-cache.tar || true
       - run:
+          name: Lint petals
+          command: docker run --rm $IMAGE_NAME:latest-cache yarn tslint
+      - run:
           name: Test petals
           command: docker run --rm $IMAGE_NAME:latest-cache yarn test
   publish-petals:
