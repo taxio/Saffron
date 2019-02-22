@@ -27,7 +27,7 @@ schema_view = get_schema_view(
         title="Saffron API",
         default_version='v1',
         description="Saffron API documents. This API is under development.",
-        license=openapi.License(name="GPL v3 License"),
+        license=openapi.License(name="MIT License"),
     ),
     public=True,
 )
