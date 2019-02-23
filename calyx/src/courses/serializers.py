@@ -5,9 +5,10 @@ from django.contrib.auth import get_user_model, password_validation
 from django.core import exceptions
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
+from drf_yasg.utils import swagger_serializer_method
 
 from .models import Course, Year, Config, Lab, Rank, get_config_cache
-from .status import StatusMessage, Status
+from .status import StatusMessage
 
 User = get_user_model()
 
@@ -140,6 +141,31 @@ class RankPerLabSerializer(serializers.ModelSerializer):
         return data['user']
 
 
+class LabListCreateSerializer(serializers.ListSerializer):
+    """
+    複数の研究室を一括で作成するシリアライザ
+    """
+
+    def to_internal_value(self, data):
+        course = self.context.get("course")
+        for i in range(len(data)):
+            data[i]['course'] = course
+        return data
+
+    def validate(self, data):
+        name_set = [d['name'] for d in data]
+        without_dups = list(set(name_set))
+        if len(name_set) != len(without_dups):
+            raise serializers.ValidationError({'name': '重複した名前は使用できません．'})
+        return data
+
+    def create(self, validated_data):
+        course = self.context.get("course")
+        labs = [Lab(**data) for data in validated_data]
+        Lab.objects.bulk_create(labs)
+        return Lab.objects.filter(course_id=course.pk).all()
+
+
 class LabAbstractSerializer(serializers.ModelSerializer):
     """
     希望順位を含まない研究室のシリアライザ
@@ -155,6 +181,7 @@ class LabAbstractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lab
         fields = ("pk", "name", "capacity", "course")
+        list_serializer_class = LabListCreateSerializer
 
 
 class LabSerializer(LabAbstractSerializer):
@@ -246,6 +273,7 @@ class CourseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(e))
         return data
 
+    @swagger_serializer_method(serializer_or_field=UserSerializer(many=True))
     def get_users(self, obj):
         users = obj.users.prefetch_related('groups').all()
         group_name = obj.admin_group_name
@@ -257,7 +285,7 @@ class CourseSerializer(serializers.ModelSerializer):
             } for user in users
         ]
 
-    def get_is_admin(self, obj):
+    def get_is_admin(self, obj) -> bool:
         try:
             user = self.context['request'].user
         except KeyError:

@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = ">=2.1.6"
 djangorestframework = "*"
-django-rest-swagger = "*"
 python-dotenv = "*"
 uwsgi = "*"
 mysqlclient = "*"
@@ -14,6 +13,7 @@ django-cors-headers = "*"
 drf-nested-routers = "*"
 djoser = ">=1.4.0"
 djangorestframework-simplejwt = "*"
+drf-yasg = "*"
 
 [dev-packages]
 faker = "*"

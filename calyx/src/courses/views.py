@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 from rest_framework_nested.viewsets import NestedViewSetMixin
@@ -12,7 +13,7 @@ from .permissions import (
 )
 from .schemas import CourseJoinSchema, CourseAdminSchema, LabSchema
 from .serializers import (
-    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer,
+    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, PINCodeSerializer, LabListCreateSerializer,
     UserSerializer, ConfigSerializer, LabSerializer, RankSerializer, LabAbstractSerializer, CourseStatusSerializer
 )
 
@@ -70,7 +71,14 @@ class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
         要求を満たしているかどうかの状態を取得する
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CourseStatusSerializer
 
+    @swagger_auto_schema(responses={
+        200: CourseStatusSerializer,
+        401: "ログインしていません",
+        403: "課程に参加していません",
+        404: "指定した課程は存在しません"
+    })
     def list(self, request, **kwargs):
         course_pk = kwargs.get('course_pk')
         if not isinstance(course_pk, int):
@@ -136,8 +144,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class CourseAdminView(NestedViewSetMixin,
-                      mixins.UpdateModelMixin,
+class CourseAdminView(mixins.UpdateModelMixin,
                       mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
@@ -155,7 +162,7 @@ class CourseAdminView(NestedViewSetMixin,
 
     queryset = Course.objects.prefetch_related(
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
-    ).select_related('admin_user_group', 'year').all()
+    ).select_related('admin_user_group', 'year')
     serializer_class = UserSerializer
     schema = CourseAdminSchema()
 
@@ -166,13 +173,23 @@ class CourseAdminView(NestedViewSetMixin,
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseAdminView, self).get_permissions()
 
+    def get_course(self, kwargs):
+        course_pk = kwargs.get('course_pk', None)
+        if course_pk is None:
+            return None
+        if isinstance(course_pk, str):
+            course_pk = int(course_pk)
+        try:
+            course = self.get_queryset().get(pk=course_pk)
+        except Course.DoesNotExist:
+            raise exceptions.NotFound('この課程は存在しません．')
+        return course
+
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop('pk')
         if not isinstance(pk, int):
             pk = int(pk)
-        course = self.get_queryset().first()
-        if course is None:
-            raise exceptions.NotFound('この課程は存在しません．')
+        course = self.get_course(kwargs)
         self.check_object_permissions(self.request, course)
         try:
             user = course.users.get(pk=pk)
@@ -191,9 +208,7 @@ class CourseAdminView(NestedViewSetMixin,
         pk = kwargs.pop('pk')
         if not isinstance(pk, int):
             pk = int(pk)
-        course = self.get_queryset().first()
-        if course is None:
-            raise exceptions.NotFound('この課程は存在しません．')
+        course = self.get_course(kwargs)
         self.check_object_permissions(self.request, course)
         if request.user.pk == pk:
             raise serializers.ValidationError({'non_field_errors': '自分自身を管理者から外すことは出来ません．'})
@@ -208,9 +223,7 @@ class CourseAdminView(NestedViewSetMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request, *args, **kwargs):
-        course = self.get_queryset().first()
-        if course is None:
-            raise exceptions.NotFound('この課程は存在しません．')
+        course = self.get_course(kwargs)
         self.check_object_permissions(self.request, course)
         admins = course.users.filter(groups__name=course.admin_group_name).all()
         serializer = self.get_serializer(admins, many=True)
@@ -256,6 +269,12 @@ class CourseConfigViewSet(NestedViewSetMixin,
             instance._prefetched_objects_cache = {}
         return Response(serializer.data)
 
+    @swagger_auto_schema(responses={
+        200: ConfigSerializer,
+        401: "ログインしていません",
+        403: "課程に参加していません",
+        404: "指定した課程は存在しません"
+    })
     def list(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -271,12 +290,9 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     schema = LabSchema()
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'create':
             return LabAbstractSerializer
         return LabSerializer
-
-    def get_queryset(self):
-        return self.queryset.filter(course=self.course).all()
 
     def get_permissions(self):
         if self.action == "list":
@@ -314,16 +330,22 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context['course'] = self.course
         return context
 
+    @swagger_auto_schema(
+        request_body=LabAbstractSerializer(many=True),
+        responses={
+            201: LabAbstractSerializer(many=True),
+            400: 'Validation error',
+            403: 'ログインしていない，またはこの課程に参加していません'
+        }
+    )
     def create(self, request, *args, **kwargs):
-        data = request.data.copy()
         course_pk = kwargs.pop('course_pk')
         try:
             self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
         except Course.DoesNotExist:
             raise exceptions.NotFound('この課程は存在しません．')
         self.check_object_permissions(request, self.course)
-        data['course'] = course_pk
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         headers = self.get_success_headers(serializer.data)
@@ -368,6 +390,9 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         self.check_object_permissions(request, self.course)
         return super(RankViewSet, self).list(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        request_body=RankSerializer(many=True)
+    )
     def create(self, request, *args, **kwargs):
         course_pk = kwargs.get('course_pk')
         try:
