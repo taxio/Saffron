@@ -1,3 +1,4 @@
+import * as AppErr from '../api/AppErrors';
 import * as AuthApi from '../api/auth';
 
 const ACCESS_TOKEN_KEY = 'access';
@@ -48,13 +49,13 @@ export const isLogin = (): boolean => {
   return now <= payload.exp;
 };
 
-export const refreshToken = () => {
+export const refreshToken = async () => {
   const token = getRefreshToken();
   if (!token) {
-    return;
+    throw new AppErr.UnAuthorizedError('ログインしてください');
   }
 
-  AuthApi.jwtRefresh(token).then(res => {
+  return AuthApi.jwtRefresh(token).then(res => {
     localStorage.setItem(ACCESS_TOKEN_KEY, res.access);
   });
 };

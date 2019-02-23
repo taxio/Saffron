@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 import App from './App';
-import { refreshToken } from './lib/auth';
+import { logout, refreshToken } from './lib/auth';
 import { bodyTheme } from './lib/theme';
 import registerServiceWorker from './registerServiceWorker';
 import { configureStore, initSaga, PetalsStore } from './store';
@@ -12,7 +12,9 @@ const store: Store<PetalsStore> = configureStore();
 initSaga();
 
 if (store.getState().auth.isLogin) {
-  refreshToken();
+  refreshToken().catch(() => {
+    logout();
+  });
 }
 
 document.body.style.backgroundColor = bodyTheme.backgroundColor;
