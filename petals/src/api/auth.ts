@@ -24,15 +24,15 @@ export const logout = () => {
 };
 
 interface JwtRefreshRequest {
-  token: string;
+  refresh: string;
 }
 
 interface JwtRefreshResponse extends model.RequestError {
-  token: string;
+  access: string;
 }
 
-export const jwtRefresh = async (token: string): Promise<JwtRefreshResponse> => {
-  const data: JwtRefreshRequest = { token };
+export const jwtRefresh = async (refreshToken: string): Promise<JwtRefreshResponse> => {
+  const data: JwtRefreshRequest = { refresh: refreshToken };
   return util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data, false);
 };
 
