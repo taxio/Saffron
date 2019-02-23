@@ -12,23 +12,33 @@ import NotFound from './components/NotFound';
 import Profile from './components/Profile';
 import ProfileEdit from './components/ProfileEdit';
 import TermsOfService from './components/TermsOfService';
+import { logout, refreshToken } from './lib/auth';
+
+const TokenRefreshWrapper: React.FC = props => {
+  refreshToken().catch(() => {
+    logout();
+  });
+  return <React.Fragment>{props.children}</React.Fragment>;
+};
 
 const App: React.FC = () => (
   <MuiThemeProvider theme={muiTheme}>
     <BrowserRouter>
-      <React.Fragment>
-        <Header />
-        <Switch>
-          <Route exact={true} path="/" component={Home} />
-          <Route path="/auth" component={AuthRouter} />
-          <Route path="/profile" component={ProfileRouter} />
-          <Route path="/course" component={CourseRouter} />
-          <Route exact={true} path="/about" component={About} />
-          <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
-          <Route exact={true} path="/activate" component={AuthComponents.Activation} />
-          <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
-        </Switch>
-      </React.Fragment>
+      <TokenRefreshWrapper>
+        <React.Fragment>
+          <Header />
+          <Switch>
+            <Route exact={true} path="/" component={Home} />
+            <Route path="/auth" component={AuthRouter} />
+            <Route path="/profile" component={ProfileRouter} />
+            <Route path="/course" component={CourseRouter} />
+            <Route exact={true} path="/about" component={About} />
+            <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
+            <Route exact={true} path="/activate" component={AuthComponents.Activation} />
+            <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
+          </Switch>
+        </React.Fragment>
+      </TokenRefreshWrapper>
     </BrowserRouter>
   </MuiThemeProvider>
 );
