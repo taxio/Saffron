@@ -19,20 +19,16 @@ export const jwtCreate = async (username: string, password: string): Promise<Jwt
   return util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data, false);
 };
 
-export const logout = () => {
-  localStorage.removeItem('token');
-};
-
 interface JwtRefreshRequest {
-  token: string;
+  refresh: string;
 }
 
 interface JwtRefreshResponse extends model.RequestError {
-  token: string;
+  access: string;
 }
 
-export const jwtRefresh = async (token: string): Promise<JwtRefreshResponse> => {
-  const data: JwtRefreshRequest = { token };
+export const jwtRefresh = async (refreshToken: string): Promise<JwtRefreshResponse> => {
+  const data: JwtRefreshRequest = { refresh: refreshToken };
   return util.sendRequest(util.Methods.Post, '/auth/jwt/refresh/', data, false);
 };
 
