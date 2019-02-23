@@ -19,10 +19,6 @@ export const jwtCreate = async (username: string, password: string): Promise<Jwt
   return util.sendRequest(util.Methods.Post, '/auth/jwt/create/', data, false);
 };
 
-export const logout = () => {
-  localStorage.removeItem('token');
-};
-
 interface JwtRefreshRequest {
   refresh: string;
 }

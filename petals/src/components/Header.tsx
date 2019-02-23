@@ -17,7 +17,7 @@ import { Dispatch } from 'redux';
 
 import { AuthAction, setLoginState } from '../actions/auth';
 
-import { logout } from '../api/auth';
+import { logout } from '../lib/auth';
 import { PetalsStore } from '../store';
 
 interface HeaderProps extends RouteComponentProps<any> {
