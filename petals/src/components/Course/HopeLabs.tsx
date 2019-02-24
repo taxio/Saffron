@@ -20,16 +20,6 @@ import { Lab } from '../../model';
 // import * as auth from '../../lib/auth';
 // import { PetalsStore } from '../../store';
 
-// const selector = formValueSelector('CourseCreateForm');
-
-export interface GpaParams {
-  gpa: number;
-}
-
-// export interface HopeParams {
-//   labName: string[];
-// }
-
 interface HopeLabsProps extends InjectedFormProps {}
 
 interface HopeLabsState {
@@ -50,15 +40,22 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     });
   }
 
-  public renderField = (props: WrappedFieldProps & { label: string; type: string; style: any }) => (
-    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ padding: '10px 0px', width: '150px' }}>
-      <TextField label={props.label} margin="normal" autoComplete="off" type={props.type} {...props.input} />
+  public renderGpaField = (props: WrappedFieldProps & { label: string; type: string; style: any }) => (
+    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ margin: '5%', width: '150px' }}>
+      <TextField
+        label={props.label}
+        margin="normal"
+        inputProps={{ style: { textAlign: 'center' } }}
+        autoComplete="off"
+        type={props.type}
+        {...props.input}
+      />
       {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
     </FormControl>
   );
 
   public renderLabSelectField = (props: WrappedFieldProps & { label: string }) => (
-    <FormControl style={{ padding: '10px 0px', width: '450px' }} error={Boolean(props.meta.error)}>
+    <FormControl style={{ margin: '5%', width: '90%' }} error={Boolean(props.meta.error)}>
       <InputLabel htmlFor="course-year">{props.label}</InputLabel>
       <Select {...props.input}>
         <MenuItem key={0} value={0}>
@@ -75,8 +72,6 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
   );
 
   public render(): React.ReactNode {
-    const formControlStyle = { padding: '10px 0px' };
-
     return (
       <Grid container={true} justify="center">
         <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
@@ -86,21 +81,19 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
                 研究室希望提出
               </Typography>
               <form autoComplete="off">
-                <Field name="gpa" label="GPA" type="number" component={this.renderField} />
+                <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
 
                 <Field name="labsName1" label="第一希望" component={this.renderLabSelectField} />
                 <Field name="labsName2" label="第二希望" component={this.renderLabSelectField} />
                 <Field name="labsName3" label="第三希望" component={this.renderLabSelectField} />
-                <FormControl fullWidth={true} style={formControlStyle}>
-                  <Button
-                    type="submit"
-                    color="primary"
-                    variant="contained"
-                    style={{ marginTop: 16, marginBottom: 8, boxShadow: 'none' }}
-                  >
-                    Submit
-                  </Button>
-                </FormControl>
+                <Button
+                  type="submit"
+                  color="primary"
+                  variant="contained"
+                  style={{ margin: '5%', marginTop: '15%', width: '60%', boxShadow: 'none' }}
+                >
+                  Submit
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -133,7 +126,7 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
 // }
 
 export default reduxForm({
-  form: 'gpaForm',
+  form: 'hopeLabsForm',
 })(HopeLabs);
 // connect( state => ({
 //   labName: selector(state, 'labName'),
