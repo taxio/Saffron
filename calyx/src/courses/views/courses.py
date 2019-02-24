@@ -4,7 +4,6 @@ from django.db.models import Prefetch
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, permissions, mixins, exceptions
 from rest_framework.response import Response
-from rest_framework_nested.viewsets import NestedViewSetMixin
 
 from courses.models import Course, Year, Config
 from courses.permissions import (
@@ -14,6 +13,7 @@ from courses.schemas import CourseJoinSchema
 from courses.serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, ConfigSerializer
 )
+from .mixins import NestedViewSetMixin
 
 User = get_user_model()
 
