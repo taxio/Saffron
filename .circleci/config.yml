@@ -205,7 +205,6 @@ workflows:
                 - dev
       - publish-tagged-calyx:
           requires:
-            - build-calyx
             - test-calyx
           filters:
             tags:
@@ -226,7 +225,6 @@ workflows:
                 - dev
       - publish-tagged-petals:
           requires:
-            - build-petals
             - test-petals
           filters:
             tags:
