@@ -47,7 +47,7 @@ const App: React.FC = () => (
           <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
 
           <AuthorizedRoute exact={false} path={'/profile'} component={ProfileRouter} />
-          <AuthorizedRoute exact={false} path={'/course'} component={CourseRouter} />
+          <AuthorizedRoute exact={false} path={'/courses'} component={CourseRouter} />
 
           <Route exact={true} component={NotFound} />
         </Switch>
