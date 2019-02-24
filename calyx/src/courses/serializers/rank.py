@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from courses.models import Course, Config, Lab, Rank, get_config_cache
+from courses.models import Course, Config, Lab, Rank
+from courses.services import get_config_cache
 from .user import UserSerializer
 
 User = get_user_model()

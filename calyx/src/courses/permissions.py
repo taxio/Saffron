@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 
 from rest_framework import permissions
 
-from .models import Course, get_config_cache
+from .models import Course
+from .services import get_config_cache
 
 if TYPE_CHECKING:
     from typing import Optional
