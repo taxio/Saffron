@@ -83,9 +83,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            cd calyx/src
-            pipenv run python manage.py migrate
-            pipenv run python manage.py test -v 2
+            make test-calyx
       - save_cache:
           name: Save venv
           key: calyx-cache-v1-{{ checksum "calyx/src/Pipfile.lock" }}
@@ -131,7 +129,7 @@ jobs:
             docker load -i petals-image.tar || true
       - run:
           name: Build cache image
-          command: docker build ./petals --target build -t $IMAGE_NAME:latest-cache --cache-from $IMAGE_NAME:latest-cache
+          command: docker build ./petals --target develop -t $IMAGE_NAME:latest-cache --cache-from $IMAGE_NAME:latest-cache
       - run:
           name: Build production image
           command: docker build ./petals -t $IMAGE_NAME:latest --cache-from $IMAGE_NAME:latest-cache

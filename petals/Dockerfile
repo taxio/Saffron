@@ -16,17 +16,9 @@ RUN yarn install
 COPY ./public ${PROJECT_DIR}/public
 COPY ./src ${PROJECT_DIR}/src
 
-CMD ["yarn", "start"]
-
-# Build stage
-FROM node:11.1.0-alpine as build
-
-ENV PROJECT_DIR /opt/petals
-WORKDIR ${PROJECT_DIR}
-
-COPY --from=develop /opt/petals /opt/petals
-
 RUN yarn build
+
+CMD ["yarn", "start"]
 
 # Production stage
 # Serve files as static file by nginx.
@@ -34,4 +26,4 @@ FROM nginx:stable-alpine as production
 
 COPY conf/petals.prod.conf /etc/nginx/conf.d/default.conf
 
-COPY --from=build /opt/petals/dist/ /usr/share/www/html/front
+COPY --from=develop /opt/petals/dist/ /usr/share/www/html/front
