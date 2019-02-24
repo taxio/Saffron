@@ -74,7 +74,7 @@ restart-client-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart petals bulb
 
 # Shortcut for update backends
-update-client-%: guard-env-% petals-image start-client-% prune
+update-client-%: guard-env-% build-client-% start-client-% prune
 	@echo "Petals container is now up-to-date."
 
 # To keep compatibility
