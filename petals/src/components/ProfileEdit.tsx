@@ -55,7 +55,7 @@ class ProfileEdit extends React.Component<ProfileProps, ProfileState> {
   }
 
   public handleToChangePassword = () => {
-    this.props.history.push('/auth/password/change');
+    this.props.history.push('/profile/password/change');
   };
 
   public handleSubmit = (values: FormParams) => {

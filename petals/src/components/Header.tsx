@@ -60,12 +60,12 @@ class Header extends React.Component<HeaderProps, HeaderState> {
   };
 
   public handleClickLogin = () => {
-    this.props.history.push('/auth/login');
+    this.props.history.push('/login');
     this.setState({ anchorEl: null });
   };
 
   public handleClickSignup = () => {
-    this.props.history.push('/auth/signup');
+    this.props.history.push('/signup');
     this.setState({ anchorEl: null });
   };
 

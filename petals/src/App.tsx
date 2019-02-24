@@ -36,40 +36,43 @@ const App: React.FC = () => (
         <Header />
         <Switch>
           <Route exact={true} path="/" component={Home} />
-          <Route path="/auth" component={AuthRouter} />
+          <Route exact={true} path="/about" component={About} />
+          <Route exact={true} path="/termsofservice" component={TermsOfService} />
+          <Route exact={true} path="/faq" component={() => <div>TODO</div>} />
+
+          <Route exact={true} path="/login" component={AuthComponents.Login} />
+          <Route exact={true} path="/signup" component={AuthComponents.Signup} />
+          <Route exact={true} path="/activate" component={AuthComponents.Activation} />
+          <Route exact={true} path="/password/reset" component={AuthComponents.PasswordReset} />
+          <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
+
           <AuthorizedRoute exact={false} path={'/profile'} component={ProfileRouter} />
           <AuthorizedRoute exact={false} path={'/course'} component={CourseRouter} />
-          <Route exact={true} path="/about" component={About} />
-          <Route exact={true} path={`/termsofservice`} component={TermsOfService} />
-          <Route exact={true} path="/activate" component={AuthComponents.Activation} />
-          <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
+
+          <Route exact={true} component={NotFound} />
         </Switch>
       </TokenRefreshWrapper>
     </BrowserRouter>
   </MuiThemeProvider>
 );
 
-const AuthRouter: React.FC = () => (
-  <Switch>
-    <Route exact={true} path={`/auth/login`} component={AuthComponents.Login} />
-    <Route exact={true} path={`/auth/signup`} component={AuthComponents.Signup} />
-    <Route exact={true} path={'/auth/password/reset'} component={AuthComponents.PasswordReset} />
-    <AuthorizedRoute exact={true} path={'/auth/password/change'} component={AuthComponents.ChangePassword} />
-    <Route exact={true} component={NotFound} />
-  </Switch>
-);
-
 const ProfileRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/profile`} component={Profile} />
     <Route exact={true} path={`/profile/edit`} component={ProfileEdit} />
+    <Route exact={true} path={`/profile/password/change`} component={AuthComponents.ChangePassword} />
   </Switch>
 );
 
 const CourseRouter: React.FC = () => (
   <Switch>
-    {/*<Route exact={true} path={`/course/admin`} component={CourseAdmin} />*/}
-    <Route exact={true} path={`/course/create`} component={CourseComponents.CourseCreateManager} />
+    <Route exact={true} path={`/courses`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/create`} component={CourseComponents.CourseCreateManager} />
+    <Route exact={true} path={`/courses/:coursePk`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/labs/:labPk`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/hopes`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/admin`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/join`} component={() => <div>TODO</div>} />
   </Switch>
 );
 
