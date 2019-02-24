@@ -33,9 +33,9 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.(ts|tsx)?$": "./node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|ts?|tsx?)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -63,6 +63,7 @@
     "jest-enzyme": "^7.0.1",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "prettier": "^1.15.3",
+    "ts-jest": "^24.0.0",
     "tslint": "^5.13.0",
     "tslint-config-prettier": "^1.17.0",
     "tslint-plugin-prettier": "^2.0.1",
