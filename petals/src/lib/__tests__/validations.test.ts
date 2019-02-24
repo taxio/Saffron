@@ -1,4 +1,4 @@
-import * as vl from './validations';
+import * as vl from '../validations';
 
 describe('validatePassword', () => {
   it('correct', () => {
