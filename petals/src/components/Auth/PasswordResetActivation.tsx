@@ -12,7 +12,7 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
-import { confirmNewPassword } from '../../api/password';
+import * as passwordApi from '../../api/password';
 import { validatePasswordWithErrMsg } from '../../lib/validations';
 
 interface FormParams {
@@ -82,12 +82,14 @@ class PasswordResetActivation extends React.Component<PasswordResetProps, Passwo
         _error: '入力項目に誤りがあります',
       });
     }
-    return confirmNewPassword(this.state.params.uid, this.state.params.token, values.newPassword).then(success => {
-      if (!success) {
+    return passwordApi
+      .resetConfirm(this.state.params.uid, this.state.params.token, values.newPassword)
+      .then(() => {
+        this.setState({ showDialog: true });
+      })
+      .catch(() => {
         throw new SubmissionError({ _error: 'パスワードの再設定に失敗しました' });
-      }
-      this.setState({ showDialog: true });
-    });
+      });
   };
 
   public render(): React.ReactNode {
