@@ -105,7 +105,7 @@ class Login extends React.Component<LoginProps, LoginState> {
                 </FormControl>
               </form>
               <Typography align="left">
-                パスワードをお忘れの方は<Link to={'/auth/password/reset'}>こちら</Link>
+                パスワードをお忘れの方は<Link to={'/password/reset'}>こちら</Link>
               </Typography>
             </CardContent>
           </Card>

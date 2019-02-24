@@ -11,7 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
-import { changePassword } from '../../api/password';
+import * as passwordApi from '../../api/password';
 import { validatePasswordWithErrMsg } from '../../lib/validations';
 
 interface FormParams {
@@ -47,12 +47,14 @@ class ChangePassword extends React.Component<ChangePasswordProps, ChangePassword
         _error: '入力項目に誤りがあります',
       });
     }
-    return changePassword(values.currentPassword, values.newPassword).then(success => {
-      if (!success) {
+    return passwordApi
+      .change(values.currentPassword, values.newPassword)
+      .then(() => {
+        this.setState({ showDialog: true });
+      })
+      .catch(() => {
         throw new SubmissionError({ _error: 'パスワードの変更に失敗しました' });
-      }
-      this.setState({ showDialog: true });
-    });
+      });
   };
 
   public handleCloseDialog = () => {
