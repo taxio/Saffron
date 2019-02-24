@@ -59,7 +59,11 @@ guard-env-%:
 
 # Manage frontend application container and database container only for backend development.
 build-client-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml build petals
+	@if [ "${*}" == "dev" ]; then \
+		docker-compose -f docker-compose.${*}.yml build petals; \
+	else \
+		make petals-image; \
+	fi
 
 start-client-%: guard-env-%
 	@echo "Run frontend application container (Petals)"
@@ -82,8 +86,7 @@ migrate-client-%: migrate-%
 manage-client-%: manage-%
 
 # Manage backend application container and database container only for frontend development.
-build-api-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml build calyx
+build-api-%: guard-env-% calyx-image
 
 start-api-%: guard-env-%
 	@echo "Run backend application container (Calyx)"
