@@ -73,6 +73,10 @@ clean-client-%: clean-%
 restart-client-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart petals bulb
 
+# Shortcut for update backends
+update-client-%: guard-env-% petals-image start-client-% prune
+	@echo "Petals container is now up-to-date."
+
 # To keep compatibility
 migrate-client-%: migrate-%
 manage-client-%: manage-%
@@ -92,6 +96,10 @@ clean-api-%: clean-%
 
 restart-api-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart calyx bulb
+
+# Shortcut for update backends
+update-api-%: guard-env-% calyx-image start-api-% migrate-% prune
+	@echo "Calyx container is now up-to-date."
 
 # To keep compatibility
 migrate-api-%: migrate-%
@@ -147,4 +155,4 @@ env-%: $(API_SRC_DIR)/src/.env.% $(DB_DIR)/.env.%
 
 env: env-qa env-dev env-prod
 
-.PHONY: venv image pull db deps dev dev-clean dev-stop guard-env-% start-% stop-% clean-% manage-% migrate-% prune env-% env ;
+.PHONY: venv image pull db deps dev dev-clean dev-stop guard-env-% start-% stop-% clean-% manage-% migrate-% prune env-% env update-% ;
