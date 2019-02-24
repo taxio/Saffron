@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
-from rest_framework_nested.viewsets import NestedViewSetMixin
 
 from courses.models import Course, Lab
 from courses.permissions import (
@@ -12,6 +11,7 @@ from courses.schemas import LabSchema
 from courses.serializers import (
     LabSerializer, LabAbstractSerializer
 )
+from .mixins import NestedViewSetMixin
 
 User = get_user_model()
 
