@@ -20,7 +20,7 @@
     "build": "NODE_ENV=production parcel build --no-source-maps public/index.html",
     "qa-build": "rm -rf dist & NODE_ENV=development parcel build public/index.html",
     "prebuild": "rm -rf dist",
-    "test": "jest",
+    "test": "yarn clean && jest",
     "tslint": "tslint -c ./tslint.json --format stylish --project ./tsconfig.json 'src/**/*.{ts,tsx}'",
     "prettier": "prettier --write ./{src,__tests__}/**/*.{ts,tsx}",
     "clean": "rm -rf .cache & rm -rf dist"
@@ -30,20 +30,6 @@
     "singleQuote": true,
     "printWidth": 120,
     "trailingComma": "es5"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(ts|tsx)?$": "./node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|ts?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
   },
   "devDependencies": {
     "@types/enzyme": "^3.9.0",
