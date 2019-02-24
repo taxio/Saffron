@@ -5,7 +5,6 @@ ORG	:= studioaquatan
 
 # Calyx container image
 API_SRC_DIR := ./calyx
-DEV_API_CONTAINER := $(NAME)-api-dev
 API_IMAGE := $(ORG)/$(NAME)-calyx
 API_IMAGE_VERSION := dev
 ARGS := "-h"
@@ -14,16 +13,13 @@ ARGS := "-h"
 FRONT_SRC_DIR := ./petals
 FRONT_IMAGE := $(ORG)/$(NAME)-petals
 FRONT_IMAGE_VERSION := dev
-SRCS := $(shell find $(FRONT_SRC_DIR)/src -type f \( -name '*.css' -o -name '*.ts' -o -name '*.html' -o -name '*.js' \) -print)
-PUBLIC_SRCS := $(shell find $(FRONT_SRC_DIR)/public -type f \( -name '*.json' -o -name '*.ico' -o -name '*.html' -o -name '*.js' \) -print)
 
 # Bulb container image
-DEV_DB_CONTAINER := $(NAME)-db-dev-local
+DB_DIR := ./bulb
 DB_IMAGE := $(ORG)/mysql-utf8mb4
 DB_IMAGE_VERSION := latest
-DB_DIR := $(PWD)/bulb
 
-$(FRONT_SRC_DIR)/build/index.html: $(SRCS) $(PUBLIC_SRCS)
+$(FRONT_SRC_DIR)/build/index.html:
 	cd $(FRONT_SRC_DIR) && yarn build
 
 build: $(FRONT_SRC_DIR)/build/index.html
@@ -47,7 +43,7 @@ pull:
 	docker pull $(API_IMAGE):$(API_IMAGE_VERSION)
 	docker pull $(FRONT_IMAGE):$(FRONT_IMAGE_VERSION)
 
-deps: venv pull
+deps: venv pull node_modules
 
 db:
 	@docker-compose -f docker-compose.dev.yml up -d bulb
@@ -61,6 +57,47 @@ guard-env-%:
 		exit 1; \
 	fi
 
+# Manage frontend application container and database container only for backend development.
+build-client-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml build petals
+
+start-client-%: guard-env-%
+	@echo "Run frontend application container (Petals)"
+	@echo "Run database container (Bulb)"
+	@docker-compose -f docker-compose.${*}.yml up -d petals bulb
+
+stop-client-%: stop-%
+
+clean-client-%: clean-%
+
+restart-client-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml restart petals bulb
+
+# To keep compatibility
+migrate-client-%: migrate-%
+manage-client-%: manage-%
+
+# Manage backend application container and database container only for frontend development.
+build-api-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml build calyx
+
+start-api-%: guard-env-%
+	@echo "Run backend application container (Calyx)"
+	@echo "Run database container (Bulb)"
+	@docker-compose -f docker-compose.${*}.yml up -d calyx bulb
+
+stop-api-%: stop-%
+
+clean-api-%: clean-%
+
+restart-api-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml restart calyx bulb
+
+# To keep compatibility
+migrate-api-%: migrate-%
+manage-api-%: manage-%
+
+# General commands for development.
 build-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml build
 
@@ -73,15 +110,30 @@ stop-%: guard-env-%
 clean-%: guard-env-% stop-%
 	@docker-compose -f docker-compose.${*}.yml rm
 
-migrate-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py migrate
-
-manage-%: guard-env-%
-	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py $(args)
-
 restart-%: guard-env-%
 	@docker-compose -f docker-compose.${*}.yml restart
 
+test-petals:
+	cd $(FRONT_SRC_DIR) && yarn test
+
+test-calyx:
+	cd $(API_SRC_DIR)/src && pipenv run python manage.py test -v 2
+
+test: test-petals test-calyx
+
+lint:
+	cd $(FRONT_SRC_DIR) && yarn tslint
+
+# Run schema migration for backend api
+migrate-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py migrate
+
+# Run manage command of django
+# ex) make manage-dev args=createsuperuser
+manage-%: guard-env-%
+	@docker-compose -f docker-compose.${*}.yml exec calyx python manage.py $(args)
+
+# Clean docker images which has no tags.
 prune:
 	@docker image prune
 
@@ -91,9 +143,7 @@ $(API_SRC_DIR)/src/.env.%: guard-env-%
 $(DB_DIR)/.env.%: guard-env-%
 	cp $(DB_DIR)/.env.sample $(DB_DIR)/.env.${*}
 
-env-%: guard-env-%
-	@make $(API_SRC_DIR)/src/.env.${*}
-	@make $(DB_DIR)/.env.${*}
+env-%: $(API_SRC_DIR)/src/.env.% $(DB_DIR)/.env.%
 
 env: env-qa env-dev env-prod
 
