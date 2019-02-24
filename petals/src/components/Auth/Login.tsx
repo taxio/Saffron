@@ -97,7 +97,7 @@ class Login extends React.Component<LoginProps, LoginState> {
                     type="submit"
                     color="primary"
                     variant="contained"
-                    style={{ marginTop: 16, marginBotton: 8, boxShadow: 'none' }}
+                    style={{ marginTop: 16, marginBottom: 8, boxShadow: 'none' }}
                   >
                     Login
                   </Button>
