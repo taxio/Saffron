@@ -1,15 +1,16 @@
 from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, mixins, status, exceptions
+from rest_framework import viewsets, mixins, status, exceptions, decorators
 from rest_framework.response import Response
 
 from courses.models import Course, Rank
 from courses.permissions import (
-    IsCourseMember
+    IsCourseMember, IsAdmin
 )
 from courses.serializers import (
     LabSerializer, RankSerializer
 )
+from courses.services import get_summary
 from .mixins import NestedViewSetMixin
 
 User = get_user_model()
@@ -25,7 +26,7 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
     """
 
     queryset = Rank.objects.select_related('course', 'lab')
-    permission_classes = [IsCourseMember]
+    permission_classes = [IsCourseMember | IsAdmin]
     serializer_class = RankSerializer
 
     def get_serializer_class(self):
@@ -68,3 +69,14 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @decorators.action(['GET'], detail=False, url_path='summary')
+    def summary(self, request, *args, **kwargs):
+        """希望調査のサマリーを取得する"""
+        course_pk = kwargs.pop('course_pk')
+        try:
+            course = Course.objects.get(pk=course_pk)
+        except Course.DoesNotExist:
+            return exceptions.NotFound('この課程は存在しません')
+        self.check_object_permissions(request, course)
+        return Response(get_summary(course))
