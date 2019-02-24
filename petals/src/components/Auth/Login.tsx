@@ -5,9 +5,10 @@ import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import { AuthAction, setLoginState } from '../../actions/auth';
@@ -103,6 +104,9 @@ class Login extends React.Component<LoginProps, LoginState> {
                   {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
+              <Typography align="left">
+                パスワードをお忘れの方は<Link to={'/auth/password/reset'}>こちら</Link>
+              </Typography>
             </CardContent>
           </Card>
         </Grid>

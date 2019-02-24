@@ -12,7 +12,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
-import { resetPassword } from '../../api/password';
+import * as passwordApi from '../../api/password';
 
 interface FormParams {
   email: string;
@@ -49,12 +49,15 @@ class PasswordReset extends React.Component<PasswordResetProps, PasswordResetSta
       throw new SubmissionError({ email: emailErrMsg, _error: '入力項目に誤りがあります' });
     }
 
-    return resetPassword(values.email).then(success => {
-      if (!success) {
+    return passwordApi
+      .reset(values.email)
+      .then(() => {
+        this.setState({ showDialog: true });
+      })
+      .catch((e: Error) => {
+        // TODO: handling
         throw new SubmissionError({ _error: 'メール送信に失敗しました' });
-      }
-      this.setState({ showDialog: true });
-    });
+      });
   };
 
   public render(): React.ReactNode {

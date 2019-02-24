@@ -53,7 +53,7 @@ const AuthRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/auth/login`} component={AuthComponents.Login} />
     <Route exact={true} path={`/auth/signup`} component={AuthComponents.Signup} />
-    <AuthorizedRoute exact={true} path={'/auth/password/reset'} component={AuthComponents.PasswordReset} />
+    <Route exact={true} path={'/auth/password/reset'} component={AuthComponents.PasswordReset} />
     <AuthorizedRoute exact={true} path={'/auth/password/change'} component={AuthComponents.ChangePassword} />
     <Route exact={true} component={NotFound} />
   </Switch>
