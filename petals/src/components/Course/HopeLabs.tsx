@@ -9,6 +9,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
+import { RouteComponentProps } from 'react-router';
 // import { connect } from 'react-redux';
 // import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Field, InjectedFormProps, reduxForm, WrappedFieldProps } from 'redux-form';
@@ -20,7 +21,7 @@ import { Lab } from '../../model';
 // import * as auth from '../../lib/auth';
 // import { PetalsStore } from '../../store';
 
-interface HopeLabsProps extends InjectedFormProps {}
+interface HopeLabsProps extends RouteComponentProps<any>, InjectedFormProps {}
 
 interface HopeLabsState {
   labs: Lab[];
@@ -35,7 +36,8 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
   }
 
   public componentDidMount(): void {
-    getLabs(1).then((labs: Lab[]) => {
+    const coursePk = this.props.match.params.coursePk;
+    getLabs(coursePk).then((labs: Lab[]) => {
       this.setState({ labs });
     });
   }
