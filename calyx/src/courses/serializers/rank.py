@@ -98,6 +98,7 @@ class RankSummaryFragmentSerializer(serializers.Serializer):
     希望順位ごとのサマリーのシリアライザ
     """
 
+    border = serializers.FloatField(read_only=True)
     mean = serializers.FloatField(read_only=True)
     median = serializers.FloatField(read_only=True)
     max = serializers.FloatField(read_only=True)
