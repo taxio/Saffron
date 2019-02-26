@@ -58,6 +58,7 @@ const App: React.FC = () => (
           <Route exact={true} path="/password/reset/confirm" component={AuthComponents.PasswordResetActivation} />
 
           <AuthorizedRoute exact={false} path={'/profile'} component={ProfileRouter} />
+          <AuthorizedRoute exact={false} path={'/settings'} component={SettingsRouter} />
           <AuthorizedRoute exact={false} path={'/courses'} component={CourseRouter} />
 
           <Route exact={true} component={NotFound} />
@@ -73,6 +74,13 @@ const ProfileRouter: React.FC = () => (
     <Route exact={true} path={`/profile`} component={Profile} />
     <Route exact={true} path={`/profile/edit`} component={ProfileEdit} />
     <Route exact={true} path={`/profile/password/change`} component={AuthComponents.ChangePassword} />
+  </Switch>
+);
+
+const SettingsRouter: React.FC = () => (
+  <Switch>
+    <Route exact={true} path={`/settings`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/settings/password`} component={AuthComponents.ChangePassword} />
   </Switch>
 );
 
