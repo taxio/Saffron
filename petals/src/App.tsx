@@ -6,6 +6,7 @@ import { muiTheme } from './lib/theme';
 import About from './components/About';
 import * as AuthComponents from './components/Auth';
 import * as CourseComponents from './components/Course';
+import Footer from './components/Footer';
 import Header from './components/Header';
 import Home from './components/Home';
 import NotFound from './components/NotFound';
@@ -51,6 +52,7 @@ const App: React.FC = () => (
 
           <Route exact={true} component={NotFound} />
         </Switch>
+        <Footer />
       </TokenRefreshWrapper>
     </BrowserRouter>
   </MuiThemeProvider>
