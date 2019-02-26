@@ -9,14 +9,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 
 import { AuthAction, setLoginState } from '../actions/auth';
-
 import { logout } from '../lib/auth';
 import { PetalsStore } from '../store';
 
@@ -25,146 +24,132 @@ interface HeaderProps extends RouteComponentProps<any> {
   setLoginState: (isLogin: boolean) => void;
 }
 
-interface HeaderState {
-  anchorEl: HTMLElement | null;
-  showDialog: boolean;
-}
+const Header: React.FC<HeaderProps> = props => {
+  const [showDialog, setShowDialog] = React.useState<boolean>(false);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
-class Header extends React.Component<HeaderProps, HeaderState> {
-  constructor(props: any) {
-    super(props);
-
-    this.state = {
-      anchorEl: null,
-      showDialog: false,
-    };
-  }
-
-  public handleOpenDialog = () => {
-    this.setState({ showDialog: true, anchorEl: null });
+  const handleOpenDialog = () => {
+    setShowDialog(true);
+    setAnchorEl(null);
   };
 
-  public handleCloseDialog = () => {
-    this.setState({ showDialog: false });
+  const handleCloseDialog = () => {
+    setShowDialog(false);
   };
 
-  public handleLogout = () => {
+  const handleLogout = () => {
     logout();
-    this.props.setLoginState(false);
-    this.props.history.push('/');
-    this.setState({ showDialog: false, anchorEl: null });
+    props.setLoginState(false);
+    props.history.push('/');
+    setShowDialog(false);
+    setAnchorEl(null);
   };
 
-  public handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    this.setState({ anchorEl: e.currentTarget });
+  const handleMenu = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    setAnchorEl(e.currentTarget);
   };
 
-  public handleClickLogin = () => {
-    this.props.history.push('/login');
-    this.setState({ anchorEl: null });
+  const handleClickLogin = () => {
+    props.history.push('/login');
+    setAnchorEl(null);
   };
 
-  public handleClickSignup = () => {
-    this.props.history.push('/signup');
-    this.setState({ anchorEl: null });
+  const handleClickSignup = () => {
+    props.history.push('/signup');
+    setAnchorEl(null);
   };
 
-  public handleClose = () => {
-    this.setState({ anchorEl: null });
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
-  public handleToProfile = () => {
-    this.props.history.push('/profile');
-    this.setState({ anchorEl: null });
+  const handleToProfile = () => {
+    props.history.push('/profile');
+    setAnchorEl(null);
   };
 
-  public render() {
-    const anchorEl = this.state.anchorEl;
-    const open = Boolean(this.state.anchorEl);
+  return (
+    <AppBar position="static" style={{ boxShadow: 'none' }}>
+      <Toolbar>
+        <Typography
+          variant="h6"
+          color="inherit"
+          style={{ flex: 1, textDecoration: 'none' }}
+          onClick={() => props.history.push('/')}
+        >
+          Saffron
+        </Typography>
 
-    return (
-      <AppBar position="static" style={{ boxShadow: 'none' }}>
-        <Toolbar>
-          <Typography
-            variant="h6"
-            color="inherit"
-            style={{ flex: 1, textDecoration: 'none' }}
-            onClick={() => this.props.history.push('/')}
-          >
-            Saffron
-          </Typography>
-
-          {this.props.isLogin ? (
-            <React.Fragment>
-              <IconButton
-                aria-owns={open ? 'menu-appbar' : undefined}
-                aria-haspopup="true"
-                onClick={this.handleMenu}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={open}
-                onClose={this.handleClose}
-              >
-                <MenuItem onClick={this.handleToProfile}>Profile</MenuItem>
-                <MenuItem onClick={this.handleOpenDialog}>Logout</MenuItem>
-              </Menu>
-            </React.Fragment>
-          ) : (
-            <React.Fragment>
-              <IconButton
-                aria-owns={open ? 'menu-appbar' : undefined}
-                aria-haspopup="true"
-                onClick={this.handleMenu}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={open}
-                onClose={this.handleClose}
-              >
-                <MenuItem onClick={this.handleClickLogin}>Login</MenuItem>
-                <MenuItem onClick={this.handleClickSignup}>Sign up</MenuItem>
-              </Menu>
-            </React.Fragment>
-          )}
-          <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
-            <DialogTitle>ログアウトしてもよろしいですか？</DialogTitle>
-            <DialogActions>
-              <Button color="secondary" onClick={this.handleLogout}>
-                はい
-              </Button>
-              <Button onClick={this.handleCloseDialog}>いいえ</Button>
-            </DialogActions>
-          </Dialog>
-        </Toolbar>
-      </AppBar>
-    );
-  }
-}
+        {props.isLogin ? (
+          <React.Fragment>
+            <IconButton
+              aria-owns={open ? 'menu-appbar' : undefined}
+              aria-haspopup="true"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={handleToProfile}>設定</MenuItem>
+              <MenuItem onClick={handleOpenDialog}>ログアウト</MenuItem>
+            </Menu>
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <IconButton
+              aria-owns={open ? 'menu-appbar' : undefined}
+              aria-haspopup="true"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={handleClickLogin}>ログイン</MenuItem>
+              <MenuItem onClick={handleClickSignup}>新規登録</MenuItem>
+            </Menu>
+          </React.Fragment>
+        )}
+        <Dialog fullWidth={true} maxWidth="xs" open={showDialog} onClose={handleCloseDialog}>
+          <DialogTitle>ログアウトしてもよろしいですか？</DialogTitle>
+          <DialogActions>
+            <Button color="secondary" onClick={handleLogout}>
+              はい
+            </Button>
+            <Button onClick={handleCloseDialog}>いいえ</Button>
+          </DialogActions>
+        </Dialog>
+      </Toolbar>
+    </AppBar>
+  );
+};
 
 interface StateFromProps {
   isLogin: boolean;
