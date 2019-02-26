@@ -19,7 +19,17 @@ const TokenRefreshWrapper: React.FC = props => {
   refreshToken().catch(() => {
     logout();
   });
-  return <React.Fragment>{props.children}</React.Fragment>;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
+      }}
+    >
+      {props.children}
+    </div>
+  );
 };
 
 const AuthorizedRoute: React.FC<{ exact: boolean; path: string; component: any }> = props => {
