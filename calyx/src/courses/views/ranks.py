@@ -8,7 +8,7 @@ from courses.permissions import (
     IsCourseMember, IsAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
 from courses.serializers import (
-    LabSerializer, RankSerializer
+    LabSerializer, RankSerializer, RankSummaryPerLabSerializer
 )
 from courses.services import get_summary
 from .mixins import NestedViewSetMixin
@@ -77,6 +77,11 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @swagger_auto_schema(responses={
+        200: RankSummaryPerLabSerializer(read_only=True, many=True),
+        403: "閲覧資格を満たしていません",
+        404: "存在しない課程です"
+    })
     @decorators.action(['GET'], detail=False, url_path='summary')
     def summary(self, request, *args, **kwargs):
         """希望調査のサマリーを取得する"""
