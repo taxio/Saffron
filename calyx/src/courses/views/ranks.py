@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from courses.models import Course, Rank
 from courses.permissions import (
-    IsCourseMember, IsAdmin
+    IsCourseMember, IsAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
 from courses.serializers import (
     LabSerializer, RankSerializer
@@ -28,6 +28,13 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
     queryset = Rank.objects.select_related('course', 'lab')
     permission_classes = [IsCourseMember | IsAdmin]
     serializer_class = RankSerializer
+
+    def get_permissions(self):
+        if self.action == 'summary':
+            self.permission_classes = [
+                (IsCourseMember & GPARequirement & RankSubmitted & ScreenNameRequirement) | IsAdmin
+            ]
+        return super(RankViewSet, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action == 'create':
