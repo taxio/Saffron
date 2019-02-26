@@ -18,7 +18,8 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-    "types": ["jest"]
+    "types": ["jest"],
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules",
