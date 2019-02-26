@@ -144,11 +144,15 @@ const Header: React.FC<HeaderProps> = props => {
       open={Boolean(anchorEl)}
       onClose={handleCloseMenu}
     >
-      {getCourses().map((course: model.Course, idx: number) => (
-        <MenuItem key={idx} onClick={() => toCourse(course.pk)}>
-          {course.name}
-        </MenuItem>
-      ))}
+      {getCourses().length !== 0 ? (
+        getCourses().map((course: model.Course, idx: number) => (
+          <MenuItem key={idx} onClick={() => toCourse(course.pk)}>
+            {course.name}
+          </MenuItem>
+        ))
+      ) : (
+        <MenuItem onClick={() => props.history.push('/courses')}>設定</MenuItem>
+      )}
       <MenuItem onClick={toSettings}>設定</MenuItem>
       <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
     </Menu>
@@ -170,16 +174,26 @@ const Header: React.FC<HeaderProps> = props => {
         <div className={props.classes.sectionDesktop}>
           {props.isLogin ? (
             <React.Fragment>
-              {getCourses().map((course: model.Course, idx: number) => (
+              {getCourses().length !== 0 ? (
+                getCourses().map((course: model.Course, idx: number) => (
+                  <Button
+                    key={idx}
+                    color="inherit"
+                    className={props.classes.menuButton}
+                    onClick={() => toCourse(course.pk)}
+                  >
+                    {course.name}
+                  </Button>
+                ))
+              ) : (
                 <Button
-                  key={idx}
                   color="inherit"
                   className={props.classes.menuButton}
-                  onClick={() => toCourse(course.pk)}
+                  onClick={() => props.history.push('/courses')}
                 >
-                  {course.name}
+                  課程一覧へ
                 </Button>
-              ))}
+              )}
               <Button color="inherit" className={props.classes.menuButton} onClick={toSettings}>
                 設定
               </Button>
