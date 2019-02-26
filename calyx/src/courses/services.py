@@ -115,11 +115,18 @@ def make_summary_cache(instance: 'Course') -> 'List[dict]':
     return summary
 
 
+def update_summary_cache(course: 'Course'):
+    """指定された課程のキャッシュを更新する"""
+    cache_key = f"course-summary-{course.pk}"
+    cached_summary = make_summary_cache(course)
+    cache.set(cache_key, cached_summary)
+    return cached_summary
+
+
 def get_summary(course: 'Course'):
     """課程ごとの希望調査のサマリーを取得する"""
     cache_key = f"course-summary-{course.pk}"
     cached_summary = cache.get(cache_key, None)
     if cached_summary is None:
-        cached_summary = make_summary_cache(course)
-        cache.set(cache_key, cached_summary)
+        cached_summary = update_summary_cache(course)
     return cached_summary

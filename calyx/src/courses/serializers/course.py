@@ -80,7 +80,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
         for key, val in validated_data.items():
             setattr(instance, key, val)
-        instance.save()
+        validated_data.pop('config')
+        instance.save(update_fields=validated_data.keys())
         return instance
 
     def validate_pin_code(self, data):

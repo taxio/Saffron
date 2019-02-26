@@ -60,7 +60,7 @@ class RequirementStatusViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     self.submit_ranks(self.labs, self.user)
                 else:
                     self.user.rank_set.all().delete()
-                self.user.save()
+                self.user.save(update_fields=["gpa", "screen_name"])
                 resp = self.client.get(f'/courses/{self.course.pk}/status/', format='json')
                 self.assertEqual(200, resp.status_code)
                 self.assertEqual(Status.OK if user_pattern['ok'] else Status.NG, resp.data['status'])

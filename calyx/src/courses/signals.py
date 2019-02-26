@@ -6,7 +6,7 @@ from django.db import models
 from django.dispatch import receiver
 
 from courses.models import Course, Config, Rank, Lab
-from courses.services import set_config_from_instance
+from courses.services import set_config_from_instance, update_summary_cache
 
 if TYPE_CHECKING:
     from users.models import User as AppUser
@@ -33,6 +33,13 @@ def change_admin_group_name(sender, instance: 'Course', **kwargs):
     group.name = instance.admin_group_name
     group.save()
     return
+
+
+@receiver(models.signals.post_save, sender=Lab)
+def update_rank_summary_when_capacity_changed(sender, instance: 'Lab', **kwargs):
+    update_fields = kwargs.get("update_fields", None)
+    if update_fields is not None and "capacity" in update_fields:
+        update_summary_cache(instance.course)
 
 
 @receiver(models.signals.pre_delete, sender=Lab)
@@ -68,3 +75,15 @@ def set_config_cache(sender, instance: 'Config', **kwargs):
     :return:
     """
     set_config_from_instance(instance)
+    update_summary_cache(instance.course)
+
+
+@receiver(models.signals.post_save, sender=User)
+def update_rank_summary_based_on_user_attr(sender, instance: 'AppUser', **kwargs):
+    created = kwargs.get('created', False)
+    if not created:
+        update_fields = kwargs.get('update_fields', None)
+        if update_fields is not None and 'gpa' in update_fields:
+            courses = instance.courses.all()
+            for course in courses:
+                update_summary_cache(course)

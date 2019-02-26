@@ -10,7 +10,7 @@ from courses.permissions import (
 from courses.serializers import (
     LabSerializer, RankSerializer, RankSummaryPerLabSerializer
 )
-from courses.services import get_summary
+from courses.services import get_summary, update_summary_cache
 from .mixins import NestedViewSetMixin
 
 User = get_user_model()
@@ -74,6 +74,7 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        update_summary_cache(self.course)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import signals
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
@@ -11,6 +12,9 @@ from courses.schemas import LabSchema
 from courses.serializers import (
     LabSerializer, LabAbstractSerializer
 )
+from courses.signals import update_rank_summary_when_capacity_changed
+from courses.services import update_summary_cache
+from courses.utils import disable_signal
 from .mixins import NestedViewSetMixin
 
 User = get_user_model()
@@ -80,8 +84,12 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         except Course.DoesNotExist:
             raise exceptions.NotFound('この課程は存在しません．')
         self.check_object_permissions(request, self.course)
-        serializer = self.get_serializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        # シグナルが飛びまくるので一時的にdisableしておく
+        with disable_signal(signals.post_save, update_rank_summary_when_capacity_changed, sender=Lab):
+            serializer = self.get_serializer(data=request.data, many=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        # 最後にまとめてキャッシュを更新
+        update_summary_cache(self.course)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
