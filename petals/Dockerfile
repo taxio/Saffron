@@ -3,6 +3,7 @@ FROM node:11.1.0-alpine as develop
 ENV PROJECT_DIR /opt/petals
 WORKDIR ${PROJECT_DIR}
 
+COPY jest.config.js ${PROJECT_DIR}/
 COPY tsconfig.json ${PROJECT_DIR}/
 COPY tsconfig.prod.json ${PROJECT_DIR}/
 COPY tsconfig.test.json ${PROJECT_DIR}/
