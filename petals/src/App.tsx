@@ -6,6 +6,7 @@ import { muiTheme } from './lib/theme';
 import About from './components/About';
 import * as AuthComponents from './components/Auth';
 import * as CourseComponents from './components/Course';
+import Footer from './components/Footer';
 import Header from './components/Header';
 import Home from './components/Home';
 import NotFound from './components/NotFound';
@@ -18,7 +19,17 @@ const TokenRefreshWrapper: React.FC = props => {
   refreshToken().catch(() => {
     logout();
   });
-  return <React.Fragment>{props.children}</React.Fragment>;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
+      }}
+    >
+      {props.children}
+    </div>
+  );
 };
 
 const AuthorizedRoute: React.FC<{ exact: boolean; path: string; component: any }> = props => {
@@ -51,6 +62,7 @@ const App: React.FC = () => (
 
           <Route exact={true} component={NotFound} />
         </Switch>
+        <Footer />
       </TokenRefreshWrapper>
     </BrowserRouter>
   </MuiThemeProvider>
