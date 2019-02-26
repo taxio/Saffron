@@ -151,7 +151,7 @@ const Header: React.FC<HeaderProps> = props => {
           </MenuItem>
         ))
       ) : (
-        <MenuItem onClick={() => props.history.push('/courses')}>設定</MenuItem>
+        <MenuItem onClick={() => props.history.push('/courses')}>課程登録</MenuItem>
       )}
       <MenuItem onClick={toSettings}>設定</MenuItem>
       <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
@@ -191,7 +191,7 @@ const Header: React.FC<HeaderProps> = props => {
                   className={props.classes.menuButton}
                   onClick={() => props.history.push('/courses')}
                 >
-                  課程一覧へ
+                  課程登録
                 </Button>
               )}
               <Button color="inherit" className={props.classes.menuButton} onClick={toSettings}>
