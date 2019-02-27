@@ -43,7 +43,7 @@
     "@types/redux": "^3.6.0",
     "@types/redux-form": "^7.4.15",
     "enzyme": "^3.9.0",
-    "enzyme-adapter-react-16": "^1.9.1",
+    "enzyme-adapter-react-16": "^1.10.0",
     "jest": "^24.1.0",
     "jest-enzyme": "^7.0.1",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
