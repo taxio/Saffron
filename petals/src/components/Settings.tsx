@@ -168,25 +168,53 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
             </ListItem>
           </List>
 
-          <FormControl fullWidth={true}>
+          <FormControl fullWidth={true} style={{ marginTop: '10px' }}>
             <Button variant="contained" color="primary" type="submit">
               更新
             </Button>
           </FormControl>
-          <FormControl error={Boolean(error)} fullWidth={true}>
-            <Button variant="contained" color="primary" onClick={() => this.props.history.push('/settings/password')}>
+          <FormControl error={Boolean(error)} fullWidth={true} style={{ marginTop: '20px' }}>
+            <Button variant="outlined" color="primary" onClick={() => this.props.history.push('/settings/password')}>
               パスワード変更
             </Button>
             {error ? <FormHelperText>{error}</FormHelperText> : null}
           </FormControl>
 
-          <Divider />
+          <Divider style={{ margin: '20px 0' }} />
 
-          <FormControl fullWidth={true}>
-            <Button variant="contained" color="secondary" onClick={() => this.setState({ showDeleteDialog: true })}>
-              アカウント削除
+          <Typography variant="h6">所属課程</Typography>
+          {user.courses.length === 0 ? (
+            <Typography variant="h6" align="center">
+              所属課程無し
+            </Typography>
+          ) : (
+            user.courses.map((course, idx) => (
+              <div style={{ textAlign: 'center', margin: '5px 0' }}>
+                <Button
+                  key={idx}
+                  variant="outlined"
+                  size="large"
+                  style={{ textTransform: 'none', fontSize: 16, margin: 'auto' }}
+                >{`${course.year}年度　${course.name}`}</Button>
+              </div>
+            ))
+          )}
+          <div style={{ textAlign: 'center', margin: '5px 0' }}>
+            <Button
+              variant="outlined"
+              size="large"
+              style={{ textTransform: 'none', fontSize: 16 }}
+              onClick={() => this.props.history.push('/courses')}
+            >
+              課程に新しく参加する
             </Button>
-          </FormControl>
+          </div>
+
+          {/*<FormControl fullWidth={true}>*/}
+          {/*<Button variant="contained" color="secondary" onClick={() => this.setState({ showDeleteDialog: true })}>*/}
+          {/*アカウント削除*/}
+          {/*</Button>*/}
+          {/*</FormControl>*/}
         </form>
 
         <Dialog
