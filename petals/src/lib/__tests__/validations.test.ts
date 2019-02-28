@@ -34,3 +34,20 @@ describe('validateUsername', () => {
     expect(vl.validateUsername('')).toBe(vl.UsernameValidationError.NO_INPUT);
   });
 });
+
+describe('validateGpaString', () => {
+  it('correct', () => {
+    expect(vl.validateGpaString('2.5')).toBe(vl.GpaValidationError.NONE);
+  });
+  it('no input', () => {
+    expect(vl.validateGpaString('')).toBe(vl.GpaValidationError.NO_INPUT);
+  });
+  it('not number', () => {
+    expect(vl.validateGpaString('hoge')).toBe(vl.GpaValidationError.NOT_NUMBER);
+    expect(vl.validateGpaString('0.1hoge')).toBe(vl.GpaValidationError.NOT_NUMBER);
+    expect(vl.validateGpaString('12hoge')).toBe(vl.GpaValidationError.NOT_NUMBER);
+  });
+  it('out of range', () => {
+    expect(vl.validateGpaString('4.1')).toBe(vl.GpaValidationError.OUT_OF_RANGE);
+  });
+});
