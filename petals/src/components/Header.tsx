@@ -43,6 +43,7 @@ const headerStyles = (theme: Theme) => {
     },
     menuButton: {
       margin: '0 8px',
+      textTransform: 'none',
     },
   });
 };
