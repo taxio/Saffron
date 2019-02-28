@@ -77,7 +77,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
     }
 
     return usersApi
-      .create(values.username, values.password, 'screen test name')
+      .create(values.username, values.password, '')
       .then(() => {
         this.setState({ showDialog: true });
       })
