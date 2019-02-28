@@ -8,14 +8,13 @@ from courses.models import Lab
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
-from courses.schemas import LabSchema
 from courses.serializers import (
     LabSerializer, LabAbstractSerializer
 )
 from courses.services import update_summary_cache
 from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
-from .mixins import NestedViewSetMixin, CourseNestedMixin
+from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
@@ -26,7 +25,6 @@ class LabViewSet(CourseNestedMixin, viewsets.ModelViewSet):
     """
 
     queryset = Lab.objects.select_related('course').all()
-    schema = LabSchema()
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'create':

@@ -9,11 +9,10 @@ from courses.models import Course, Year, Config
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement
 )
-from courses.schemas import CourseJoinSchema
 from courses.serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, ConfigSerializer
 )
-from .mixins import NestedViewSetMixin, CourseNestedMixin
+from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
@@ -88,7 +87,6 @@ class CourseConfigViewSet(CourseNestedMixin,
 
     queryset = Config.objects.select_related('course').all()
     serializer_class = ConfigSerializer
-    schema = CourseJoinSchema()
 
     def get_permissions(self):
         if self.action == 'list':

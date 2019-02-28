@@ -9,7 +9,6 @@ from courses.models import Course
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin
 )
-from courses.schemas import CourseJoinSchema, CourseAdminSchema
 from courses.serializers import (
     CourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
 )
@@ -30,8 +29,16 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ).select_related('admin_user_group', 'year').all()
     serializer_class = PINCodeSerializer
     permission_classes = [permissions.IsAuthenticated]
-    schema = CourseJoinSchema()
 
+    @swagger_auto_schema(
+        request_body=PINCodeSerializer,
+        responses={
+            200: CourseSerializer,
+            400: "PINコードが正しくない，または既に参加済みです",
+            401: "ログインしてください",
+            404: "指定された課程は存在しません",
+        }
+    )
     def create(self, request, course_pk=None, *args, **kwargs):
         if not isinstance(course_pk, int):
             course_pk = int(course_pk)
@@ -76,7 +83,6 @@ class CourseAdminView(CourseNestedMixin,
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('admin_user_group', 'year')
     serializer_class = UserSerializer
-    schema = CourseAdminSchema()
 
     def get_permissions(self):
         if self.action == 'list':
