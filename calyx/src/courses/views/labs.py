@@ -20,7 +20,7 @@ from .mixins import NestedViewSetMixin, CourseNestedMixin
 User = get_user_model()
 
 
-class LabViewSet(NestedViewSetMixin, CourseNestedMixin, viewsets.ModelViewSet):
+class LabViewSet(CourseNestedMixin, viewsets.ModelViewSet):
     """
     研究室を操作するView．
     """

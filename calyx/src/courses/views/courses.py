@@ -74,8 +74,7 @@ class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class CourseConfigViewSet(NestedViewSetMixin,
-                          CourseNestedMixin,
+class CourseConfigViewSet(CourseNestedMixin,
                           mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           viewsets.GenericViewSet):
