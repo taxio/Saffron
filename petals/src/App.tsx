@@ -12,6 +12,7 @@ import Home from './components/Home';
 import NotFound from './components/NotFound';
 import Profile from './components/Profile';
 import ProfileEdit from './components/ProfileEdit';
+import Settings from './components/Settings';
 import TermsOfService from './components/TermsOfService';
 import { isLogin, logout, refreshToken } from './lib/auth';
 
@@ -79,7 +80,7 @@ const ProfileRouter: React.FC = () => (
 
 const SettingsRouter: React.FC = () => (
   <Switch>
-    <Route exact={true} path={`/settings`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/settings`} component={Settings} />
     <Route exact={true} path={`/settings/password`} component={AuthComponents.ChangePassword} />
   </Switch>
 );
