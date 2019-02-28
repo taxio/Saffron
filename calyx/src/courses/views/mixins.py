@@ -1,4 +1,5 @@
 from rest_framework import exceptions
+
 from courses.models import Course
 
 

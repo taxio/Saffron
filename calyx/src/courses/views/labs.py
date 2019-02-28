@@ -4,7 +4,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
 
-from courses.models import Course, Lab
+from courses.models import Lab
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
@@ -12,8 +12,8 @@ from courses.schemas import LabSchema
 from courses.serializers import (
     LabSerializer, LabAbstractSerializer
 )
-from courses.signals import update_rank_summary_when_capacity_changed
 from courses.services import update_summary_cache
+from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
 from .mixins import NestedViewSetMixin, CourseNestedMixin
 
