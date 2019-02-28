@@ -1,3 +1,5 @@
+import { isFloatStr } from './util';
+
 export enum PasswordValidationError {
   NONE,
   NO_INPUT,
@@ -63,4 +65,28 @@ export const validateUsernameWithErrMsg = (username: string | null): string => {
       return '大学のユーザー名を入力してください';
   }
   return '';
+};
+
+export enum GpaValidationError {
+  NONE,
+  NO_INPUT,
+  NOT_NUMBER,
+  OUT_OF_RANGE,
+}
+
+export const validateGpaString = (gpa: string | null): GpaValidationError => {
+  if (!gpa) {
+    return GpaValidationError.NO_INPUT;
+  }
+  if (!isFloatStr(gpa)) {
+    return GpaValidationError.NOT_NUMBER;
+  }
+  const gpaNum = parseFloat(gpa);
+  if (isNaN(gpaNum)) {
+    return GpaValidationError.NOT_NUMBER;
+  }
+  if (gpaNum < 0.0 || gpaNum > 4.0) {
+    return GpaValidationError.OUT_OF_RANGE;
+  }
+  return GpaValidationError.NONE;
 };

@@ -7,6 +7,15 @@ export const isIntStr = (val: string): boolean => {
   return !Boolean(val.match(intReg));
 };
 
+const floatReg = new RegExp('^-?[0-9]+\\.?[0-9]*$');
+
+export const isFloatStr = (val: string): boolean => {
+  if (!val) {
+    return false;
+  }
+  return floatReg.test(val);
+};
+
 export const deleteNullObj = (data: object): object => {
   Object.keys(data).map(v => {
     if (data[v] == null) {

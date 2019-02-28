@@ -1,4 +1,3 @@
-import { deleteNullObj } from '../lib/util';
 import * as model from '../model';
 import * as util from './util';
 
@@ -7,10 +6,10 @@ export const getMe = async (): Promise<model.User> => {
 };
 
 export const patchMe = async (screenName: string | null = null, gpa: number | null = null): Promise<model.User> => {
-  const data = deleteNullObj({
+  const data = {
     screen_name: screenName,
     gpa,
-  });
+  };
   return util.sendRequest(util.Methods.Patch, '/me/', data, true);
 };
 

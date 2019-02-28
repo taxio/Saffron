@@ -17,6 +17,27 @@ describe('isIntStr', () => {
   });
 });
 
+describe('isFloatStr', () => {
+  it('correct', () => {
+    expect(util.isFloatStr('1.23')).toBe(true);
+    expect(util.isFloatStr('-1.23')).toBe(true);
+  });
+  it('words', () => {
+    expect(util.isFloatStr('hoge')).toBe(false);
+  });
+  it('include words', () => {
+    expect(util.isFloatStr('hoge123')).toBe(false);
+    expect(util.isFloatStr('123hoge')).toBe(false);
+    expect(util.isFloatStr('h1o2g3e')).toBe(false);
+  });
+  it('no word', () => {
+    expect(util.isFloatStr('')).toBe(false);
+  });
+  it('int', () => {
+    expect(util.isFloatStr('10')).toBe(true);
+  });
+});
+
 describe('deleteNullObj', () => {
   it('correct', () => {
     const data = {
