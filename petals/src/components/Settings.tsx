@@ -174,9 +174,8 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
             </Typography>
           ) : (
             user.courses.map((course, idx) => (
-              <div style={{ textAlign: 'center', margin: '5px 0' }}>
+              <div key={idx} style={{ textAlign: 'center', margin: '5px 0' }}>
                 <Button
-                  key={idx}
                   variant="outlined"
                   size="large"
                   onClick={() => this.props.history.push(`/courses/${course.pk}`)}
