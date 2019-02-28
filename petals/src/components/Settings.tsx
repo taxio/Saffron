@@ -194,6 +194,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
                   key={idx}
                   variant="outlined"
                   size="large"
+                  onClick={() => this.props.history.push(`/courses/${course.pk}`)}
                   style={{ textTransform: 'none', fontSize: 16, margin: 'auto' }}
                 >{`${course.year}年度　${course.name}`}</Button>
               </div>
