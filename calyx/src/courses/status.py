@@ -1,4 +1,4 @@
-from .models import get_config_cache
+from .services import get_config_cache
 
 
 class Status(object):

@@ -24,6 +24,12 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'read_only': True},
         }
 
+    def update(self, instance, validated_data):
+        for key, val in validated_data.items():
+            setattr(instance, key, val)
+        instance.save(update_fields=validated_data.keys())
+        return instance
+
     def get_joined(self, obj):
         """課程に参加しているかどうかのフラグ"""
         return obj.courses.count() > 0

@@ -1,12 +1,11 @@
 import unicodedata
+from importlib import import_module
 from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import Group
-from django.core.cache import cache
 from django.db import models, transaction, IntegrityError
-from django.dispatch import receiver
 from django.utils import timezone
 
 from .errors import AlreadyJoinedError, NotJoinedError, NotAdminError
@@ -245,81 +244,7 @@ class Rank(models.Model):
         return f'{self.user}-{self.order}-{self.lab}'
 
 
-@receiver(models.signals.post_save, sender=Course)
-def change_admin_group_name(sender, instance: 'Course', **kwargs):
-    """
-    課程の名称が変わったときに自動でグループの名称を変える
-    :param sender: Modelクラス
-    :param instance: そのインスタンス
-    :param kwargs:
-    :return:
-    """
-    if not Config.objects.filter(course=instance).exists():
-        Config.objects.create(course=instance)
-    if instance.admin_user_group is None:
-        return
-    if instance.admin_user_group.name == instance.admin_group_name:
-        return
-    group = Group.objects.get(pk=instance.admin_user_group.pk)
-    group.name = instance.admin_group_name
-    group.save()
-    return
-
-
-@receiver(models.signals.pre_delete, sender=Lab)
-def move_up_ranks(sender, instance: 'Lab', **kwargs):
-    """
-    研究室が削除されたときに自動で志望順位を繰り上げる
-    :param sender: Modelクラス
-    :param instance: そのインスタンス
-    :param kwargs:
-    :return:
-    """
-    ranks = Rank.objects.filter(lab=instance).all()
-    users = [rank.user for rank in ranks]
-    for rank_to_del, user in zip(ranks, users):
-        rank_filter = {'course': rank_to_del.course, 'order__gt': rank_to_del.order, 'user': user}
-        for rank in Rank.objects.filter(**rank_filter).order_by('order').all():
-            # 消す対象より下の志望順位の研究室を順に繰り上げる
-            rank_to_del.lab_id = rank.lab_id
-            rank_to_del.save()
-            rank_to_del = rank
-        # 最後の志望の研究室はNULLにする
-        rank_to_del.lab = None
-        rank_to_del.save()
-
-
-def make_config_cache(instance: 'Config') -> 'dict':
-    return {
-        'show_gpa': instance.show_gpa,
-        'show_username': instance.show_username,
-        'rank_limit': instance.rank_limit,
-    }
-
-
-def set_config_from_instance(instance: 'Config') -> dict:
-    config_dict = make_config_cache(instance)
-    cache_key = f"course-config-{instance.course_id}"
-    cache.set(cache_key, config_dict)
-    return config_dict
-
-
-def get_config_cache(course_pk: 'int') -> dict:
-    cache_key = f"course-config-{course_pk}"
-    cached_config = cache.get(cache_key, None)
-    if cached_config is None:
-        config = Config.objects.filter(course_id=course_pk).first()
-        cached_config = set_config_from_instance(config)
-    return cached_config
-
-
-@receiver(models.signals.post_save, sender=Config)
-def set_config_cache(sender, instance: 'Config', **kwargs):
-    """
-    設定が更新されたときにキャッシュも更新する
-    :param sender: Modelクラス
-    :param instance: 設定のインスタンス
-    :param kwargs:
-    :return:
-    """
-    set_config_from_instance(instance)
+# Signalsの記述を分離するために，動的にimportのみを行う．
+# importしない場合，Signalの登録が行われないため処理が実行されなくなってしまう．
+# `from . import signals`をするとOptimize importsで消されるので注意
+import_module('.signals', 'courses')

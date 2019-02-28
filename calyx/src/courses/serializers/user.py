@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from courses.models import get_config_cache
+from courses.services import get_config_cache
 
 User = get_user_model()
 

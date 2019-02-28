@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from courses.models import Course, Config, Lab, Rank, get_config_cache
+from courses.models import Course, Config, Lab, Rank
+from courses.services import get_config_cache
 from .user import UserSerializer
 
 User = get_user_model()
@@ -89,3 +90,41 @@ class RankPerLabSerializer(serializers.ModelSerializer):
         """ユーザ情報のみを返却する"""
         data = super(RankPerLabSerializer, self).to_representation(instance)
         return data['user']
+
+
+# 以降，スキーマ生成のためのシリアライザ．実際には使用されない．
+class RankSummaryFragmentSerializer(serializers.Serializer):
+    """
+    希望順位ごとのサマリーのシリアライザ
+    """
+
+    border = serializers.FloatField(read_only=True)
+    mean = serializers.FloatField(read_only=True)
+    median = serializers.FloatField(read_only=True)
+    max = serializers.FloatField(read_only=True)
+    min = serializers.FloatField(read_only=True)
+    count = serializers.IntegerField(read_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
+
+class RankSummaryPerLabSerializer(serializers.Serializer):
+    """
+    研究室ごとのサマリーのシリアライザ
+    """
+
+    pk = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    capacity = serializers.IntegerField(read_only=True)
+    detail = RankSummaryFragmentSerializer(read_only=True, many=True)
+    abstract = RankSummaryFragmentSerializer(read_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError

@@ -3,10 +3,13 @@ from collections import OrderedDict
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
+from django.db.models import signals
 from django.utils.six import text_type
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from courses.models import Lab, Rank
+from courses.signals import update_rank_summary_when_capacity_changed
+from courses.utils import disable_signal
 
 if TYPE_CHECKING:
     from courses.models import Course
@@ -59,6 +62,9 @@ user_data_set = [
         "username": "m0000000",
         "password": "piyopoyo",
         "screen_name": "表示名"
+    }, {
+        "username": "d0000000",
+        "password": "hogehoge"
     }
 ]
 
@@ -77,12 +83,16 @@ class DatasetMixin(object):
         return json.loads(json.dumps(data, ensure_ascii=False))
 
     def create_labs(self, course: 'Course') -> 'List[Lab]':
-        return [Lab.objects.create(**lab_data, course=course) for lab_data in self.lab_data_set]
+        with disable_signal(signals.post_save, update_rank_summary_when_capacity_changed, sender=Lab):
+            labs = [Lab.objects.create(**lab_data, course=course) for lab_data in self.lab_data_set]
+        return labs
 
     def submit_ranks(self, labs: "List[Lab]", user) -> 'List[Rank]':
         ranks = []
         for i, lab in enumerate(labs):
-            rank, _ = Rank.objects.update_or_create(lab=lab, defaults={"course": lab.course, "user": user, "order": i})
+            rank, _ = Rank.objects.update_or_create(
+                course=lab.course, user=user, order=i, defaults={'lab': lab}
+            )
             ranks.append(rank)
         return ranks
 

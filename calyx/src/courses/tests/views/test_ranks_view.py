@@ -125,3 +125,16 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
             # メンバーでない
             resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
             self.assertEqual(403, resp.status_code)
+
+    def test_get_rank_summary_permission(self):
+        """GET /courses/<course_pk>/ranks/summary/"""
+        # ログインしていない
+        with self.subTest(logged_in=False, is_member=False):
+            self._unset_credentials()
+            resp = self.client.get(f'/courses/{self.course.pk}/ranks/summary/')
+            self.assertEqual(401, resp.status_code)
+        with self.subTest(logged_in=True, is_member=False):
+            self._set_credentials()
+            # メンバーでない
+            resp = self.client.get(f'/courses/{self.course.pk}/ranks/summary/')
+            self.assertEqual(403, resp.status_code)
