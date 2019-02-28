@@ -154,7 +154,7 @@ const Header: React.FC<HeaderProps> = props => {
         <MenuItem onClick={() => props.history.push('/courses')}>課程登録</MenuItem>
       )}
       <MenuItem onClick={toSettings}>設定</MenuItem>
-      <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
+      <MenuItem onClick={handleOpenDialog}>ログアウト</MenuItem>
     </Menu>
   );
 
