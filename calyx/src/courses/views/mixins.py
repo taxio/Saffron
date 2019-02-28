@@ -15,7 +15,7 @@ class NestedViewSetMixin(object):
         return queryset
 
 
-class CourseNestedMixin(NestedViewSetMixin):
+class CourseNestedMixin(object):
 
     def get_course(self):
         course_pk = self.kwargs.get("course_pk", None)
@@ -24,8 +24,8 @@ class CourseNestedMixin(NestedViewSetMixin):
         if isinstance(course_pk, str):
             course_pk = int(course_pk)
         try:
-            course = Course.objects.get(pk=course_pk)
+            course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
         except Course.DoesNotExist:
-            return exceptions.NotFound("指定された課程は存在しません")
-        self.check_object_permission(self.request, course)
+            raise exceptions.NotFound("指定された課程は存在しません")
+        self.check_object_permissions(self.request, course)
         return course

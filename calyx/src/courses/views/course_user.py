@@ -13,6 +13,7 @@ from courses.schemas import CourseJoinSchema, CourseAdminSchema
 from courses.serializers import (
     CourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
 )
+from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
@@ -54,7 +55,8 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class CourseAdminView(mixins.UpdateModelMixin,
+class CourseAdminView(CourseNestedMixin,
+                      mixins.UpdateModelMixin,
                       mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
@@ -83,24 +85,11 @@ class CourseAdminView(mixins.UpdateModelMixin,
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseAdminView, self).get_permissions()
 
-    def get_course(self, kwargs):
-        course_pk = kwargs.get('course_pk', None)
-        if course_pk is None:
-            return None
-        if isinstance(course_pk, str):
-            course_pk = int(course_pk)
-        try:
-            course = self.get_queryset().get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        return course
-
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop('pk')
         if not isinstance(pk, int):
             pk = int(pk)
-        course = self.get_course(kwargs)
-        self.check_object_permissions(self.request, course)
+        course = self.get_course()
         try:
             user = course.users.get(pk=pk)
         except User.DoesNotExist:
@@ -118,8 +107,7 @@ class CourseAdminView(mixins.UpdateModelMixin,
         pk = kwargs.pop('pk')
         if not isinstance(pk, int):
             pk = int(pk)
-        course = self.get_course(kwargs)
-        self.check_object_permissions(self.request, course)
+        course = self.get_course()
         if request.user.pk == pk:
             raise serializers.ValidationError({'non_field_errors': '自分自身を管理者から外すことは出来ません．'})
         try:
@@ -133,14 +121,13 @@ class CourseAdminView(mixins.UpdateModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request, *args, **kwargs):
-        course = self.get_course(kwargs)
-        self.check_object_permissions(self.request, course)
+        course = self.get_course()
         admins = course.users.filter(groups__name=course.admin_group_name).all()
         serializer = self.get_serializer(admins, many=True)
         return Response(serializer.data)
 
 
-class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
+class RequirementStatusView(CourseNestedMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     課程の設定と照らし合わせてそのユーザが要求を満たしているかどうかをチェックするビュー
 
@@ -157,15 +144,8 @@ class RequirementStatusView(mixins.ListModelMixin, viewsets.GenericViewSet):
         404: "指定した課程は存在しません"
     })
     def list(self, request, **kwargs):
-        course_pk = kwargs.get('course_pk')
-        if not isinstance(course_pk, int):
-            course_pk = int(course_pk)
-        try:
-            course = Course.objects.get(pk=course_pk)
-            self.check_object_permissions(request, course)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
+        course = self.get_course()
         serializer_context = self.get_serializer_context()
-        serializer_context['course_pk'] = course_pk
+        serializer_context['course_pk'] = course.pk
         serializer = CourseStatusSerializer(instance=request.user, context=serializer_context)
         return Response(serializer.data)

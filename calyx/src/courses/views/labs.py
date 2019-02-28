@@ -15,12 +15,12 @@ from courses.serializers import (
 from courses.signals import update_rank_summary_when_capacity_changed
 from courses.services import update_summary_cache
 from courses.utils import disable_signal
-from .mixins import NestedViewSetMixin
+from .mixins import NestedViewSetMixin, CourseNestedMixin
 
 User = get_user_model()
 
 
-class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class LabViewSet(NestedViewSetMixin, CourseNestedMixin, viewsets.ModelViewSet):
     """
     研究室を操作するView．
     """
@@ -44,12 +44,7 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super(LabViewSet, self).get_permissions()
 
     def list(self, request, *args, **kwargs):
-        course_pk = kwargs.pop('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         return super(LabViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
@@ -78,12 +73,7 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         }
     )
     def create(self, request, *args, **kwargs):
-        course_pk = kwargs.pop('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         # シグナルが飛びまくるので一時的にdisableしておく
         with disable_signal(signals.post_save, update_rank_summary_when_capacity_changed, sender=Lab):
             serializer = self.get_serializer(data=request.data, many=True)

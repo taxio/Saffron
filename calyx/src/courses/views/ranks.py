@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, mixins, status, exceptions, decorators
+from rest_framework import viewsets, mixins, status, decorators
 from rest_framework.response import Response
 
-from courses.models import Course, Rank
+from courses.models import Rank
 from courses.permissions import (
     IsCourseMember, IsAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
@@ -11,12 +11,16 @@ from courses.serializers import (
     LabSerializer, RankSerializer, RankSummaryPerLabSerializer
 )
 from courses.services import get_summary, update_summary_cache
-from .mixins import NestedViewSetMixin
+from .mixins import NestedViewSetMixin, CourseNestedMixin
 
 User = get_user_model()
 
 
-class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+class RankViewSet(NestedViewSetMixin,
+                  CourseNestedMixin,
+                  mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  viewsets.GenericViewSet):
     """
     自分自身の希望順位を提出する
     create:
@@ -53,24 +57,14 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
         return [rank.lab for rank in queryset]
 
     def list(self, request, *args, **kwargs):
-        course_pk = kwargs.pop('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         return super(RankViewSet, self).list(request, *args, **kwargs)
 
     @swagger_auto_schema(
         request_body=RankSerializer(many=True)
     )
     def create(self, request, *args, **kwargs):
-        course_pk = kwargs.get('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -86,10 +80,5 @@ class RankViewSet(NestedViewSetMixin, mixins.ListModelMixin, mixins.CreateModelM
     @decorators.action(['GET'], detail=False, url_path='summary')
     def summary(self, request, *args, **kwargs):
         """希望調査のサマリーを取得する"""
-        course_pk = kwargs.pop('course_pk')
-        try:
-            course = Course.objects.get(pk=course_pk)
-        except Course.DoesNotExist:
-            return exceptions.NotFound('この課程は存在しません')
-        self.check_object_permissions(request, course)
+        course = self.get_course()
         return Response(get_summary(course))
