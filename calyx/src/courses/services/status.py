@@ -1,4 +1,13 @@
-from .services import get_config_cache
+from typing import TYPE_CHECKING
+
+from django.contrib.auth import get_user_model
+
+from .config import get_config_cache
+
+if TYPE_CHECKING:
+    from users.models import User as AppUser
+
+User = get_user_model()  # type: AppUser
 
 
 class Status(object):
