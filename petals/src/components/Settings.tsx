@@ -1,11 +1,6 @@
 import {
   Button,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Divider,
   FormControl,
   FormHelperText,
@@ -38,10 +33,7 @@ interface SettingsProps extends RouteComponentProps, InjectedFormProps {
   fetchError: Error | null;
 }
 
-interface SettingsState {
-  showDeleteDialog: boolean;
-  gpa: string;
-}
+interface SettingsState {}
 
 interface FormParams {
   screenName: string;
@@ -51,11 +43,6 @@ interface FormParams {
 class Settings extends React.Component<SettingsProps, SettingsState> {
   constructor(props: SettingsProps) {
     super(props);
-
-    this.state = {
-      showDeleteDialog: false,
-      gpa: '',
-    };
   }
 
   public componentDidMount() {
@@ -211,30 +198,14 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
             </Button>
           </div>
 
-          {/*<FormControl fullWidth={true}>*/}
-          {/*<Button variant="contained" color="secondary" onClick={() => this.setState({ showDeleteDialog: true })}>*/}
-          {/*アカウント削除*/}
-          {/*</Button>*/}
-          {/*</FormControl>*/}
-        </form>
+          <Divider style={{ margin: '30px 0' }} />
 
-        <Dialog
-          fullWidth={true}
-          maxWidth="xs"
-          open={this.state.showDeleteDialog}
-          onClose={() => this.setState({ showDeleteDialog: false })}
-        >
-          <DialogTitle>アカウント削除</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              完全にアカウントを削除します．削除後にアカウントを復活させることはできません．
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button color="secondary">同意して削除</Button>
-            <Button onClick={() => this.setState({ showDeleteDialog: false })}>いいえ</Button>
-          </DialogActions>
-        </Dialog>
+          <FormControl fullWidth={true}>
+            <Button variant="contained" color="secondary" onClick={() => this.props.history.push('/settings/delete')}>
+              アカウント削除
+            </Button>
+          </FormControl>
+        </form>
       </GridPaper>
     );
   }

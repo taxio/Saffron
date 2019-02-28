@@ -82,6 +82,7 @@ const SettingsRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/settings`} component={Settings} />
     <Route exact={true} path={`/settings/password`} component={AuthComponents.ChangePassword} />
+    <Route exact={true} path={`/settings/delete`} component={AuthComponents.DeleteAccount} />
   </Switch>
 );
 
