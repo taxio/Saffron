@@ -90,7 +90,7 @@ const SettingsRouter: React.FC = () => (
 
 const CourseRouter: React.FC = () => (
   <Switch>
-    <Route exact={true} path={`/courses`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses`} component={CourseComponents.CourseList} />
     <Route exact={true} path={`/courses/create`} component={CourseComponents.CourseCreateManager} />
     <Route exact={true} path={`/courses/:coursePk`} component={() => <div>TODO</div>} />
     <Route exact={true} path={`/courses/:coursePk/labs/:labPk`} component={() => <div>TODO</div>} />
