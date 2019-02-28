@@ -1,5 +1,8 @@
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Divider from '@material-ui/core/Divider';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -31,7 +34,9 @@ interface SettingsProps extends RouteComponentProps, InjectedFormProps {
   fetchError: Error | null;
 }
 
-interface SettingsState {}
+interface SettingsState {
+  showDialog: boolean;
+}
 
 interface FormParams {
   screenName: string;
@@ -41,6 +46,10 @@ interface FormParams {
 class Settings extends React.Component<SettingsProps, SettingsState> {
   constructor(props: SettingsProps) {
     super(props);
+
+    this.state = {
+      showDialog: false,
+    };
   }
 
   public componentDidMount() {
@@ -57,6 +66,10 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
         }
       });
   }
+
+  public handleCloseDialog = () => {
+    this.setState({ showDialog: false });
+  };
 
   public renderGpaField = (props: WrappedFieldProps) => (
     <FormControl error={Boolean(props.meta.error)} style={{ width: '70px' }}>
@@ -100,12 +113,17 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
         gpaNum = null;
     }
 
-    return meApi.patchMe(values.screenName, gpaNum).catch((e: Error) => {
-      switch (e.constructor) {
-        case AppErr.BadRequestError:
-          throw new SubmissionError({ _error: 'ユーザー情報の更新に失敗しました' });
-      }
-    });
+    return meApi
+      .patchMe(values.screenName, gpaNum)
+      .then(() => {
+        this.setState({ showDialog: true });
+      })
+      .catch((e: Error) => {
+        switch (e.constructor) {
+          case AppErr.BadRequestError:
+            throw new SubmissionError({ _error: 'ユーザー情報の更新に失敗しました' });
+        }
+      });
   };
 
   public render() {
@@ -203,6 +221,13 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
             </Button>
           </FormControl>
         </form>
+
+        <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+          <DialogTitle>表示名・GPAを更新しました</DialogTitle>
+          <DialogActions>
+            <Button onClick={this.handleCloseDialog}>閉じる</Button>
+          </DialogActions>
+        </Dialog>
       </GridPaper>
     );
   }
