@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import Home from './components/Home';
 import NotFound from './components/NotFound';
+import NotificationBar from './components/NotificationBar';
 import Profile from './components/Profile';
 import ProfileEdit from './components/ProfileEdit';
 import Settings from './components/Settings';
@@ -46,6 +47,7 @@ const App: React.FC = () => (
     <BrowserRouter>
       <TokenRefreshWrapper>
         <Header />
+        <NotificationBar />
         <Switch>
           <Route exact={true} path="/" component={Home} />
           <Route exact={true} path="/about" component={About} />
