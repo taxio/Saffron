@@ -1,4 +1,4 @@
-import { Typography } from '@material-ui/core';
+import { List, ListItem, Typography } from '@material-ui/core';
 
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -11,16 +11,41 @@ import * as model from '../../model';
 import { PetalsStore } from '../../store';
 import GridPaper from '../Common/GridPaper';
 
+import * as courseApi from '../../api/courses';
+
 interface CourseListProps extends RouteComponentProps {
   fetchUserInfo: () => void;
 }
 
 const CourseList: React.FC<CourseListProps> = props => {
+  const [courses, setCourses] = React.useState<model.Course[]>([]);
+
+  React.useEffect(() => {
+    courseApi
+      .getCourses()
+      .then((res: model.Course[]) => {
+        setCourses(res);
+      })
+      .catch((e: Error) => {
+        console.log(e);
+      });
+  }, []);
+
   return (
     <GridPaper>
       <Typography variant="h4" align="center">
         課程一覧
       </Typography>
+
+      {/* TODO: 検索機能 */}
+
+      <List>
+        {courses.map((course: model.Course, idx: number) => (
+          <ListItem key={idx} button={true} onClick={() => props.history.push(`/courses/${course.pk}`)}>
+            {`${course.year}年度　 ${course.name}`}
+          </ListItem>
+        ))}
+      </List>
     </GridPaper>
   );
 };
