@@ -1,27 +1,21 @@
 import { InputLabel, Select } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
-// import { connect } from 'react-redux';
-// import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import * as AppErr from '../../api/AppErrors';
 import { getLabs } from '../../api/courses';
 import * as courseApi from '../../api/courses';
 import { Lab } from '../../model';
-// import { Dispatch } from 'redux';
-// import { AuthAction, setLoginState } from '../../actions/auth';
-// import * as AppErr from '../../api/AppErrors';
-// import * as auth from '../../lib/auth';
-// import { PetalsStore } from '../../store';
+import GridPaper from '../Common/GridPaper';
 
 interface FormParams {
   gpa: number;
@@ -34,6 +28,7 @@ interface HopeLabsProps extends RouteComponentProps<any>, InjectedFormProps {}
 
 interface HopeLabsState {
   labs: Lab[];
+  showDialog: boolean;
 }
 
 class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
@@ -41,6 +36,7 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     super(props);
     this.state = {
       labs: [],
+      showDialog: false,
     };
   }
 
@@ -85,14 +81,8 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
 
     return courseApi
       .postRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3])
-      .then(courseRes => {
-        const promises: Array<Promise<any>> = [];
-        values.labs.map(lab => {
-          promises.push(courseApi.postLab(courseRes.pk, lab.name, lab.capacity));
-        });
-        Promise.all(promises).then(() => {
-          this.props.history.push('/');
-        });
+      .then(() => {
+        this.setState({ showDialog: true });
       })
       .catch((e: Error) => {
         switch (e.constructor) {
@@ -108,6 +98,10 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
             throw new SubmissionError({ _error: '未知のエラーです' });
         }
       });
+  };
+
+  public handleCloseDialog = () => {
+    this.props.history.push(`/courses/${this.props.match.params.coursePk}`);
   };
 
   public renderGpaField = (props: WrappedFieldProps & { label: string; type: string; style: any }) => (
@@ -145,35 +139,35 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     const { error, handleSubmit } = this.props;
 
     return (
-      <Grid container={true} justify="center">
-        <Grid item={true} xs={10} sm={8} md={7} lg={6} xl={5}>
-          <Card style={{ marginTop: 30, padding: 20 }}>
-            <CardContent style={{ textAlign: 'center' }}>
-              <Typography component="h1" variant="h5" align="center">
-                研究室希望提出
-              </Typography>
-              <form onSubmit={handleSubmit(this.handleHopeLabs)} autoComplete="off">
-                <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
+      <GridPaper>
+        <Typography component="h1" variant="h5" align="center">
+          研究室希望提出
+        </Typography>
+        <form onSubmit={handleSubmit(this.handleHopeLabs)} autoComplete="off">
+          <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
 
-                <Field name="labsName1" label="第一希望" component={this.renderLabSelectField} />
-                <Field name="labsName2" label="第二希望" component={this.renderLabSelectField} />
-                <Field name="labsName3" label="第三希望" component={this.renderLabSelectField} />
-                <FormControl fullWidth={true} error={Boolean(error)}>
-                  <Button
-                    type="submit"
-                    color="primary"
-                    variant="contained"
-                    style={{ margin: '5%', marginTop: '15%', width: '60%', boxShadow: 'none' }}
-                  >
-                    Submit
-                  </Button>
-                  {error ? <FormHelperText>{error}</FormHelperText> : null}
-                </FormControl>
-              </form>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+          <Field name="lab1" label="第一希望" component={this.renderLabSelectField} />
+          <Field name="lab2" label="第二希望" component={this.renderLabSelectField} />
+          <Field name="lab3" label="第三希望" component={this.renderLabSelectField} />
+          <FormControl fullWidth={true} error={Boolean(error)}>
+            <Button
+              type="submit"
+              color="primary"
+              variant="contained"
+              style={{ margin: '10%', marginLeft: '20%', marginRight: '20%', width: '60%', boxShadow: 'none' }}
+            >
+              Submit
+            </Button>
+            {error ? <FormHelperText>{error}</FormHelperText> : null}
+          </FormControl>
+        </form>
+        <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+          <DialogTitle>研究室希望を提出しました</DialogTitle>
+          <DialogActions>
+            <Button onClick={this.handleCloseDialog}>閉じる</Button>
+          </DialogActions>
+        </Dialog>
+      </GridPaper>
     );
   }
 }
