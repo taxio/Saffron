@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     username=f"b{grade}{i:06}",
                     email=f"b{grade}{i:06}@edu.kit.ac.jp",
                     password="studioaquatan",
-                    gpa=round(random.gauss(2.5, 1.0), 2),
+                    gpa=round(random.gauss(2.5, 0.4), 2),
                     screen_name=fake.name(),
                     is_active=True
                 ) for i in range(self.students_count)
