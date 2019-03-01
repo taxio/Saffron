@@ -16,10 +16,15 @@ export interface UserState {
   user: model.User | null;
 }
 
+export interface NotificatoinState {
+  message: string;
+}
+
 export interface PetalsStore {
   auth: AuthState;
   user: UserState;
   form: FormStateMap;
+  notification: NotificatoinState;
 }
 
 const sagaMiddleware = createSagaMiddleware();
