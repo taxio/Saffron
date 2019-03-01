@@ -26,7 +26,15 @@ const CourseList: React.FC<CourseListProps> = props => {
     yearApi
       .getYears()
       .then((res: model.Year[]) => {
-        setYears(res);
+        // sort by bigger
+        setYears(
+          res.sort((a: model.Year, b: model.Year) => {
+            if (a.year > b.year) {
+              return -1;
+            }
+            return 1;
+          })
+        );
       })
       .catch((e: Error) => {
         console.log(e);
