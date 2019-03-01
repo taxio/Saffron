@@ -2,18 +2,17 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, permissions, mixins, exceptions
+from rest_framework import viewsets, permissions, mixins
 from rest_framework.response import Response
 
 from courses.models import Course, Year, Config
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement
 )
-from courses.schemas import CourseJoinSchema
 from courses.serializers import (
     CourseSerializer, CourseWithoutUserSerializer, YearSerializer, ConfigSerializer
 )
-from .mixins import NestedViewSetMixin
+from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
@@ -74,7 +73,7 @@ class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class CourseConfigViewSet(NestedViewSetMixin,
+class CourseConfigViewSet(CourseNestedMixin,
                           mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           viewsets.GenericViewSet):
@@ -88,7 +87,6 @@ class CourseConfigViewSet(NestedViewSetMixin,
 
     queryset = Config.objects.select_related('course').all()
     serializer_class = ConfigSerializer
-    schema = CourseJoinSchema()
 
     def get_permissions(self):
         if self.action == 'list':
@@ -97,15 +95,8 @@ class CourseConfigViewSet(NestedViewSetMixin,
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(CourseConfigViewSet, self).get_permissions()
 
-    def get_object(self):
-        obj = self.get_queryset().first()
-        if obj is None:
-            raise exceptions.NotFound('設定が見つかりませんでした．')
-        self.check_object_permissions(self.request, obj.course)
-        return obj
-
     def create(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance = self.get_course().config
         serializer = self.get_serializer(instance, data=request.data, partial=False)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -120,6 +111,6 @@ class CourseConfigViewSet(NestedViewSetMixin,
         404: "指定した課程は存在しません"
     })
     def list(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance = self.get_course().config
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

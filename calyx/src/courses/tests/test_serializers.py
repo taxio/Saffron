@@ -36,7 +36,12 @@ class YearSerializerTest(DatasetMixin, TestCase):
                 {
                     'pk': course.pk,
                     'name': data['name'],
-                    'year': data['year']
+                    'year': data['year'],
+                    'config': {
+                        'show_gpa': False,
+                        'show_username': False,
+                        'rank_limit': 3
+                    }
                 }
             ]
         }
@@ -63,7 +68,12 @@ class CourseWithoutUserSerializerTest(DatasetMixin, TestCase):
         expected_json = {
             'pk': course.pk,
             'name': course.name,
-            'year': course.year.year
+            'year': course.year.year,
+            'config': {
+                'show_gpa': False,
+                'show_username': False,
+                'rank_limit': 3
+            }
         }
         self.assertEqual(expected_json, serializer.data)
 

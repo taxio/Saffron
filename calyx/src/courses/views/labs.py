@@ -4,29 +4,27 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
 
-from courses.models import Course, Lab
+from courses.models import Lab
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
-from courses.schemas import LabSchema
 from courses.serializers import (
     LabSerializer, LabAbstractSerializer
 )
-from courses.signals import update_rank_summary_when_capacity_changed
 from courses.services import update_summary_cache
+from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
-from .mixins import NestedViewSetMixin
+from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
 
-class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class LabViewSet(CourseNestedMixin, viewsets.ModelViewSet):
     """
     研究室を操作するView．
     """
 
     queryset = Lab.objects.select_related('course').all()
-    schema = LabSchema()
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'create':
@@ -44,12 +42,7 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super(LabViewSet, self).get_permissions()
 
     def list(self, request, *args, **kwargs):
-        course_pk = kwargs.pop('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         return super(LabViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
@@ -78,12 +71,7 @@ class LabViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         }
     )
     def create(self, request, *args, **kwargs):
-        course_pk = kwargs.pop('course_pk')
-        try:
-            self.course = Course.objects.prefetch_related('users').select_related('year').get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
-        self.check_object_permissions(request, self.course)
+        self.course = self.get_course()
         # シグナルが飛びまくるので一時的にdisableしておく
         with disable_signal(signals.post_save, update_rank_summary_when_capacity_changed, sender=Lab):
             serializer = self.get_serializer(data=request.data, many=True)

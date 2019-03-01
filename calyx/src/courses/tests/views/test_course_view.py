@@ -22,6 +22,11 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
                 "pk": course.pk,
                 "name": course.name,
                 "year": course.year.year,
+                "config": {
+                    "show_gpa": False,
+                    "show_username": False,
+                    "rank_limit": 3
+                }
             }
         ]
         resp = self.client.get('/courses/', data={}, format='json')

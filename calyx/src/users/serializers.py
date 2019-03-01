@@ -30,11 +30,11 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save(update_fields=validated_data.keys())
         return instance
 
-    def get_joined(self, obj):
+    def get_joined(self, obj) -> bool:
         """課程に参加しているかどうかのフラグ"""
         return obj.courses.count() > 0
 
-    def get_is_admin(self, obj):
+    def get_is_admin(self, obj) -> bool:
         """課程のadminかどうかのフラグ"""
         course = obj.courses.first()
         if course is None:

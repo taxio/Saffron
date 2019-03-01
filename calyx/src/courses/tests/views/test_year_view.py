@@ -28,7 +28,12 @@ class YearViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
                     {
                         "pk": course.pk,
                         "name": course.name,
-                        "year": 2018
+                        "year": 2018,
+                        "config": {
+                            "show_gpa": course.config.show_gpa,
+                            "show_username": course.config.show_username,
+                            "rank_limit": course.config.rank_limit
+                        }
                     } for course in courses
                 ]
             }

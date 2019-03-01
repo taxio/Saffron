@@ -118,10 +118,11 @@ class CourseWithoutUserSerializer(serializers.ModelSerializer):
     """
 
     year = serializers.IntegerField(source='year.year')
+    config = ConfigSerializer(read_only=True)
 
     class Meta:
         model = Course
-        fields = ("pk", "name", "year")
+        fields = ("pk", "name", "year", "config")
 
     def create(self, validated_data):
         raise NotImplementedError("This method is not supported in this serializer.")

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from courses.status import StatusMessage
+from courses.services import StatusMessage
 
 User = get_user_model()
 

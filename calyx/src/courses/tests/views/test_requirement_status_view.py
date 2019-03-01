@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 
 from courses.models import Course
-from courses.status import Status, StatusMessage
+from courses.services import Status, StatusMessage
 from courses.tests.base import DatasetMixin, JWTAuthMixin
 
 User = get_user_model()
