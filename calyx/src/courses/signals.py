@@ -74,8 +74,9 @@ def set_config_cache(sender, instance: 'Config', **kwargs):
     :param kwargs:
     :return:
     """
-    set_config_from_instance(instance)
-    update_summary_cache(instance.course)
+    if not kwargs.get("raw", False):
+        set_config_from_instance(instance)
+        update_summary_cache(instance.course)
 
 
 @receiver(models.signals.post_save, sender=User)
