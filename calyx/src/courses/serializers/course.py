@@ -22,7 +22,7 @@ def validate_pin_code(pin_code: str):
     try:
         password_validation.validate_password(pin_code, password_validators=get_pin_code_validators())
     except exceptions.ValidationError as e:
-        raise serializers.ValidationError(str(e))
+        raise serializers.ValidationError(''.join(e))
     return pin_code
 
 
