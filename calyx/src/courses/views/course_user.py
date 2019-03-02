@@ -10,7 +10,7 @@ from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin
 )
 from courses.serializers import (
-    CourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
+    ReadOnlyCourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
 )
 from .mixins import CourseNestedMixin
 
@@ -33,7 +33,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @swagger_auto_schema(
         request_body=PINCodeSerializer,
         responses={
-            200: CourseSerializer,
+            200: ReadOnlyCourseSerializer,
             400: "PINコードが正しくない，または既に参加済みです",
             401: "ログインしてください",
             404: "指定された課程は存在しません",
@@ -57,7 +57,7 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
         except AlreadyJoinedError:
             raise serializers.ValidationError({'non_field_errors': 'このユーザは既に参加しています．'})
-        course_serializer = CourseSerializer(course, context=self.get_serializer_context())
+        course_serializer = ReadOnlyCourseSerializer(course, context=self.get_serializer_context())
         headers = self.get_success_headers(course_serializer.data)
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
