@@ -12,13 +12,15 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 import * as AppErr from '../../api/AppErrors';
-import { getLabs } from '../../api/courses';
+import { getConfig, getLabs, getRanks } from '../../api/courses';
 import * as courseApi from '../../api/courses';
+import { getMe } from '../../api/me';
 import { Lab } from '../../model';
 import GridPaper from '../Common/GridPaper';
 
 interface FormParams {
   gpa: number;
+  screenName: string;
   lab1: number;
   lab2: number;
   lab3: number;
@@ -28,6 +30,8 @@ interface HopeLabsProps extends RouteComponentProps<any>, InjectedFormProps {}
 
 interface HopeLabsState {
   labs: Lab[];
+  showGpaField: boolean;
+  showScreenNameField: boolean;
   showDialog: boolean;
 }
 
@@ -36,6 +40,8 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     super(props);
     this.state = {
       labs: [],
+      showGpaField: false,
+      showScreenNameField: false,
       showDialog: false,
     };
   }
@@ -44,6 +50,20 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     const coursePk = this.props.match.params.coursePk;
     getLabs(coursePk).then((labs: Lab[]) => {
       this.setState({ labs });
+    });
+    getRanks(coursePk).then(res => {
+      this.props.initialize({ lab1: res[0].pk, lab2: res[1].pk, lab3: res[2].pk });
+    });
+    getConfig(coursePk).then(res => {
+      this.setState({ showGpaField: res.show_gpa, showScreenNameField: res.show_username });
+    });
+    getMe().then(res => {
+      if (res.gpa) {
+        this.props.initialize({ gpa: res.gpa });
+      }
+      if (res.screen_name) {
+        this.props.initialize({ screenName: res.screen_name });
+      }
     });
   }
 
@@ -55,19 +75,44 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     let lab3ErrMsg = '';
     if (!values.gpa) {
       gpaErrMsg = 'GPAを入力してください';
-      errMsg = '未入力項目があります';
+      errMsg = '未入力または未選択項目があります';
+    }
+    if (values.gpa < 0 || values.gpa > 4) {
+      gpaErrMsg = 'GPAは0以上4以下の実数です';
+      errMsg = '入力に誤りがあります';
+    }
+    if (values.lab1 === values.lab2) {
+      lab1ErrMsg = '第一希望研究室と第二希望研究室が同じです';
+      lab2ErrMsg = '第一希望研究室と第二希望研究室が同じです';
+      errMsg = '選択に誤りがあります';
+    }
+    if (values.lab1 === values.lab3) {
+      lab1ErrMsg = '第一希望研究室と第三希望研究室が同じです';
+      lab3ErrMsg = '第一希望研究室と第三希望研究室が同じです';
+      errMsg = '選択に誤りがあります';
+    }
+    if (values.lab2 === values.lab3) {
+      lab2ErrMsg = '第二希望研究室と第三希望研究室が同じです';
+      lab3ErrMsg = '第二希望研究室と第三希望研究室が同じです';
+      errMsg = '選択に誤りがあります';
+    }
+    if (values.lab1 === values.lab2 && values.lab2 === values.lab3) {
+      lab1ErrMsg = '第一希望研究室と第二希望研究室と第三希望研究室が同じです';
+      lab2ErrMsg = '第一希望研究室と第二希望研究室と第三希望研究室が同じです';
+      lab3ErrMsg = '第一希望研究室と第二希望研究室と第三希望研究室が同じです';
+      errMsg = '選択に誤りがあります';
     }
     if (!values.lab1) {
       lab1ErrMsg = '第一希望研究室を選択してください';
-      errMsg = '未選択項目があります';
+      errMsg = '未入力または未選択項目があります';
     }
     if (!values.lab2) {
       lab2ErrMsg = '第二希望研究室を選択してください';
-      errMsg = '未選択項目があります';
+      errMsg = '未入力または未選択項目があります';
     }
     if (!values.lab3) {
       lab3ErrMsg = '第三希望研究室を選択してください';
-      errMsg = '未選択項目があります';
+      errMsg = '未入力または未選択項目があります';
     }
     if (gpaErrMsg || lab1ErrMsg || lab2ErrMsg || lab3ErrMsg) {
       throw new SubmissionError({
@@ -105,7 +150,29 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
   };
 
   public renderGpaField = (props: WrappedFieldProps & { label: string; type: string; style: any }) => (
-    <FormControl fullWidth={true} error={Boolean(props.meta.error)} style={{ margin: '5%', width: '150px' }}>
+    <FormControl
+      fullWidth={true}
+      error={Boolean(props.meta.error)}
+      style={{ display: this.state.showGpaField ? '' : 'none', margin: '5%', width: '160px' }}
+    >
+      <TextField
+        label={props.label}
+        margin="normal"
+        inputProps={{ style: { textAlign: 'center' } }}
+        autoComplete="off"
+        type={props.type}
+        {...props.input}
+      />
+      {props.meta.error ? <FormHelperText>{props.meta.error}</FormHelperText> : null}
+    </FormControl>
+  );
+
+  public renderScreenNameField = (props: WrappedFieldProps & { label: string; type: string; style: any }) => (
+    <FormControl
+      fullWidth={true}
+      error={Boolean(props.meta.error)}
+      style={{ display: this.state.showScreenNameField ? '' : 'none', margin: '5%', width: '160px' }}
+    >
       <TextField
         label={props.label}
         margin="normal"
@@ -126,7 +193,7 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
           <em>-</em>
         </MenuItem>
         {this.state.labs.map((lab: Lab, idx: number) => (
-          <MenuItem key={idx + 1} value={lab.name}>
+          <MenuItem key={idx + 1} value={lab.pk}>
             {lab.name}
           </MenuItem>
         ))}
@@ -144,7 +211,11 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
           研究室希望提出
         </Typography>
         <form onSubmit={handleSubmit(this.handleHopeLabs)} autoComplete="off">
-          <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
+          {this.state.showGpaField ? (
+            <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
+          ) : null}
+
+          <Field name="screenName" label="表示名" type="text" component={this.renderScreenNameField} />
 
           <Field name="lab1" label="第一希望" component={this.renderLabSelectField} />
           <Field name="lab2" label="第二希望" component={this.renderLabSelectField} />
