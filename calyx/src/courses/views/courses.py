@@ -11,7 +11,7 @@ from courses.permissions import (
 )
 from courses.serializers import (
     ReadOnlyCourseSerializer, CourseUpdateSerializer, CourseCreateSerializer,
-    CourseWithoutUserSerializer, YearSerializer, ConfigSerializer
+    CourseWithoutUserSerializer, YearSerializer, ConfigSerializer, PINCodeUpdateSerializer
 )
 from .mixins import CourseNestedMixin
 
@@ -84,6 +84,35 @@ class CourseViewSet(mixins.RetrieveModelMixin,
             course = serializer.save()
             course.register_as_admin(self.request.user)
         return course
+
+
+class CoursePINCodeViewSet(CourseNestedMixin, viewsets.GenericViewSet):
+    """
+    課程のPINコードを管理する
+
+    create:
+        課程のPINコードを変更する
+    """
+    queryset = Course.objects.prefetch_related(
+        Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
+    ).select_related('year').all()
+    permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
+    serializer_class = PINCodeUpdateSerializer
+
+    @swagger_auto_schema(
+        responses={
+            200: "No response body",
+            400: "不正な値が含まれています",
+            403: "変更する権限がありません",
+            404: "存在しない課程です"
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        course = self.get_course()
+        serializer = self.get_serializer(instance=course, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

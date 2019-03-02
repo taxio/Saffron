@@ -1,4 +1,5 @@
 import itertools
+from unittest.mock import MagicMock
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -7,7 +8,7 @@ from rest_framework import serializers
 from courses.models import Course, Year
 from courses.serializers import (
     YearSerializer, ReadOnlyCourseSerializer, CourseWithoutUserSerializer, CourseStatusSerializer,
-    CourseCreateSerializer, CourseUpdateSerializer
+    CourseCreateSerializer, CourseUpdateSerializer, PINCodeUpdateSerializer, JoinSerializer
 )
 from .base import DatasetMixin
 
@@ -281,3 +282,64 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
         actual = serializer.data
         actual.pop('status_message')
         self.assertEqual(expected, actual)
+
+
+class JoinSerializerTest(DatasetMixin, TestCase):
+
+    def setUp(self):
+        super(JoinSerializerTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self.request_mock = {"request": MagicMock(user=self.user)}
+        self.data_set = [(course['pin_code'], Course.objects.create_course(**course)) for course in
+                         self.course_data_set]
+
+    def test_join(self):
+        """課程に参加する"""
+        for pin_code, course in self.data_set:
+            serializer = JoinSerializer(
+                instance=course, data={'pin_code': pin_code}, context=self.request_mock
+            )
+            with self.subTest(pin_code=pin_code, duplicate=False):
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                joined_courses = User.objects.filter(pk=self.user.pk).values_list('courses')
+                self.assertTrue((course.pk,) in joined_courses)
+            with self.subTest(pin_code=pin_code, duplicate=True):
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.save()
+
+    def test_invalid_code(self):
+        """間違ったPINコードでJoinしようとする"""
+        invalid_code = '0000'
+        for pin_code, course in self.data_set:
+            serializer = JoinSerializer(
+                instance=course, data={'pin_code': invalid_code}, context=self.request_mock
+            )
+            with self.subTest(pin_code=pin_code, duplicate=True):
+                self.assertNotEqual(invalid_code, pin_code)
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                joined_courses = User.objects.filter(pk=self.user.pk).values_list('courses')
+                self.assertTrue((course.pk,) not in joined_courses)
+
+
+class PINCodeUpdateSerializerTest(DatasetMixin, TestCase):
+
+    def test_update(self):
+        """課程のPINコードを更新する"""
+        updated_code = "1124"
+        course = Course.objects.create_course(**self.course_data_set[0])
+        serializer = PINCodeUpdateSerializer(instance=course, data={'pin_code': updated_code})
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        self.assertTrue(saved.check_password(updated_code))
+
+    def test_cannot_update(self):
+        """脆弱なパスワードで更新する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        for weak_code in self.weak_pin_codes:
+            with self.subTest(pin_code=weak_code):
+                serializer = PINCodeUpdateSerializer(instance=course, data={'pin_code': weak_code})
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.is_valid(raise_exception=True)

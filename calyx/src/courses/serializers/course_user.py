@@ -42,12 +42,12 @@ class JoinSerializer(PINCodeSerializer):
         """
         課程を受取って，contextからユーザを取得し，POSTされたpin_codeを使って課程に参加する
         """
-        user = self.context.get('user', None)
-        if user is None:
+        request = self.context.get('request', None)
+        if request is None:
             raise AttributeError
         try:
             # 参加に成功すればTrue，失敗すればFalse
-            joined = instance.join(user, validated_data['pin_code'])
+            joined = instance.join(request.user, validated_data['pin_code'])
             if not joined:
                 raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
         except AlreadyJoinedError:

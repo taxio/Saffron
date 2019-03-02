@@ -18,6 +18,15 @@ def get_pin_code_validators():
     return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
 
 
+def validate_pin_code(pin_code: str):
+    try:
+        password_validation.validate_password(pin_code, password_validators=get_pin_code_validators())
+    except exceptions.ValidationError as e:
+        raise serializers.ValidationError(str(e))
+    return pin_code
+
+
+
 class ConfigSerializer(serializers.ModelSerializer):
     """
     課程ごとの表示設定のシリアライザ．
@@ -83,11 +92,7 @@ class CourseCreateSerializer(serializers.ModelSerializer):
         }
 
     def validate_pin_code(self, data):
-        try:
-            password_validation.validate_password(data, password_validators=get_pin_code_validators())
-        except exceptions.ValidationError as e:
-            raise serializers.ValidationError(str(e))
-        return data
+        return validate_pin_code(data)
 
     def create(self, validated_data):
         try:
@@ -169,5 +174,14 @@ class PINCodeSerializer(serializers.Serializer):
     class Meta:
         fields = ("pin_code",)
 
-    def to_internal_value(self, data):
-        return {'pin_code': data['pin_code']}
+
+class PINCodeUpdateSerializer(PINCodeSerializer):
+
+    def validate_pin_code(self, data):
+        return validate_pin_code(data)
+
+    def update(self, instance: 'Course', validated_data):
+        """課程を受け取ってPOSTされたPINコードで課程のPINコードを上書きする"""
+        instance.set_password(validated_data['pin_code'])
+        instance.save(update_fields=['pin_code'])
+        return instance

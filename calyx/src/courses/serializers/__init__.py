@@ -5,6 +5,7 @@ from .course import (
     CourseUpdateSerializer,
     CourseWithoutUserSerializer,
     PINCodeSerializer,
+    PINCodeUpdateSerializer,
     YearSerializer
 )
 from .lab import LabAbstractSerializer, LabListCreateSerializer, LabSerializer

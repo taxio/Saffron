@@ -10,7 +10,7 @@ from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin
 )
 from courses.serializers import (
-    ReadOnlyCourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
+    ReadOnlyCourseSerializer, JoinSerializer, UserSerializer, CourseStatusSerializer
 )
 from .mixins import CourseNestedMixin
 
@@ -27,11 +27,11 @@ class JoinAPIView(CourseNestedMixin, mixins.CreateModelMixin, viewsets.GenericVi
     queryset = Course.objects.prefetch_related(
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('admin_user_group', 'year').all()
-    serializer_class = PINCodeSerializer
+    serializer_class = JoinSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
-        request_body=PINCodeSerializer,
+        request_body=JoinSerializer,
         responses={
             200: ReadOnlyCourseSerializer,
             400: "PINコードが正しくない，または既に参加済みです",
