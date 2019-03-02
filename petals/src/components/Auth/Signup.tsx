@@ -130,7 +130,7 @@ class Signup extends React.Component<SignupProps, SignupState> {
                   {error ? <FormHelperText>{error}</FormHelperText> : null}
                 </FormControl>
               </form>
-              <Dialog fullWidth={true} maxWidth="xs" open={this.state.showDialog} onClose={this.handleCloseDialog}>
+              <Dialog fullWidth={true} maxWidth="sm" open={this.state.showDialog} onClose={this.handleCloseDialog}>
                 <DialogTitle>メールを送信しました</DialogTitle>
                 <DialogActions>
                   <Button onClick={this.handleCloseDialog}>閉じる</Button>
