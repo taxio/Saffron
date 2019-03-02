@@ -14,12 +14,12 @@ from courses.serializers import (
 from courses.services import update_summary_cache
 from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
-from .mixins import CourseNestedMixin
+from .mixins import CourseNestedMixin, NestedViewSetMixin
 
 User = get_user_model()
 
 
-class LabViewSet(CourseNestedMixin, viewsets.ModelViewSet):
+class LabViewSet(NestedViewSetMixin, CourseNestedMixin, viewsets.ModelViewSet):
     """
     研究室を操作するView．
     """
