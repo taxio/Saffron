@@ -1,5 +1,5 @@
-import Admin from './Admin/Admin';
+import AdminManager from './Admin/AdminManager';
 import CourseCreateManager from './CourseCreateManager';
 import CourseList from './CourseList';
 
-export { Admin, CourseCreateManager, CourseList };
+export { AdminManager, CourseCreateManager, CourseList };

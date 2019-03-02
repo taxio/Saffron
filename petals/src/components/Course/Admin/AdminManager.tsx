@@ -9,7 +9,7 @@ import LabList from './LabList';
 
 interface AdminProps extends RouteComponentProps<any> {}
 
-const Admin: React.FC<AdminProps> = props => {
+const AdminManager: React.FC<AdminProps> = props => {
   React.useEffect(() => {
     // TODO: 権限判定して403に飛ばす
   }, []);
@@ -22,6 +22,8 @@ const Admin: React.FC<AdminProps> = props => {
       {/*
       // @ts-ignore */}
       <BasicInformation coursePk={props.match.params.coursePk} />
+      {/*
+      // @ts-ignore */}
       <LabList coursePk={props.match.params.coursePk} />
       <Typography>Admin一覧</Typography>
       <Typography>課程削除</Typography>
@@ -29,4 +31,4 @@ const Admin: React.FC<AdminProps> = props => {
   );
 };
 
-export default withRouter(Admin);
+export default withRouter(AdminManager);
