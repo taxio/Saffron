@@ -18,6 +18,14 @@ class NestedViewSetMixin(object):
 
 class CourseNestedMixin(object):
 
+    def get_serializer_context(self):
+        ctx = super(CourseNestedMixin, self).get_serializer_context()
+        if hasattr(self, "course"):
+            ctx['course'] = self.course
+        else:
+            ctx['course'] = self.get_course()
+        return ctx
+
     def get_course(self):
         course_pk = self.kwargs.get("course_pk", None)
         if course_pk is None:
@@ -25,8 +33,8 @@ class CourseNestedMixin(object):
         if isinstance(course_pk, str):
             course_pk = int(course_pk)
         try:
-            course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
+            self.course = Course.objects.prefetch_related('users').select_related('year', 'config').get(pk=course_pk)
         except Course.DoesNotExist:
             raise exceptions.NotFound("指定された課程は存在しません")
-        self.check_object_permissions(self.request, course)
-        return course
+        self.check_object_permissions(self.request, self.course)
+        return self.course
