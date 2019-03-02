@@ -1,4 +1,13 @@
-from .course import ConfigSerializer, CourseSerializer, CourseWithoutUserSerializer, PINCodeSerializer, YearSerializer
+from .course import (
+    ConfigSerializer,
+    ReadOnlyCourseSerializer,
+    CourseCreateSerializer,
+    CourseUpdateSerializer,
+    CourseWithoutUserSerializer,
+    PINCodeSerializer,
+    PINCodeUpdateSerializer,
+    YearSerializer
+)
 from .lab import LabAbstractSerializer, LabListCreateSerializer, LabSerializer
 from .rank import (
     RankSerializer,
@@ -8,4 +17,4 @@ from .rank import (
     RankSummaryPerLabSerializer
 )
 from .user import UserSerializer
-from .course_user import CourseStatusSerializer, CourseStatusDetailSerializer
+from .course_user import CourseStatusSerializer, CourseStatusDetailSerializer, JoinSerializer

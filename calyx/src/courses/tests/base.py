@@ -70,6 +70,13 @@ user_data_set = [
     }
 ]
 
+weak_pin_codes = [
+    # 短すぎる
+    '0',
+    # 単純すぎる
+    '1234'
+]
+
 
 class DatasetMixin(object):
     config_keys = ["show_username", "show_gpa", "rank_limit"]
@@ -85,6 +92,7 @@ class DatasetMixin(object):
         self.default_config = deepcopy(default_config)
         self.lab_data_set = deepcopy(lab_data_set)
         self.config_patterns = self._make_config_patterns()
+        self.weak_pin_codes = deepcopy(weak_pin_codes)
 
     def _make_config_patterns(self):
         patterns = list(product(

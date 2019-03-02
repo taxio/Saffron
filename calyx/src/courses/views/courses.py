@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.response import Response
 
 from courses.models import Course, Year, Config
@@ -10,14 +10,19 @@ from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin, GPARequirement, ScreenNameRequirement
 )
 from courses.serializers import (
-    CourseSerializer, CourseWithoutUserSerializer, YearSerializer, ConfigSerializer
+    ReadOnlyCourseSerializer, CourseUpdateSerializer, CourseCreateSerializer,
+    CourseWithoutUserSerializer, YearSerializer, ConfigSerializer, PINCodeUpdateSerializer
 )
 from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CourseViewSet(mixins.RetrieveModelMixin,
+                    mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
     """
     課程のAPIビュー
 
@@ -29,8 +34,6 @@ class CourseViewSet(viewsets.ModelViewSet):
         新しい課程を作成する
     destroy:
         指定した課程を削除する
-    update:
-        指定した課程の情報を更新する
     partial_update:
         指定した課程のパラメータ（全てでなくて良い）を指定して更新する
     """
@@ -38,7 +41,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.prefetch_related(
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('year').all()
-    serializer_class = CourseSerializer
+    serializer_class = ReadOnlyCourseSerializer
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'create':
@@ -52,12 +55,64 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return CourseWithoutUserSerializer
+        elif self.action == 'retrieve':
+            return ReadOnlyCourseSerializer
+        elif self.action == 'create':
+            return CourseCreateSerializer
+        elif self.action == 'update' or self.action == 'partial_update':
+            return CourseUpdateSerializer
         return super(CourseViewSet, self).get_serializer_class()
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance=instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        resp_serializer = ReadOnlyCourseSerializer(instance, context=self.get_serializer_context())
+        return Response(resp_serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        course = self.perform_create(serializer)
+        resp_serializer = ReadOnlyCourseSerializer(course, context=self.get_serializer_context())
+        headers = self.get_success_headers(resp_serializer.data)
+        return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         with transaction.atomic():
             course = serializer.save()
             course.register_as_admin(self.request.user)
+        return course
+
+
+class CoursePINCodeViewSet(CourseNestedMixin, viewsets.GenericViewSet):
+    """
+    課程のPINコードを管理する
+
+    create:
+        課程のPINコードを変更する
+    """
+    queryset = Course.objects.prefetch_related(
+        Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
+    ).select_related('year').all()
+    permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
+    serializer_class = PINCodeUpdateSerializer
+
+    @swagger_auto_schema(
+        responses={
+            200: "No response body",
+            400: "不正な値が含まれています",
+            403: "変更する権限がありません",
+            404: "存在しない課程です"
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        course = self.get_course()
+        serializer = self.get_serializer(instance=course, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class YearViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

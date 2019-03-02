@@ -194,3 +194,49 @@ class CourseViewSetsTest(DatasetMixin, JWTAuthMixin, APITestCase):
         with self.subTest(status=200, expected=expected_json, is_admin=True):
             self.assertEqual(200, resp.status_code)
             self.assertEqual(expected_json, self.to_dict(resp.data))
+
+
+class PINCodeUpdateViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
+
+    def setUp(self):
+        super(PINCodeUpdateViewTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self.course = Course.objects.create_course(**self.course_data_set[0])
+        self.pin_code = self.course_data_set[0]['pin_code']
+
+    def test_update(self):
+        """課程のPINコードを更新する"""
+        updated = '3125'
+        payload = {'pin_code': updated}
+        # ログインしていない
+        with self.subTest(loggedin=False, is_member=False, is_admin=False):
+            resp = self.client.post(f'/courses/{self.course.pk}/pin_code/', data=payload, format='json')
+            self.assertEqual(401, resp.status_code)
+        self._set_credentials()
+        # メンバーでない
+        with self.subTest(loggedin=True, is_member=True, is_admin=False):
+            resp = self.client.post(f'/courses/{self.course.pk}/pin_code/', data=payload, format='json')
+            self.assertEqual(403, resp.status_code)
+        self.course.join(self.user, self.pin_code)
+        # 管理者でない
+        with self.subTest(loggedin=True, is_member=True, is_admin=False):
+            resp = self.client.post(f'/courses/{self.course.pk}/pin_code/', data=payload, format='json')
+            self.assertEqual(403, resp.status_code)
+        self.course.register_as_admin(self.user)
+        # 管理者は更新できる
+        with self.subTest(loggedin=True, is_member=True, is_admin=True):
+            resp = self.client.post(f'/courses/{self.course.pk}/pin_code/', data=payload, format='json')
+            self.assertEqual(200, resp.status_code)
+            course = Course.objects.get(pk=self.course.pk)
+            self.assertTrue(course.check_password(updated))
+
+    def test_invalid_code(self):
+        """脆弱なPINコードで更新しようとする"""
+        self._set_credentials()
+        self.course.join(self.user, self.pin_code)
+        self.course.register_as_admin(self.user)
+        for weak_code in self.weak_pin_codes:
+            payload = {'pin_code': weak_code}
+            resp = self.client.post(f'/courses/{self.course.pk}/pin_code/', data=payload, format='json')
+            with self.subTest(pin_code=weak_code):
+                self.assertEqual(400, resp.status_code)

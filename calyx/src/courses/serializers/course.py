@@ -18,6 +18,15 @@ def get_pin_code_validators():
     return password_validation.get_password_validators(settings.PIN_CODE_VALIDATORS)
 
 
+def validate_pin_code(pin_code: str):
+    try:
+        password_validation.validate_password(pin_code, password_validators=get_pin_code_validators())
+    except exceptions.ValidationError as e:
+        raise serializers.ValidationError(''.join(e))
+    return pin_code
+
+
+
 class ConfigSerializer(serializers.ModelSerializer):
     """
     課程ごとの表示設定のシリアライザ．
@@ -32,64 +41,19 @@ class ConfigSerializer(serializers.ModelSerializer):
         fields = ("show_gpa", "show_username", "rank_limit")
 
 
-class CourseSerializer(serializers.ModelSerializer):
+class ReadOnlyCourseSerializer(serializers.ModelSerializer):
     """
-    課程のシリアライザ．年度はリレーション先から年度の数字のみを取得して返す．
+    課程をJsonにシリアライズするのみのシリアライザ．年度はリレーション先から年度の数字のみを取得して返す．
     所属するユーザはそのプライマリキーと学生IDのみを返す．
     """
-
     users = serializers.SerializerMethodField(read_only=True)
-    year = serializers.IntegerField(source='year.year')
+    year = serializers.IntegerField(source='year.year', read_only=True)
+    config = ConfigSerializer(read_only=True)
     is_admin = serializers.SerializerMethodField(read_only=True)
-    config = ConfigSerializer(required=False)
 
     class Meta:
         model = Course
-        fields = ("pk", "name", "users", "pin_code", "year", "is_admin", "config")
-        extra_kwargs = {
-            'pin_code': {'write_only': True}
-        }
-
-    def create(self, validated_data):
-        # yearは{'year': {'year': 20xx}}という辞書になっている
-        validated_data['year'] = validated_data['year']['year']
-        try:
-            course = Course.objects.create_course(**validated_data)
-            if 'request' in self.context.keys():
-                course.join(self.context['request'].user, validated_data['pin_code'])
-            return course
-        except IntegrityError:
-            raise serializers.ValidationError({'name': f'{validated_data["name"]}は既に存在しています．'})
-
-    def update(self, instance, validated_data):
-        try:
-            pin_code = validated_data.pop('pin_code')
-            instance.set_password(pin_code)
-        except KeyError:
-            pass
-        # yearは{'year': {'year': 20xx}}という辞書になっている
-        year = validated_data.get('year', instance.year.year)
-        if isinstance(year, dict):
-            year = year.get('year')
-        validated_data['year'], _ = Year.objects.get_or_create(year=year)
-        # configはOrderedDict
-        config = validated_data.get('config', instance.config)
-        if not isinstance(config, Config):
-            config, _ = Config.objects.update_or_create(course=instance, defaults=config)
-        validated_data['config'] = config
-
-        for key, val in validated_data.items():
-            setattr(instance, key, val)
-        validated_data.pop('config')
-        instance.save(update_fields=validated_data.keys())
-        return instance
-
-    def validate_pin_code(self, data):
-        try:
-            password_validation.validate_password(data, password_validators=get_pin_code_validators())
-        except exceptions.ValidationError as e:
-            raise serializers.ValidationError(str(e))
-        return data
+        fields = ("pk", "name", "users", "year", "config", "is_admin")
 
     @swagger_serializer_method(serializer_or_field=UserSerializer(many=True))
     def get_users(self, obj):
@@ -110,6 +74,63 @@ class CourseSerializer(serializers.ModelSerializer):
             return False
         group_name = obj.admin_group_name
         return user.groups.filter(name=group_name).exists()
+
+
+class CourseCreateSerializer(serializers.ModelSerializer):
+    """
+    課程を作成するためのシリアライザ
+    """
+
+    year = serializers.IntegerField()
+    config = ConfigSerializer(required=False)
+
+    class Meta:
+        model = Course
+        fields = ("pk", "name", "pin_code", "year", "config")
+        extra_kwargs = {
+            'pin_code': {'write_only': True}
+        }
+
+    def validate_pin_code(self, data):
+        return validate_pin_code(data)
+
+    def create(self, validated_data):
+        try:
+            course = Course.objects.create_course(**validated_data)
+            if 'request' in self.context.keys():
+                course.join(self.context['request'].user, validated_data['pin_code'])
+            return course
+        except IntegrityError:
+            raise serializers.ValidationError({'name': f'{validated_data["name"]}は既に存在しています．'})
+
+
+class CourseUpdateSerializer(serializers.ModelSerializer):
+    """
+    課程の情報を更新するためのシリアライザ．年度，PINコードの変更は出来ない．
+    """
+    config = ConfigSerializer(required=False)
+
+    class Meta:
+        model = Course
+        fields = ("pk", "name", "config")
+
+    def update(self, instance, validated_data):
+        try:
+            pin_code = validated_data.pop('pin_code')
+            instance.set_password(pin_code)
+        except KeyError:
+            pass
+        # configはOrderedDict
+        if 'config' in validated_data:
+            config = validated_data.get('config')
+            if not isinstance(config, Config):
+                config, _ = Config.objects.update_or_create(course=instance, defaults=config)
+            instance.config = config
+            validated_data.pop('config')
+        for key, val in validated_data.items():
+            setattr(instance, key, val)
+        instance.save(update_fields=validated_data.keys())
+        return instance
 
 
 class CourseWithoutUserSerializer(serializers.ModelSerializer):
@@ -153,5 +174,14 @@ class PINCodeSerializer(serializers.Serializer):
     class Meta:
         fields = ("pin_code",)
 
-    def to_internal_value(self, data):
-        return {'pin_code': data['pin_code']}
+
+class PINCodeUpdateSerializer(PINCodeSerializer):
+
+    def validate_pin_code(self, data):
+        return validate_pin_code(data)
+
+    def update(self, instance: 'Course', validated_data):
+        """課程を受け取ってPOSTされたPINコードで課程のPINコードを上書きする"""
+        instance.set_password(validated_data['pin_code'])
+        instance.save(update_fields=['pin_code'])
+        return instance

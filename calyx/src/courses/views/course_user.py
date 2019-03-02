@@ -4,20 +4,20 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, permissions, mixins, serializers, status, exceptions
 from rest_framework.response import Response
 
-from courses.errors import AlreadyJoinedError, NotJoinedError, NotAdminError
+from courses.errors import NotJoinedError, NotAdminError
 from courses.models import Course
 from courses.permissions import (
     IsAdmin, IsCourseMember, IsCourseAdmin
 )
 from courses.serializers import (
-    CourseSerializer, PINCodeSerializer, UserSerializer, CourseStatusSerializer
+    ReadOnlyCourseSerializer, JoinSerializer, UserSerializer, CourseStatusSerializer
 )
 from .mixins import CourseNestedMixin
 
 User = get_user_model()
 
 
-class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class JoinAPIView(CourseNestedMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     """
     課程に参加するAPIビュー
 
@@ -27,37 +27,25 @@ class JoinAPIView(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = Course.objects.prefetch_related(
         Prefetch('users', User.objects.prefetch_related('groups', 'courses').all()),
     ).select_related('admin_user_group', 'year').all()
-    serializer_class = PINCodeSerializer
+    serializer_class = JoinSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
-        request_body=PINCodeSerializer,
+        request_body=JoinSerializer,
         responses={
-            200: CourseSerializer,
+            200: ReadOnlyCourseSerializer,
             400: "PINコードが正しくない，または既に参加済みです",
             401: "ログインしてください",
             404: "指定された課程は存在しません",
         }
     )
     def create(self, request, course_pk=None, *args, **kwargs):
-        if not isinstance(course_pk, int):
-            course_pk = int(course_pk)
-        try:
-            course = self.get_queryset().get(pk=course_pk)
-        except Course.DoesNotExist:
-            raise exceptions.NotFound('この課程は存在しません．')
+        course = self.get_course()
         # PINコードをパース
-        pin_code_serializer = self.get_serializer(data=request.data)
+        pin_code_serializer = self.get_serializer(instance=course, data=request.data)
         pin_code_serializer.is_valid(raise_exception=True)
-        pin_code = pin_code_serializer.validated_data['pin_code']
-        try:
-            # 参加に成功すればTrue，失敗すればFalse
-            joined = course.join(request.user, pin_code)
-            if not joined:
-                raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
-        except AlreadyJoinedError:
-            raise serializers.ValidationError({'non_field_errors': 'このユーザは既に参加しています．'})
-        course_serializer = CourseSerializer(course, context=self.get_serializer_context())
+        course = pin_code_serializer.save()
+        course_serializer = ReadOnlyCourseSerializer(course, context=self.get_serializer_context())
         headers = self.get_success_headers(course_serializer.data)
         return Response(course_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

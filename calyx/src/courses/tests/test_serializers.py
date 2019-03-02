@@ -1,11 +1,15 @@
 import itertools
+from unittest.mock import MagicMock
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import serializers
 
 from courses.models import Course, Year
-from courses.serializers import YearSerializer, CourseSerializer, CourseWithoutUserSerializer, CourseStatusSerializer
+from courses.serializers import (
+    YearSerializer, ReadOnlyCourseSerializer, CourseWithoutUserSerializer, CourseStatusSerializer,
+    CourseCreateSerializer, CourseUpdateSerializer, PINCodeUpdateSerializer, JoinSerializer
+)
 from .base import DatasetMixin
 
 User = get_user_model()
@@ -78,13 +82,13 @@ class CourseWithoutUserSerializerTest(DatasetMixin, TestCase):
         self.assertEqual(expected_json, serializer.data)
 
 
-class CourseSerializerTest(DatasetMixin, TestCase):
+class ReadOnlyCourseSerializerTest(DatasetMixin, TestCase):
 
     def test_serialize(self):
         """CourseモデルをJSONへ変換"""
         course_data = self.course_data_set[0]
         course = Course.objects.create_course(**course_data)
-        serializer = CourseSerializer(course)
+        serializer = ReadOnlyCourseSerializer(course)
         expected_json = {
             'pk': course.pk,
             'name': course.name,
@@ -101,7 +105,7 @@ class CourseSerializerTest(DatasetMixin, TestCase):
         course = Course.objects.create_course(**course_data)
         user = User.objects.create_user(**self.user_data_set[0])
         course.join(user, course_data['pin_code'])
-        serializer = CourseSerializer(course)
+        serializer = ReadOnlyCourseSerializer(course)
         expected_json = {
             'pk': course.pk,
             'name': course.name,
@@ -118,10 +122,13 @@ class CourseSerializerTest(DatasetMixin, TestCase):
         }
         self.assertEqual(expected_json, serializer.data)
 
+
+class CourseCreateSerializerTest(DatasetMixin, TestCase):
+
     def test_deserialize(self):
         """JSONからCourseモデルへ変換"""
         course_data = self.course_data_set[0]
-        serializer = CourseSerializer(data=course_data)
+        serializer = CourseCreateSerializer(data=course_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         course = Course.objects.first()
@@ -132,23 +139,61 @@ class CourseSerializerTest(DatasetMixin, TestCase):
     def test_cannot_deserialize(self):
         """形式の間違ったJSONや，値が不正なJSONはデシリアライズできない"""
         # nameが無い
-        with self.assertRaises(serializers.ValidationError):
-            course_data = self.course_data_set[0]
-            course_data.pop('name')
-            serializer = CourseSerializer(data=course_data)
-            serializer.is_valid(raise_exception=True)
+        course_data = self.course_data_set[0]
+        course_data.pop('name')
+        serializer = CourseCreateSerializer(data=course_data)
+        with self.subTest(data=course_data):
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
         # パスワードが短すぎる
-        with self.assertRaises(serializers.ValidationError):
-            course_data = self.course_data_set[0]
-            course_data['pin_code'] = '0'
-            serializer = CourseSerializer(data=course_data)
-            serializer.is_valid(raise_exception=True)
+        course_data = self.course_data_set[0]
+        course_data['pin_code'] = '0'
+        serializer = CourseCreateSerializer(data=course_data)
+        with self.subTest(data=course_data):
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
         # パスワードが脆弱
-        with self.assertRaises(serializers.ValidationError):
-            course_data = self.course_data_set[0]
-            course_data['pin_code'] = '1234'
-            serializer = CourseSerializer(data=course_data)
-            serializer.is_valid(raise_exception=True)
+        course_data = self.course_data_set[0]
+        course_data['pin_code'] = '1234'
+        serializer = CourseCreateSerializer(data=course_data)
+        with self.subTest(data=course_data):
+            with self.assertRaises(serializers.ValidationError):
+                serializer.is_valid(raise_exception=True)
+
+
+class CourseUpdateSerializerTest(DatasetMixin, TestCase):
+
+    def test_deserialize_without_config(self):
+        """課程の名前のみを変更する"""
+        updated_suffix = '_updated'
+        for course in [Course.objects.create_course(**course_data) for course_data in self.course_data_set]:
+            expected = {
+                'name': course.name + updated_suffix,
+            }
+            with self.subTest(updated=expected['name'], before=course.name):
+                serializer = CourseUpdateSerializer(instance=course, data=expected)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                saved = Course.objects.get(pk=course.pk)
+                self.assertEqual(expected['name'], saved.name)
+
+    def test_deserialize(self):
+        """JSONを受け取って課程の情報をアップデート"""
+        updated_suffix = '_updated'
+        updated_config = self.config_patterns[0]
+        for course in [Course.objects.create_course(**course_data) for course_data in self.course_data_set]:
+            expected = {
+                'name': course.name + updated_suffix,
+                'config': updated_config
+            }
+            with self.subTest(updated=expected, before=course):
+                serializer = CourseUpdateSerializer(instance=course, data=expected)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                saved = Course.objects.select_related('config').get(pk=course.pk)
+                self.assertEqual(expected['name'], saved.name)
+                for key in expected['config'].keys():
+                    self.assertEqual(expected['config'][key], getattr(course.config, key))
 
 
 class CourseStatusSerializerTest(DatasetMixin, TestCase):
@@ -237,3 +282,64 @@ class CourseStatusSerializerTest(DatasetMixin, TestCase):
         actual = serializer.data
         actual.pop('status_message')
         self.assertEqual(expected, actual)
+
+
+class JoinSerializerTest(DatasetMixin, TestCase):
+
+    def setUp(self):
+        super(JoinSerializerTest, self).setUp()
+        self.user = User.objects.create_user(**self.user_data_set[0], is_active=True)
+        self.request_mock = {"request": MagicMock(user=self.user)}
+        self.data_set = [(course['pin_code'], Course.objects.create_course(**course)) for course in
+                         self.course_data_set]
+
+    def test_join(self):
+        """課程に参加する"""
+        for pin_code, course in self.data_set:
+            serializer = JoinSerializer(
+                instance=course, data={'pin_code': pin_code}, context=self.request_mock
+            )
+            with self.subTest(pin_code=pin_code, duplicate=False):
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                joined_courses = User.objects.filter(pk=self.user.pk).values_list('courses')
+                self.assertTrue((course.pk,) in joined_courses)
+            with self.subTest(pin_code=pin_code, duplicate=True):
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.save()
+
+    def test_invalid_code(self):
+        """間違ったPINコードでJoinしようとする"""
+        invalid_code = '0000'
+        for pin_code, course in self.data_set:
+            serializer = JoinSerializer(
+                instance=course, data={'pin_code': invalid_code}, context=self.request_mock
+            )
+            with self.subTest(pin_code=pin_code, duplicate=True):
+                self.assertNotEqual(invalid_code, pin_code)
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                joined_courses = User.objects.filter(pk=self.user.pk).values_list('courses')
+                self.assertTrue((course.pk,) not in joined_courses)
+
+
+class PINCodeUpdateSerializerTest(DatasetMixin, TestCase):
+
+    def test_update(self):
+        """課程のPINコードを更新する"""
+        updated_code = "1124"
+        course = Course.objects.create_course(**self.course_data_set[0])
+        serializer = PINCodeUpdateSerializer(instance=course, data={'pin_code': updated_code})
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        self.assertTrue(saved.check_password(updated_code))
+
+    def test_cannot_update(self):
+        """脆弱なパスワードで更新する"""
+        course = Course.objects.create_course(**self.course_data_set[0])
+        for weak_code in self.weak_pin_codes:
+            with self.subTest(pin_code=weak_code):
+                serializer = PINCodeUpdateSerializer(instance=course, data={'pin_code': weak_code})
+                with self.assertRaises(serializers.ValidationError):
+                    serializer.is_valid(raise_exception=True)
