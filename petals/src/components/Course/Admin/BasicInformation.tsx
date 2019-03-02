@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core';
 
 import * as React from 'react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
 
 import * as api from '../../../api';
@@ -32,14 +33,13 @@ const renderCheckBoxField = (props: WrappedFieldProps & { label: string; helperT
   <FormControl fullWidth={true}>
     <FormControlLabel
       control={<Checkbox value={props.label} checked={props.input.value} onChange={props.input.onChange} />}
-      // control={<Checkbox value={props.label} {...props.input} />}
       label={<React.Fragment>{props.label}</React.Fragment>}
     />
     <FormHelperText style={{ margin: 0 }}>{props.helperText}</FormHelperText>
   </FormControl>
 );
 
-interface BasicInformationProps extends InjectedFormProps {
+interface BasicInformationProps extends InjectedFormProps, RouteComponentProps {
   coursePk: number;
 }
 
@@ -60,7 +60,14 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
         });
       })
       .catch((err: Error) => {
-        console.log(err);
+        switch (err.constructor) {
+          case api.errors.UnAuthorizedError:
+            props.history.push('/login');
+            return;
+          default:
+            props.history.push(`/courses/${props.coursePk}`);
+            return;
+        }
       });
   }, []);
 
@@ -124,4 +131,4 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
 
 export default reduxForm({
   form: 'adminBasicInformationForm',
-})(BasicInformation);
+})(withRouter(BasicInformation));
