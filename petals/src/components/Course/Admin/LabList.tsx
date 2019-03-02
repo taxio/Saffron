@@ -18,6 +18,7 @@ import Add from '@material-ui/icons/Add';
 import Delete from '@material-ui/icons/Delete';
 
 import * as React from 'react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { Field, FormAction, InjectedFormProps, reduxForm, reset, SubmissionError, WrappedFieldProps } from 'redux-form';
@@ -56,7 +57,7 @@ interface FormParams {
   capacity: string;
 }
 
-interface LabListProps extends InjectedFormProps {
+interface LabListProps extends InjectedFormProps, RouteComponentProps {
   coursePk: number;
   resetForm: () => void;
 }
@@ -70,11 +71,10 @@ const LabList: React.FC<LabListProps> = props => {
     api.courses
       .getLabs(props.coursePk)
       .then(res => {
-        console.log(res);
         setLabs(res);
       })
       .catch((err: Error) => {
-        console.log(err);
+        props.history.push(`/courses/${props.coursePk}`);
       });
   }, [labs.length]);
 
@@ -129,7 +129,7 @@ const LabList: React.FC<LabListProps> = props => {
         props.resetForm();
       })
       .catch((err: Error) => {
-        console.log(err);
+        setErrMsgs({ _error: '研究室の追加に失敗しました' });
       });
   };
 
@@ -208,5 +208,5 @@ export default reduxForm({ form: 'adminLabListForm' })(
   connect<StateFromProps, DispatchFromProps, {}>(
     mapStateToProps,
     mapDispatchToProps
-  )(LabList)
+  )(withRouter(LabList))
 );
