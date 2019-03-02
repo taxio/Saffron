@@ -95,7 +95,7 @@ const CourseRouter: React.FC = () => (
     <Route exact={true} path={`/courses/:coursePk`} component={() => <div>TODO</div>} />
     <Route exact={true} path={`/courses/:coursePk/labs/:labPk`} component={() => <div>TODO</div>} />
     <Route exact={true} path={`/courses/:coursePk/hopes`} component={() => <div>TODO</div>} />
-    <Route exact={true} path={`/courses/:coursePk/admin`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/admin`} component={CourseComponents.Admin} />
   </Switch>
 );
 
