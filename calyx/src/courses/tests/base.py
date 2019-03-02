@@ -1,5 +1,7 @@
 import json
 from collections import OrderedDict
+from itertools import product
+
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
@@ -7,13 +9,13 @@ from django.db.models import signals
 from django.utils.six import text_type
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from courses.models import Lab, Rank
+from courses.models import Lab, Rank, Config
 from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
 
 if TYPE_CHECKING:
     from courses.models import Course
-    from typing import List, Dict
+    from typing import List, Dict, Union
 
 years = [2017, 2018, 2019]
 
@@ -70,6 +72,11 @@ user_data_set = [
 
 
 class DatasetMixin(object):
+    config_keys = ["show_username", "show_gpa", "rank_limit"]
+
+    show_username_patterns = [True, False]
+    show_gpa_patterns = [True, False]
+    rank_limit_patterns = [3]
 
     def setUp(self):
         self.course_data_set = deepcopy(course_data_set)
@@ -77,6 +84,13 @@ class DatasetMixin(object):
         self.years = deepcopy(years)
         self.default_config = deepcopy(default_config)
         self.lab_data_set = deepcopy(lab_data_set)
+        self.config_patterns = self._make_config_patterns()
+
+    def _make_config_patterns(self):
+        patterns = list(product(
+            self.show_username_patterns, self.show_gpa_patterns, self.rank_limit_patterns
+        ))
+        return [dict(zip(self.config_keys, pattern)) for pattern in patterns]
 
     def to_dict(self, data: OrderedDict) -> dict:
         """OrderedDictを標準のdictに変換する"""
@@ -98,6 +112,13 @@ class DatasetMixin(object):
 
     def create_rank_order(self, labs: 'List[Lab]') -> 'List[Dict[str, int]]':
         return [{'lab': lab.pk for lab in labs}]
+
+    def update_config(self, config: 'Config', pattern: 'Dict[str, Union[bool, int]]'):
+        for k in self.config_keys:
+            if k in pattern:
+                setattr(config, k, pattern.get(k))
+        config.save()
+        return config
 
 
 class JWTAuthMixin(object):

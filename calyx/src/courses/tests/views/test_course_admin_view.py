@@ -23,17 +23,23 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course.register_as_admin(self.user)
         new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
         course.join(new_user, pin_code)
-        resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
-        expected = {
-            "pk": new_user.pk,
-            "username": new_user.username,
-            "email": new_user.email,
-            "screen_name": new_user.screen_name,
-            "gpa": new_user.gpa
-        }
-        with self.subTest(status=200, expected=expected):
-            self.assertEqual(200, resp.status_code)
-            self.assertEqual(expected, self.to_dict(resp.data))
+        for config_pattern in self.config_patterns:
+            self.update_config(course.config, config_pattern)
+            resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+            expected = {
+                "pk": new_user.pk,
+                "username": new_user.username,
+                "email": new_user.email,
+            }
+            if config_pattern['show_username']:
+                expected['screen_name'] = new_user.screen_name
+            if config_pattern['show_gpa']:
+                expected['gpa'] = new_user.gpa
+            with self.subTest(status=200, expected=expected):
+                self.assertEqual(200, resp.status_code)
+                self.assertEqual(expected, self.to_dict(resp.data))
+            course.unregister_from_admin(new_user)
+        course.register_as_admin(new_user)
         # 登録済みのユーザを再度登録
         resp = self.client.put(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
         with self.subTest(status=400, expected=None):
@@ -60,17 +66,23 @@ class CourseAdminViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         course.register_as_admin(self.user)
         new_user = User.objects.create_user(**self.user_data_set[1], is_active=True)
         course.join(new_user, pin_code)
-        resp = self.client.patch(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
-        expected = {
-            "pk": new_user.pk,
-            "username": new_user.username,
-            "email": new_user.email,
-            "screen_name": new_user.screen_name,
-            "gpa": new_user.gpa
-        }
-        with self.subTest(status=200, expected=expected):
-            self.assertEqual(200, resp.status_code)
-            self.assertEqual(expected, self.to_dict(resp.data))
+        for config_pattern in self.config_patterns:
+            self.update_config(course.config, config_pattern)
+            resp = self.client.patch(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
+            expected = {
+                "pk": new_user.pk,
+                "username": new_user.username,
+                "email": new_user.email,
+            }
+            if config_pattern['show_username']:
+                expected['screen_name'] = new_user.screen_name
+            if config_pattern['show_gpa']:
+                expected['gpa'] = new_user.gpa
+            with self.subTest(status=200, expected=expected):
+                self.assertEqual(200, resp.status_code)
+                self.assertEqual(expected, self.to_dict(resp.data))
+            course.unregister_from_admin(new_user)
+        course.register_as_admin(new_user)
         # 登録済みのユーザを再度登録
         resp = self.client.patch(f'/courses/{course.pk}/admins/{new_user.pk}/', data={}, format='json')
         with self.subTest(status=400, expected=None):
