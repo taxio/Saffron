@@ -1,9 +1,10 @@
-import { Typography } from '@material-ui/core';
+import { Button, Typography } from '@material-ui/core';
 
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GridPaper from '../../Common/GridPaper';
+import Admins from './Admins';
 import BasicInformation from './BasicInformation';
 import LabList from './LabList';
 
@@ -25,8 +26,12 @@ const AdminManager: React.FC<AdminProps> = props => {
       {/*
       // @ts-ignore */}
       <LabList coursePk={props.match.params.coursePk} />
-      <Typography>Admin一覧</Typography>
-      <Typography>課程削除</Typography>
+      {/*
+      // @ts-ignore */}
+      <Admins coursePk={props.match.params.coursePk} />
+      <Button variant="contained" fullWidth={true} color="secondary">
+        課程を削除する
+      </Button>
     </GridPaper>
   );
 };

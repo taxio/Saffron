@@ -114,7 +114,7 @@ const BasicInformation: React.FC<BasicInformationProps> = props => {
         component={renderCheckBoxField}
       />
 
-      <FormControl fullWidth={true} error={Boolean(props.error)} style={{ marginTop: 20, marginBottom: 30 }}>
+      <FormControl fullWidth={true} error={Boolean(props.error)} style={{ marginTop: 20 }}>
         <Button type="submit" variant="contained" color="primary">
           基本情報を更新
         </Button>

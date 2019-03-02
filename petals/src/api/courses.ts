@@ -86,7 +86,11 @@ interface PostLabRequest {
 
 export const postLab = async (coursePk: number, name: string, capacity: number): Promise<model.Lab> => {
   const data: PostLabRequest = { name, capacity };
-  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/labs/`, data, true);
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/labs/`, [data], true);
+};
+
+export const postLabs = async (coursePk: number, labs: PostLabRequest[]): Promise<model.Lab> => {
+  return util.sendRequest(util.Methods.Post, `/courses/${coursePk}/labs/`, labs, true);
 };
 
 export const patchLab = async (
