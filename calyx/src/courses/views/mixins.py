@@ -6,6 +6,8 @@ from courses.models import Course
 class NestedViewSetMixin(object):
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return None
         queryset = super(NestedViewSetMixin, self).get_queryset()
         serializer_class = self.get_serializer_class()
         if hasattr(serializer_class, 'parent_lookup_kwargs'):

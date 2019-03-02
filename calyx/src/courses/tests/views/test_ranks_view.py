@@ -1,3 +1,5 @@
+import itertools
+
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 
@@ -84,30 +86,19 @@ class RankViewTest(DatasetMixin, JWTAuthMixin, APITestCase):
         with self.subTest(status=200, expected=[]):
             self.assertEqual(200, resp.status_code)
             self.assertEqual([], self.to_dict(resp.data))
-        ranks = [
-            Rank.objects.create(
-                course=self.course, user=self.user, lab=lab, order=i
-            ) for i, lab in enumerate(self.labs)
-        ]
-        expected = [
-            {
-                "pk": rank.lab.pk,
-                "name": rank.lab.name,
-                "capacity": rank.lab.capacity
-            } for rank in ranks
-        ]
-        expected_user_data = {
-            "pk": self.user.pk,
-            "username": self.user.username,
-            "email": self.user.email,
-        }
-        for i in range(len(ranks)):
-            expected[i]['rank_set'] = [[], [], []]
-            expected[i]['rank_set'][i].append(expected_user_data)
-        resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
-        with self.subTest(status=200, expected=expected):
-            self.assertEqual(200, resp.status_code)
-            self.assertEqual(expected, self.to_dict(resp.data))
+        for labs in itertools.permutations(self.labs, 3):
+            self.submit_ranks(labs, self.user)
+            expected = [
+                {
+                    "pk": lab.pk,
+                    "name": lab.name,
+                    "capacity": lab.capacity
+                } for lab in labs
+            ]
+            resp = self.client.get(f'/courses/{self.course.pk}/ranks/')
+            with self.subTest(status=200, expected=expected):
+                self.assertEqual(200, resp.status_code)
+                self.assertEqual(expected, self.to_dict(resp.data))
         # 存在しない課程
         with self.subTest(status=404, expected=None):
             resp = self.client.get(f'/courses/9999/ranks/')

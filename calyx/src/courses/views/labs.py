@@ -15,6 +15,7 @@ from courses.services import update_summary_cache
 from courses.signals import update_rank_summary_when_capacity_changed
 from courses.utils import disable_signal
 from .mixins import CourseNestedMixin, NestedViewSetMixin
+from .schemas import base_responses
 
 User = get_user_model()
 
@@ -41,6 +42,12 @@ class LabViewSet(NestedViewSetMixin, CourseNestedMixin, viewsets.ModelViewSet):
             self.permission_classes = [(IsCourseMember & IsCourseAdmin) | IsAdmin]
         return super(LabViewSet, self).get_permissions()
 
+    @swagger_auto_schema(
+        responses={
+            200: LabAbstractSerializer(many=True),
+            **base_responses
+        }
+    )
     def list(self, request, *args, **kwargs):
         self.course = self.get_course()
         return super(LabViewSet, self).list(request, *args, **kwargs)
@@ -66,8 +73,7 @@ class LabViewSet(NestedViewSetMixin, CourseNestedMixin, viewsets.ModelViewSet):
         request_body=LabAbstractSerializer(many=True),
         responses={
             201: LabAbstractSerializer(many=True),
-            400: 'Validation error',
-            403: 'ログインしていない，またはこの課程に参加していません'
+            **base_responses
         }
     )
     def create(self, request, *args, **kwargs):

@@ -3,12 +3,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, mixins, status, decorators
 from rest_framework.response import Response
 
-from courses.models import Rank
+from courses.models import Rank, Lab
 from courses.permissions import (
     IsCourseMember, IsAdmin, GPARequirement, ScreenNameRequirement, RankSubmitted
 )
 from courses.serializers import (
-    LabSerializer, RankSerializer, RankSummaryPerLabSerializer
+    LabSerializer, LabAbstractSerializer, RankSerializer, RankSummaryPerLabSerializer
 )
 from courses.services import get_summary, update_summary_cache
 from .mixins import NestedViewSetMixin, CourseNestedMixin
@@ -43,6 +43,8 @@ class RankViewSet(NestedViewSetMixin,
     def get_serializer_class(self):
         if self.action == 'create':
             return RankSerializer
+        if self.action == 'list':
+            return LabAbstractSerializer
         return LabSerializer
 
     def get_serializer_context(self):
@@ -56,19 +58,29 @@ class RankViewSet(NestedViewSetMixin,
         queryset = queryset.filter(user=self.request.user).order_by('order').all()
         return [rank.lab for rank in queryset]
 
+    @swagger_auto_schema(
+        responses={
+            200: LabAbstractSerializer(many=True),
+            403: "閲覧資格を満たしていません",
+            404: "存在しない課程です"
+        }
+    )
     def list(self, request, *args, **kwargs):
-        self.course = self.get_course()
-        return super(RankViewSet, self).list(request, *args, **kwargs)
+        course = self.get_course()
+        lab_submitted = Lab.objects.filter(course_id=course.pk).prefetch_related('rank_set') \
+            .filter(rank__user=request.user).order_by('rank__order').all()
+        serializer = LabAbstractSerializer(lab_submitted, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         request_body=RankSerializer(many=True)
     )
     def create(self, request, *args, **kwargs):
-        self.course = self.get_course()
+        course = self.get_course()
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        update_summary_cache(self.course)
+        update_summary_cache(course)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

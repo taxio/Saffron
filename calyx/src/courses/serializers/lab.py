@@ -57,6 +57,10 @@ class LabSerializer(LabAbstractSerializer):
 
     rank_set = RankPerLabSerializer(many=True, read_only=True)
 
+    parent_lookup_kwargs = {
+        'course_pk': 'course_id'
+    }
+
     class Meta:
         model = Lab
         fields = ("pk", "name", "capacity", "course", "rank_set")
