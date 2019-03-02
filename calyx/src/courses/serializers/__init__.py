@@ -16,4 +16,4 @@ from .rank import (
     RankSummaryPerLabSerializer
 )
 from .user import UserSerializer
-from .course_user import CourseStatusSerializer, CourseStatusDetailSerializer
+from .course_user import CourseStatusSerializer, CourseStatusDetailSerializer, JoinSerializer

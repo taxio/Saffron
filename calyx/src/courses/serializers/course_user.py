@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from courses.errors import AlreadyJoinedError
 from courses.services import StatusMessage
+from .course import PINCodeSerializer
 
 User = get_user_model()
 
@@ -29,3 +31,25 @@ class CourseStatusSerializer(serializers.Serializer):
         course_pk = self.context['course_pk']
         status_msg = StatusMessage(instance, course_pk)
         return super(CourseStatusSerializer, self).to_representation(status_msg)
+
+
+class JoinSerializer(PINCodeSerializer):
+    """
+    ユーザを課程にJoinさせる
+    """
+
+    def update(self, instance, validated_data):
+        """
+        課程を受取って，contextからユーザを取得し，POSTされたpin_codeを使って課程に参加する
+        """
+        user = self.context.get('user', None)
+        if user is None:
+            raise AttributeError
+        try:
+            # 参加に成功すればTrue，失敗すればFalse
+            joined = instance.join(user, validated_data['pin_code'])
+            if not joined:
+                raise serializers.ValidationError({'pin_code': 'PINコードが正しくありません．'})
+        except AlreadyJoinedError:
+            raise serializers.ValidationError({'non_field_errors': 'このユーザは既に参加しています．'})
+        return instance
