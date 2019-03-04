@@ -101,11 +101,11 @@
         },
         "drf-yasg": {
             "hashes": [
-                "sha256:1d43928ab04d9224b2ce903baf9438cc4deec716711e5fe2d792423fb604d375",
-                "sha256:6ab4ec538e350cc0014da43d70a451db92714e193fb7c297e6c783e4d1bbbb46"
+                "sha256:a276bc90af1902b1bd9c11927f75658da1a62aad2d87022ae5f653106ed09a17",
+                "sha256:ca17555127f8ac59d51c2bf721eff83b46ae20a8626c033f186a4c4d7d6053f4"
             ],
             "index": "pypi",
-            "version": "==1.13.0"
+            "version": "==1.14.0"
         },
         "idna": {
             "hashes": [
