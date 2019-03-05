@@ -85,11 +85,11 @@
         },
         "djoser": {
             "hashes": [
-                "sha256:347451dd7a59687ef016bca4dcd13da73b84f29ffa4aaba9bda8a0460f3ef522",
-                "sha256:4c5eff3e1c1531617aac8e78a0219138a4aef6d1967a69675f2eac7b7df93e65"
+                "sha256:cba32d0e16658e6d98340950b92f46876dd423e2a5c323bfb2899bc0652467e7",
+                "sha256:e1a90d6d5862fd6e3e6ed4ae1e35ea9499450ab38dface658321c732939081ed"
             ],
             "index": "pypi",
-            "version": "==1.4.0"
+            "version": "==1.5.0"
         },
         "drf-nested-routers": {
             "hashes": [
