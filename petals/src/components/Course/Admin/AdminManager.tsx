@@ -4,7 +4,7 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GridPaper from '../../Common/GridPaper';
-import Admins from './Admins';
+// import Admins from './Admins';
 import BasicInformation from './BasicInformation';
 import LabList from './LabList';
 
@@ -28,7 +28,7 @@ const AdminManager: React.FC<AdminProps> = props => {
       <LabList coursePk={props.match.params.coursePk} />
       {/*
       // @ts-ignore */}
-      <Admins coursePk={props.match.params.coursePk} />
+      {/*<Admins coursePk={props.match.params.coursePk} />*/}
       <Button variant="contained" fullWidth={true} color="secondary">
         課程を削除する
       </Button>
