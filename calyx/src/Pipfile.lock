@@ -77,11 +77,11 @@
         },
         "djangorestframework-simplejwt": {
             "hashes": [
-                "sha256:5383639106cbc561044d0893a5bfd22dd98b30a11b5e2f7e9da77b333fa6c0b7",
-                "sha256:5fb5153a9051fefe6229492e8b42a4c03b6ee802ea1865c944ff09088fe7340f"
+                "sha256:03c145cc790bdf7265e2361e95a01bd182d241fbd6ed22c8e6f17d1ebe87ead0",
+                "sha256:d88875f47063b7e7bd5ad30f399e6a1e7044d22e9809beda9e3541f9a58de695"
             ],
             "index": "pypi",
-            "version": "==4.0.0"
+            "version": "==4.1.0"
         },
         "djoser": {
             "hashes": [
