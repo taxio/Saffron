@@ -67,6 +67,7 @@ export const sendRequest = async (
     headers,
   };
 
+  var process;
   let url: string = process.env.REACT_APP_API_ENDPOINT + path;
   switch (method) {
     case Methods.Patch:

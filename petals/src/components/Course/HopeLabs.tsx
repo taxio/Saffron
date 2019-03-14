@@ -11,9 +11,10 @@ import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps } from 'redux-form';
+
+import * as api from '../../api';
 import * as AppErr from '../../api/AppErrors';
-import { getConfig, getLabs, getRanks } from '../../api/courses';
-import * as courseApi from '../../api/courses';
+import { getConfig, getLabs, getRanks, postRanks } from '../../api/courses';
 import { getMe } from '../../api/me';
 import { Lab } from '../../model';
 import GridPaper from '../Common/GridPaper';
@@ -46,25 +47,48 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     };
   }
 
-  public componentDidMount(): void {
+  public componentDidMount() {
     const coursePk = this.props.match.params.coursePk;
-    getLabs(coursePk).then((labs: Lab[]) => {
-      this.setState({ labs });
-    });
-    getRanks(coursePk).then(res => {
-      this.props.initialize({ lab1: res[0].pk, lab2: res[1].pk, lab3: res[2].pk });
-    });
-    getConfig(coursePk).then(res => {
-      this.setState({ showGpaField: res.show_gpa, showScreenNameField: res.show_username });
-    });
-    getMe().then(res => {
-      if (res.gpa) {
-        this.props.initialize({ gpa: res.gpa });
-      }
-      if (res.screen_name) {
-        this.props.initialize({ screenName: res.screen_name });
-      }
-    });
+
+    return api.courses
+      .getLabs(coursePk)
+      .then((labs: Lab[]) => {
+        this.setState({ labs });
+      })
+      .then(
+        api.courses.getConfig(coursePk).then(res => {
+          this.setState({ showGpaField: res.show_gpa, showScreenNameField: res.show_username });
+        })
+      )
+      .then(
+        api.courses.getRanks(coursePk).then(res => {
+          this.props.initialize({ lab1: res[0].pk, lab2: res[1].pk, lab3: res[2].pk });
+        })
+      )
+      .then(
+        api.me.getMe().then(res => {
+          if (res.gpa) {
+            this.props.initialize({ gpa: res.gpa });
+          }
+          if (res.screen_name) {
+            this.props.initialize({ screenName: res.screen_name });
+          }
+        })
+      )
+      .catch((e: Error) => {
+        switch (e.constructor) {
+          case AppErr.UnAuthorizedError:
+            this.props.history.push('/login/');
+            throw new SubmissionError({ _error: 'ログインセッションが切れました' });
+          case AppErr.BadRequestError:
+            // TODO: レスポンス中のエラーの表示
+            throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
+          case AppErr.UnhandledError:
+            throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
+          default:
+            throw new SubmissionError({ _error: '未知のエラーです' });
+        }
+      });
   }
 
   public handleHopeLabs = (values: FormParams) => {
@@ -124,8 +148,15 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
       });
     }
 
-    return courseApi
-      .postRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3])
+    // function proimisePostRanks(coursePk: number, labPks: number[]) {
+    //   return new Promise(() => {
+    //     postRanks(coursePk, labPks);
+    //   });
+    // }
+
+    return api.me
+      .patchMeNullIgnore(values.screenName, values.gpa)
+      .then(() => api.courses.postRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3]))
       .then(() => {
         this.setState({ showDialog: true });
       })
@@ -143,6 +174,27 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
             throw new SubmissionError({ _error: '未知のエラーです' });
         }
       });
+
+    // var promise = Promise.resolve();
+    // return promise
+    //   .then(() => proimisePostRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3]))
+    //   .then(() => {
+    //     this.setState({ showDialog: true });
+    //   })
+    //   .catch((e: Error) => {
+    //     switch (e.constructor) {
+    //       case AppErr.UnAuthorizedError:
+    //         this.props.history.push('/login/');
+    //         throw new SubmissionError({ _error: 'ログインセッションが切れました' });
+    //       case AppErr.BadRequestError:
+    //         // TODO: レスポンス中のエラーの表示
+    //         throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
+    //       case AppErr.UnhandledError:
+    //         throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
+    //       default:
+    //         throw new SubmissionError({ _error: '未知のエラーです' });
+    //     }
+    //   });
   };
 
   public handleCloseDialog = () => {
@@ -215,7 +267,9 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
             <Field name="gpa" label="GPA" type="number" component={this.renderGpaField} />
           ) : null}
 
-          <Field name="screenName" label="表示名" type="text" component={this.renderScreenNameField} />
+          {this.state.showScreenNameField ? (
+            <Field name="screenName" label="表示名" type="text" component={this.renderScreenNameField} />
+          ) : null}
 
           <Field name="lab1" label="第一希望" component={this.renderLabSelectField} />
           <Field name="lab2" label="第二希望" component={this.renderLabSelectField} />
