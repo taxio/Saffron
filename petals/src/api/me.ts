@@ -1,6 +1,6 @@
+import { deleteNullObj } from '../lib/util';
 import * as model from '../model';
 import * as util from './util';
-import { deleteNullObj } from '../lib/util';
 
 export const getMe = async (): Promise<model.User> => {
   return util.sendRequest(util.Methods.Get, '/me/', {}, true);
