@@ -14,8 +14,6 @@ import { Field, InjectedFormProps, reduxForm, SubmissionError, WrappedFieldProps
 
 import * as api from '../../api';
 import * as AppErr from '../../api/AppErrors';
-import { getConfig, getLabs, getRanks, postRanks } from '../../api/courses';
-import { getMe } from '../../api/me';
 import { Lab } from '../../model';
 import GridPaper from '../Common/GridPaper';
 
@@ -47,48 +45,50 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
     };
   }
 
-  public componentDidMount() {
+  public componentDidMount(): void {
     const coursePk = this.props.match.params.coursePk;
+    const promises: Array<Promise<any>> = [];
+    let resLab1: number;
+    let resLab2: number;
+    let resLab3: number;
+    let resGpa: any;
+    let resScreenName: any;
 
-    return api.courses
-      .getLabs(coursePk)
-      .then((labs: Lab[]) => {
+    promises.push(
+      api.courses.getLabs(coursePk).then((labs: Lab[]) => {
         this.setState({ labs });
       })
-      .then(
-        api.courses.getConfig(coursePk).then(res => {
-          this.setState({ showGpaField: res.show_gpa, showScreenNameField: res.show_username });
-        })
-      )
-      .then(
-        api.courses.getRanks(coursePk).then(res => {
-          this.props.initialize({ lab1: res[0].pk, lab2: res[1].pk, lab3: res[2].pk });
-        })
-      )
-      .then(
-        api.me.getMe().then(res => {
-          if (res.gpa) {
-            this.props.initialize({ gpa: res.gpa });
-          }
-          if (res.screen_name) {
-            this.props.initialize({ screenName: res.screen_name });
-          }
-        })
-      )
-      .catch((e: Error) => {
-        switch (e.constructor) {
-          case AppErr.UnAuthorizedError:
-            this.props.history.push('/login/');
-            throw new SubmissionError({ _error: 'ログインセッションが切れました' });
-          case AppErr.BadRequestError:
-            // TODO: レスポンス中のエラーの表示
-            throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
-          case AppErr.UnhandledError:
-            throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
-          default:
-            throw new SubmissionError({ _error: '未知のエラーです' });
-        }
-      });
+    );
+    promises.push(
+      api.courses.getConfig(coursePk).then(res => {
+        this.setState({ showGpaField: res.show_gpa, showScreenNameField: res.show_username });
+      })
+    );
+    promises.push(
+      api.courses.getRanks(coursePk).then(res => {
+        resLab1 = res[0].pk;
+        resLab2 = res[1].pk;
+        resLab3 = res[2].pk;
+      })
+    );
+    promises.push(
+      api.me.getMe().then(res => {
+        resGpa = res.gpa;
+        resScreenName = res.screen_name;
+      })
+    );
+
+    Promise.all(promises).then(() => {
+      if (resGpa && resScreenName) {
+        this.props.initialize({ lab1: resLab1, lab2: resLab2, lab3: resLab3, gpa: resGpa, screenName: resScreenName });
+      } else if (resGpa && !resScreenName) {
+        this.props.initialize({ lab1: resLab1, lab2: resLab2, lab3: resLab3, gpa: resGpa });
+      } else if (!resGpa && resScreenName) {
+        this.props.initialize({ lab1: resLab1, lab2: resLab2, lab3: resLab3, screenName: resScreenName });
+      } else {
+        this.props.initialize({ lab1: resLab1, lab2: resLab2, lab3: resLab3 });
+      }
+    });
   }
 
   public handleHopeLabs = (values: FormParams) => {
@@ -148,12 +148,6 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
       });
     }
 
-    // function proimisePostRanks(coursePk: number, labPks: number[]) {
-    //   return new Promise(() => {
-    //     postRanks(coursePk, labPks);
-    //   });
-    // }
-
     return api.me
       .patchMeNullIgnore(values.screenName, values.gpa)
       .then(() => api.courses.postRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3]))
@@ -174,27 +168,6 @@ class HopeLabs extends React.Component<HopeLabsProps, HopeLabsState> {
             throw new SubmissionError({ _error: '未知のエラーです' });
         }
       });
-
-    // var promise = Promise.resolve();
-    // return promise
-    //   .then(() => proimisePostRanks(this.props.match.params.coursePk, [values.lab1, values.lab2, values.lab3]))
-    //   .then(() => {
-    //     this.setState({ showDialog: true });
-    //   })
-    //   .catch((e: Error) => {
-    //     switch (e.constructor) {
-    //       case AppErr.UnAuthorizedError:
-    //         this.props.history.push('/login/');
-    //         throw new SubmissionError({ _error: 'ログインセッションが切れました' });
-    //       case AppErr.BadRequestError:
-    //         // TODO: レスポンス中のエラーの表示
-    //         throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
-    //       case AppErr.UnhandledError:
-    //         throw new SubmissionError({ _error: '研究室希望提出に失敗しました' });
-    //       default:
-    //         throw new SubmissionError({ _error: '未知のエラーです' });
-    //     }
-    //   });
   };
 
   public handleCloseDialog = () => {
