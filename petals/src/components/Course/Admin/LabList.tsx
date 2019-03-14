@@ -18,8 +18,8 @@ import Add from '@material-ui/icons/Add';
 import Delete from '@material-ui/icons/Delete';
 
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { Field, FormAction, InjectedFormProps, reduxForm, reset, SubmissionError, WrappedFieldProps } from 'redux-form';
 
