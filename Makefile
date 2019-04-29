@@ -148,13 +148,15 @@ manage-%: guard-env-%
 prune:
 	@docker image prune
 
-$(API_SRC_DIR)/src/.env.%: guard-env-%
+$(API_SRC_DIR)/.env.%: guard-env-%
 	cp $(API_SRC_DIR)/.env.sample $(API_SRC_DIR)/.env.${*}
 
 $(DB_DIR)/.env.%: guard-env-%
 	cp $(DB_DIR)/.env.sample $(DB_DIR)/.env.${*}
 
-env-%: $(API_SRC_DIR)/src/.env.% $(DB_DIR)/.env.%
+env-%:
+	make $(API_SRC_DIR)/.env.${*}
+	make $(DB_DIR)/.env.${*}
 
 env: env-qa env-dev env-prod
 
