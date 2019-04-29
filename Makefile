@@ -154,10 +154,10 @@ $(API_SRC_DIR)/.env.%: guard-env-%
 $(DB_DIR)/.env.%: guard-env-%
 	cp $(DB_DIR)/.env.sample $(DB_DIR)/.env.${*}
 
-env-%: $(API_SRC_DIR)/.env.% $(DB_DIR)/.env.%
-	
+env-%:
+	make $(API_SRC_DIR)/.env.${*}
+	make $(DB_DIR)/.env.${*}
 
 env: env-qa env-dev env-prod
 
 .PHONY: venv image pull db deps dev dev-clean dev-stop guard-env-% start-% stop-% clean-% manage-% migrate-% prune env-% env update-% ;
-.SECONDARY: ${API_SRC_DIR}/.env.qa ${API_SRC_DIR}/.env.dev ${API_SRC_DIR}/.env.prod
