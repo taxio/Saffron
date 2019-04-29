@@ -155,6 +155,7 @@ $(DB_DIR)/.env.%: guard-env-%
 	cp $(DB_DIR)/.env.sample $(DB_DIR)/.env.${*}
 
 env-%: $(API_SRC_DIR)/src/.env.% $(DB_DIR)/.env.%
+	
 
 env: env-qa env-dev env-prod
 
