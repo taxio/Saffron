@@ -15,7 +15,7 @@
     "redux-saga": "^1.0.2"
   },
   "scripts": {
-    "start": "NODE_ENV=development parcel serve -p 3000 public/index.html",
+    "start": "parcel serve -p 3000 public/index.html",
     "build": "NODE_ENV=production parcel build --no-source-maps public/index.html",
     "qa-build": "rm -rf dist & NODE_ENV=development parcel build public/index.html",
     "prebuild": "rm -rf dist",

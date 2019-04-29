@@ -84,7 +84,7 @@ const SettingsRouter: React.FC = () => (
   <Switch>
     <Route exact={true} path={`/settings`} component={Settings} />
     <Route exact={true} path={`/settings/password`} component={AuthComponents.ChangePassword} />
-    <Route exact={true} path={`/settings/delete`} component={AuthComponents.DeleteAccount} />
+    <Route exact={true} path={`/settings/delete`} component={() => <div>TODO</div>} />
   </Switch>
 );
 
@@ -94,7 +94,7 @@ const CourseRouter: React.FC = () => (
     <Route exact={true} path={`/courses/create`} component={CourseComponents.CourseCreateManager} />
     <Route exact={true} path={`/courses/:coursePk`} component={() => <div>TODO</div>} />
     <Route exact={true} path={`/courses/:coursePk/labs/:labPk`} component={() => <div>TODO</div>} />
-    <Route exact={true} path={`/courses/:coursePk/hopes`} component={() => <div>TODO</div>} />
+    <Route exact={true} path={`/courses/:coursePk/hopes`} component={CourseComponents.HopeLabs} />
     <Route exact={true} path={`/courses/:coursePk/admin`} component={() => <div>TODO</div>} />
   </Switch>
 );

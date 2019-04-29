@@ -1,3 +1,4 @@
+import { deleteNullObj } from '../lib/util';
 import * as model from '../model';
 import * as util from './util';
 
@@ -11,6 +12,18 @@ export const patchMe = async (screenName: string | null = null, gpa: number | nu
     gpa,
   };
   return util.sendRequest(util.Methods.Patch, '/me/', data, true);
+};
+
+export const patchMeNullIgnore = async (
+  screenName: string | null = null,
+  gpa: number | null = null
+): Promise<model.User> => {
+  const data = {
+    screen_name: screenName,
+    gpa,
+  };
+  const normalized = deleteNullObj(data);
+  return util.sendRequest(util.Methods.Patch, '/me/', normalized, true);
 };
 
 interface DeleteMeRequest {

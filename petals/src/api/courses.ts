@@ -103,8 +103,8 @@ export const deleteLab = async (coursePk: number, labPk: number): Promise<{}> =>
   return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/labs/${labPk}/`, {}, true);
 };
 
-export const getRanks = async (coursePk: number): Promise<model.Course[]> => {
-  return util.sendRequest(util.Methods.Delete, `/courses/${coursePk}/ranks/`, {}, true);
+export const getRanks = async (coursePk: number): Promise<model.Lab[]> => {
+  return util.sendRequest(util.Methods.Get, `/courses/${coursePk}/ranks/`, {}, true);
 };
 
 export const postRanks = async (coursePk: number, labPks: number[]): Promise<{}> => {
