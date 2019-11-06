@@ -928,10 +928,10 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
-"@types/redux-form@^7.4.15":
-  version "7.5.2"
-  resolved "https://registry.yarnpkg.com/@types/redux-form/-/redux-form-7.5.2.tgz#7f304cbfa03475a40a150eea85d88172c282916f"
-  integrity sha512-J/qacLqTclxrfhuS35p8fDUsWCW1/+QGsExTVGHDG3OTHelLSVeZx+bvTVnvT9XQDjASwLKPNezOqvQ0gEamDA==
+"@types/redux-form@^8.2.0":
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/@types/redux-form/-/redux-form-8.2.0.tgz#e177fb1b837c11ec4c9eb66b4f5e833cdb4bef3f"
+  integrity sha512-tC3DGzd7hvunwjcb+8VOuzaRq+/m56aw5zujHE8AsZs0ZjqIpJDrq95T40Wms7cAazfR+02hpQS/NzsNJICoJA==
   dependencies:
     "@types/react" "*"
     redux "^3.6.0 || ^4.0.0"
